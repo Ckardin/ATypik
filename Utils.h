@@ -22,12 +22,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <random>
+#include <chrono>
 #include "Defines.h"
 
 namespace Fenyx::Types
 {
 
-QWORD GetTimestamp();
+DWORD GetTimestamp();
 QWORD GetTimestampMilli();
 
 char toChar(BYTE a);
