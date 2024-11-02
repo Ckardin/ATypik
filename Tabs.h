@@ -31,7 +31,7 @@ template<class T, DWORD s>
 class STable
 {
 public:
-    STable();
+    explicit STable(T defv);
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] bool GetFatal() const;
@@ -46,6 +46,7 @@ private:
 
   	DWORD s_tab;
     DWORD c_tab;
+    T v_def;
     bool error;
     bool fatal;
 };
@@ -80,7 +81,7 @@ template<class K, class V>
 class MTable
 {
 public:
-    MTable(K defv_k, V defv_v);
+    explicit MTable(K defv_k, V defv_v);
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] bool GetFatal() const;
@@ -117,7 +118,7 @@ barray BytesArray(allnum data);
 
 
 template<class T, DWORD s>
-STable<T, s>::STable() {
+STable<T, s>::STable(T defv) {
     data = nullptr;
     data = new T[s];
 
@@ -128,6 +129,8 @@ STable<T, s>::STable() {
         error = fatal = false;
         s_tab = c_tab = s;
     }
+
+    v_def = defv;
 }
 
 template<class T, DWORD s>
@@ -155,13 +158,13 @@ T& STable<T, s>::operator[](DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
             if (!error) error = true;
-            return nullptr;
+            return v_def;
         }
 
         return data[idx];
     }
 
-    return nullptr;
+    return v_def;
 }
 
 template<class T, DWORD s>
@@ -228,7 +231,7 @@ T& DTable<T>::operator[](DWORD idx) {
                 temp_d = new T[s_tab];
                 if (temp_d == nullptr) {
                     error = fatal = true; s_tab = 0;
-                    return nullptr;
+                    return v_def;
                 }
 
                 for (DWORD i = 0; i < s_tab; ++i) temp_d[i] = data[i];
@@ -238,7 +241,7 @@ T& DTable<T>::operator[](DWORD idx) {
             data = new T[idx + 1];
             if (data == nullptr) {
                 error = true; fatal = true;
-                return nullptr;
+                return v_def;
             }
 
             if (s_tab != 0) for (DWORD i = 0; i < s_tab; ++i) data[i] = temp_d[i];
@@ -253,7 +256,7 @@ T& DTable<T>::operator[](DWORD idx) {
         return data[idx];
     }
 
-    return nullptr;
+    return v_def;
 }
 
 template<class T>
@@ -264,7 +267,7 @@ DTable<T>::~DTable() {
 
 template<class K, class V>
 MTable<K, V>::MTable(K defv_k, V defv_v) {
-    keys = values = nullptr;
+    keys = nullptr; values = nullptr;
     keys = new K[2]; values = new V[2];
 
     if (keys == nullptr || values == nullptr) {
@@ -335,7 +338,7 @@ V& MTable<K, V>::operator[](K idx) {
                     if (temp_k != nullptr) delete[] temp_k; // NOLINT(*-delete-null-pointer)
                     if (temp_v != nullptr) delete[] temp_v; // NOLINT(*-delete-null-pointer)
                     error = fatal = true; s_tab = 0;
-                    return nullptr;
+                    return vv_def;
                 }
 
                 for (DWORD i = 0; i < s_tab; ++i) temp_k[i] = keys[i];
@@ -350,7 +353,7 @@ V& MTable<K, V>::operator[](K idx) {
                 if (values != nullptr) delete[] values; // NOLINT(*-delete-null-pointer)
 
                 error = fatal = true; s_tab = 0;
-                return nullptr;
+                return vv_def;
             }
 
             if (s_tab != 0) {
@@ -365,7 +368,7 @@ V& MTable<K, V>::operator[](K idx) {
         return values[s_tab - 1];
     }
 
-    return nullptr;
+    return vv_def;
 }
 
 template<class K, class V>

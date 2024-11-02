@@ -40,7 +40,7 @@ namespace Fenyx::Types
 
 barray BytesArray(allnum data) {
 	using T = std::decay_t<decltype(data)>;
-	barray bytes;
+	barray bytes(0);
 
 	if (!bytes.GetFatal()) {
 		bytes[0] = sizeof(T);
