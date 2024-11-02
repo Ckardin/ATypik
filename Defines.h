@@ -22,12 +22,12 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#include <optional>
 #include <variant>
+#include <cstdint>
+#include <optional>
+#include <istream>
 
-namespace Fenyx
-{
-namespace Types
+namespace Fenyx::Types
 {
 
 typedef uint8_t      BYTE;
@@ -45,16 +45,42 @@ typedef __int128_t sSWORD;
 using allpnum = std::variant<unsigned int, BYTE, WORD, DWORD, QWORD, SWORD>;
 using allnum  = std::variant<unsigned int, BYTE, WORD, DWORD, QWORD, SWORD, int, sBYTE, sWORD, sDWORD, sQWORD, sSWORD>;
 
-using barray = std::array<BYTE, 17>;
+class TriBool
+{
+public:
+    TriBool() = default;
+    TriBool(TriBool const& b);
+    explicit TriBool(bool u, bool v = false);
 
+    void SetValue(bool u = true, bool v = false);
+    [[nodiscard]] bool IsUndef() const;
+    [[nodiscard]] bool GetValue() const;
 
-std::ostream& operator<<(std::ostream& os, SWORD const& v);
-std::ostream& operator<<(std::ostream& os, sSWORD const& v);
+    TriBool& operator= (TriBool const& b);
+    TriBool& operator|=(TriBool const& b);
+    TriBool& operator&=(TriBool const& b);
+    TriBool& operator^=(TriBool const& b);
+    TriBool& operator~ ();
 
-std::istream& operator>>(std::istream& is, SWORD& v);
-std::istream& operator>>(std::istream& is, sSWORD& v);
+private:
+    std::optional<bool> n;
+
+    friend TriBool operator|(const TriBool& b1, const TriBool& b2);
+    friend TriBool operator&(const TriBool& b1, const TriBool& b2);
+    friend TriBool operator^(const TriBool& b1, const TriBool& b2);
+
+    friend bool operator==(const TriBool& b1, const TriBool& b2);
+    friend bool operator!=(const TriBool& b1, const TriBool& b2);
+    friend bool operator==(const TriBool& b1, const bool& b2);
+    friend bool operator!=(const TriBool& b1, const bool& b2);
+    friend bool operator==(const bool& b1, const TriBool& b2);
+    friend bool operator!=(const bool& b1, const TriBool& b2);
+
+    friend std::ostream& operator<<(std::ostream& os, TriBool const& b);
+    friend std::istream& operator>>(std::istream& is, TriBool& b);
+};
 
 }
-}
+
 
 #endif //DEFINES_H
