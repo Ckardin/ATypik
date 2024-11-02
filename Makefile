@@ -19,7 +19,7 @@ dox:
 	@make -C Doc/Latex --no-print-directory > LatexCompileFile.txt 2>&1
 
 clean:
-	
+	rm *.o
 
 mrproper:
 	
