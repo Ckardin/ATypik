@@ -7,8 +7,8 @@ CC=g++
 AR=ar
 CXXFLAGS = -fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./
 
-all: Defines.o Tabs.o dox
-	g++ -o build/libATypik.dll -shared Defines.o Tabs.o
+all: Defines.o Tabs.o Utils.o StrUtils.o dox
+	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o
 
 install:
 
@@ -20,6 +20,14 @@ Defines.o: Defines.h Defines.cpp
 Tabs.o: Tabs.h Tabs.cpp
 	@MakeInfo module Tabs
 	@g++ $(CXXFLAGS) -c Tabs.cpp -o build/Tabs.o
+
+Utils.o: Utils.h Utils.cpp
+	@MakeInfo module Utils
+	@g++ $(CXXFLAGS) -c Utils.cpp -o build/Utils.o
+
+StrUtils.o: StrUtils.h StrUtils.cpp
+	@MakeInfo module StrUtils
+	@g++ $(CXXFLAGS) -c StrUtils.cpp -o build/StrUtils.o
 
 dox:
 	@MakeInfo doc API
