@@ -29,6 +29,10 @@ StrUtils.o: StrUtils.h StrUtils.cpp
 	@MakeInfo module StrUtils
 	@g++ $(CXXFLAGS) -c StrUtils.cpp -o build/StrUtils.o
 
+Int.o: Int.h Int.cpp
+	@MakeInfo module Int
+	@g++ $(CXXFLAGS) -c Int.cpp -o build/Int.o
+
 dox:
 	@MakeInfo doc API
 	@doxygen Doc/Doxygen/Doxyfile > DocCompileFile.txt 2>&1
