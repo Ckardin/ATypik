@@ -23,12 +23,10 @@
 #define STRUTILS_H
 
 #include <sstream>
-#include "Tabs.h"
+#include "Utils.h"
 
 namespace Fenyx::Types
 {
-
-extern const STable<char, 16> HexConv;
 
 std::ostream& operator<<(std::ostream& os, SWORD const& v);
 std::ostream& operator<<(std::ostream& os, sSWORD const& v);
@@ -49,9 +47,9 @@ bool IsNum(char c);
 bool IsHex(char c);
 bool IsNumS(std::string const& str);
 bool IsHexS(std::string const& str);
-DWORD HexN(char c, bool &err);
-std::string DecTHex(std::string str, bool &err);
-std::string DecFHex(std::string const& str, bool &err);
+BYTE HexN(char c, bool &err);
+// std::string DecTHex(std::string str, bool &err);
+// std::string DecFHex(std::string const& str, bool &err);
 
 
 
