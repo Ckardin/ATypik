@@ -34,6 +34,7 @@ public:
     explicit STable(T defv);
 
     [[nodiscard]] DWORD GetSize() const;
+    [[nodiscard]] T GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
 
@@ -58,6 +59,7 @@ public:
     explicit DTable(T defv);
 
     [[nodiscard]] DWORD GetSize() const;
+    [[nodiscard]] T GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void Erase(DWORD idx);
@@ -84,6 +86,7 @@ public:
     explicit MTable(K defv_k, V defv_v);
 
     [[nodiscard]] DWORD GetSize() const;
+    [[nodiscard]] V GetValue(K key) const;
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void Erase(K const& idx);
@@ -136,6 +139,20 @@ STable<T, s>::STable(T defv) {
 template<class T, DWORD s>
 DWORD STable<T, s>::GetSize() const {
     return s_tab;
+}
+
+template<class T, DWORD s>
+T STable<T, s>::GetValue(DWORD idx) {
+    if (!fatal) {
+        if (idx >= s_tab) {
+            error = true;
+            return v_def;
+        }
+
+        return data[idx];
+    }
+
+    return v_def;
 }
 
 template<class T, DWORD s>
@@ -193,6 +210,20 @@ DTable<T>::DTable(T defv) {
 template<class T>
 DWORD DTable<T>::GetSize() const {
     return s_tab;
+}
+
+    template<class T>
+T DTable<T>::GetValue(DWORD idx) {
+    if (!fatal) {
+        if (idx >= s_tab) {
+            error = true;
+            return v_def;
+        }
+
+        return data[idx];
+    }
+
+    return v_def;
 }
 
 template<class T>
@@ -289,6 +320,21 @@ MTable<K, V>::MTable(K defv_k, V defv_v) {
 template<class K, class V>
 DWORD MTable<K, V>::GetSize() const {
     return s_tab;
+}
+
+template<class K, class V>
+V MTable<K, V>::GetValue(K key) {
+    if (!fatal) {
+        DWORD idx = IsExist(key);
+        if (idx == s_tab) {
+            error = true;
+            return vv_def;
+        }
+
+        return values[idx];
+    }
+
+    return vv_def;
 }
 
 template<class K, class V>
