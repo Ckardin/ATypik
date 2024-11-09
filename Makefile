@@ -7,7 +7,7 @@ CC=g++
 AR=ar
 CXXFLAGS = -fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./
 
-all: Defines.o Tabs.o Utils.o StrUtils.o Int.o dox
+all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox
 	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o Int.o
 
 install:
@@ -28,6 +28,10 @@ Utils.o: Utils.h Utils.cpp
 StrUtils.o: StrUtils.h StrUtils.cpp
 	@MakeInfo module StrUtils
 	@g++ $(CXXFLAGS) -c StrUtils.cpp -o build/StrUtils.o
+
+AlgoMath.o: AlgoMath.h AlgoMath.cpp InfInt.h
+	@MakeInfo module AlgoMath
+	@g++ $(CXXFLAGS) -c AlgoMath.cpp -o build/AlgoMath.o
 
 dox:
 	@MakeInfo doc API

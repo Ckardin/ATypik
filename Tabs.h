@@ -86,7 +86,7 @@ public:
     explicit MTable(K defv_k, V defv_v);
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] V GetValue(K key) const;
+    [[nodiscard]] V GetValue(K key);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void Erase(K const& idx);
