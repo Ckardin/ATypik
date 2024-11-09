@@ -24,19 +24,55 @@
 
 #include "Utils.h" // for <random> include and [Defines]
 #include "InfInt.h"
+#include <regex>
 
 namespace Fenyx::Types
 {
 
+InfInt NaivePow    (InfInt const& a, InfInt const& b);
 InfInt Pow         (InfInt const& x, InfInt const& n);
 InfInt Pow2        (InfInt const& n);
 InfInt Pow16       (InfInt const& n);
-InfInt PowM        (InfInt const& a, InfInt const& b, InfInt const& m);
-InfInt PowM2       (InfInt const& a, InfInt const& b, InfInt const& m);
+InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m);
+InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m);
 InfInt RandTestMR  (InfInt const& n);
 bool   MillerTest  (InfInt const& n, InfInt const& a);
 bool   MillerRabin (InfInt const& n, BYTE k = 48);
 void   ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &r, InfInt &u, InfInt &v);
+
+
+class Complex {
+public:
+	Complex();
+	Complex(InfInt const& r, InfInt const& u);
+	Complex(Complex const& oth);
+
+	[[nodiscard]] bool IsReal() const;
+	[[nodiscard]] bool IsImag() const;
+	[[nodiscard]] InfInt Real() const;
+	[[nodiscard]] InfInt Imag() const;
+
+	Complex& operator=(Complex const& oth);
+	Complex& operator+=(Complex const& oth);
+	Complex& operator-=(Complex const& oth);
+	Complex& operator*=(Complex const& oth);
+	Complex& operator/=(Complex const& oth);
+
+private:
+	InfInt re;
+	InfInt im;
+
+	friend Complex operator+(Complex const& lhs, Complex const& rhs);
+	friend Complex operator-(Complex const& lhs, Complex const& rhs);
+	friend Complex operator*(Complex const& lhs, Complex const& rhs);
+	friend Complex operator/(Complex const& lhs, Complex const& rhs);
+
+	friend bool operator==(Complex const& lhs, Complex const& rhs);
+	friend bool operator!=(Complex const& lhs, Complex const& rhs);
+
+	friend std::ostream& operator<<(std::ostream& os, Complex const& rhs);
+	friend std::istream& operator>>(std::istream& is, Complex& rhs);
+};
 
 }
 
