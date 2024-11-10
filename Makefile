@@ -1,4 +1,4 @@
-.PHONY: mrproper, clean, dox, install
+.PHONY: mrproper, clean, dox, install, tests
 # .PHONY: clean, doc, install, Prepare
 
 .SUFFIXES:
@@ -8,10 +8,13 @@ AR=ar
 CXXFLAGS = -fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./
 
 all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox
-	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o Int.o
+	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o
 
 install:
 
+
+
+# Object Files
 
 Defines.o: Defines.h Defines.cpp
 	@MakeInfo module Defines
@@ -33,6 +36,9 @@ AlgoMath.o: AlgoMath.h AlgoMath.cpp InfInt.h
 	@MakeInfo module AlgoMath
 	@g++ $(CXXFLAGS) -c AlgoMath.cpp -o build/AlgoMath.o
 
+
+# Others
+
 dox:
 	@MakeInfo doc API
 	@doxygen Doc/Doxygen/Doxyfile > DocCompileFile.txt 2>&1
@@ -46,3 +52,18 @@ clean:
 mrproper:
 	@MakeInfo clean BuildDir
 	@rm build
+
+
+# Testing
+
+tests: TestDefines.exe
+	@./TestDefines.exe
+
+TestDefines.exe: TestDefines.o
+	@MakeInfo program_s TestDefines
+	g++ Defines.o TestDefines.o -o TestDefines.exe
+
+TestDefines.o: TestDefines.cpp Defines.o
+	@MakeInfo module TestDefines
+	@g++ $(CXXFLAGS) -c TestDefines -o TestDefines.o
+
