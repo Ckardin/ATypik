@@ -24,15 +24,22 @@
 
 int main(void) {
  	Fenyx::Types::TriBool trb;
-    Fenyx::Types::TriBool trb2(true, false);
+    Fenyx::Types::TriBool trb2(false, false);
     Fenyx::Types::TriBool trb3(trb2);
 
-    if (trb2 != trb3)             std::cout << "Test KO." << std::endl;
-    if (trb2.GetValue() != false) std::cout << "Test KO." << std::endl;
+    if (trb2 != trb3) {
+      	std::cout << "Test KO." << std::endl;
+        return -1;
+   	}
+    if (trb2.GetValue() != false) {
+      	std::cout << "Test KO." << std::endl;
+        return -2;
+    }
 
     std::cout << "TRB1 => " << trb << std::endl;
     std::cout << "TRB2 => " << trb2 << std::endl;
     std::cout << "TRB3 => " << trb3 << std::endl;
+    std::cout << "" <<std::endl;
 
     std::cout << "Test OK." << std::endl;
 
