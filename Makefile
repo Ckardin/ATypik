@@ -56,14 +56,22 @@ mrproper:
 
 # Testing
 
-tests: TestDefines.exe
+tests: TestDefines.exe TestStrUtils.exe
 	@./TestDefines.exe
+	@./TestStrUtils.exe
 
 TestDefines.exe: TestDefines.o
 	@MakeInfo program_s TestDefines
-	g++ Defines.o TestDefines.o -o TestDefines.exe
+	@g++ Defines.o TestDefines.o -o TestDefines.exe
 
 TestDefines.o: TestDefines.cpp Defines.o
 	@MakeInfo module TestDefines
-	@g++ $(CXXFLAGS) -c TestDefines -o TestDefines.o
+	@g++ $(CXXFLAGS) -c TestDefines.cpp -o TestDefines.o
 
+TestStrUtils.exe: TestStrUtils.o
+	@MakeInfo program_s TestStrUtils
+	@g++ Tabs.o TestStrUtils.o -o TestStrUtils.exe
+
+TestStrUtils.o: TestStrUtils.cpp Tabs.o
+	@MakeInfo module TestStrUtils
+	@g++ $(CXXFLAGS) -c TestStrUtils.cpp -o TestStrUtils.o
