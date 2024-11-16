@@ -7,7 +7,7 @@ CC=g++
 AR=ar
 CXXFLAGS = -fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./
 
-all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox
+all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox tests
 	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o
 
 install:
@@ -56,7 +56,7 @@ mrproper:
 
 # Testing
 
-tests: TestDefines.exe TestStrUtils.exe
+tests: TestDefines.exe TestTabs.exe TestStrUtils.exe
 	@./TestDefines.exe
 	@./TestStrUtils.exe
 
@@ -67,6 +67,14 @@ TestDefines.exe: TestDefines.o
 TestDefines.o: TestDefines.cpp Defines.o
 	@MakeInfo module TestDefines
 	@g++ $(CXXFLAGS) -c TestDefines.cpp -o TestDefines.o
+
+TestTabs.exe: TestTabs.o
+	@MakeInfo program_s TestTabs
+	@g++ Defines.o TestTabs.o -o TestTabs.exe
+
+TestTabs.o: TestTabs.cpp Defines.o
+	@MakeInfo module TestTabs
+	@g++ $(CXXFLAGS) -c TestTabs.cpp -o TestTabs.o
 
 TestStrUtils.exe: TestStrUtils.o
 	@MakeInfo program_s TestStrUtils
