@@ -70,16 +70,16 @@ TestDefines.o: TestDefines.cpp Defines.o
 
 TestTabs.exe: TestTabs.o
 	@MakeInfo program_s TestTabs
-	@g++ Defines.o TestTabs.o -o TestTabs.exe
+	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestTabs.o -o TestTabs.exe
 
-TestTabs.o: TestTabs.cpp Defines.o
+TestTabs.o: TestTabs.cpp Defines.o Utils.o StrUtils.o Tabs.o
 	@MakeInfo module TestTabs
 	@g++ $(CXXFLAGS) -c TestTabs.cpp -o TestTabs.o
 
 TestStrUtils.exe: TestStrUtils.o
 	@MakeInfo program_s TestStrUtils
-	@g++ Tabs.o TestStrUtils.o -o TestStrUtils.exe
+	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestStrUtils.o -o TestStrUtils.exe
 
-TestStrUtils.o: TestStrUtils.cpp Tabs.o
+TestStrUtils.o: TestStrUtils.cpp Defines.o Utils.o StrUtils.o Tabs.o
 	@MakeInfo module TestStrUtils
 	@g++ $(CXXFLAGS) -c TestStrUtils.cpp -o TestStrUtils.o

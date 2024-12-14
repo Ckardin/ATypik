@@ -32,6 +32,8 @@ int main() {
 		return -1;
 	}
 
+	for (Fenyx::Types::BYTE i = 0; i < 10; ++i) s1[i] = i;
+
 	for (Fenyx::Types::BYTE i = 0; i < 10; ++i) {
 		d1[i] = i;
 		if (d1.GetFatal()) {
@@ -48,9 +50,14 @@ int main() {
 		}
 	}
 
-	if (s1.GetSize() != d1.GetSize() || d1.GetSize() != m1.GetSize()) {
+	if (s1[1] != 1 || d1[1] != 1 || m1["v1"] != 1) {
 		std::cout << "Test KO." <<std::endl;
 		return -4;
+	}
+
+	if (s1.GetSize() != d1.GetSize() || d1.GetSize() != m1.GetSize()) {
+		std::cout << "Test KO." <<std::endl;
+		return -5;
 	}
 
 	std::cout << "Test OK." <<std::endl;
