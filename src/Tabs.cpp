@@ -38,6 +38,11 @@ namespace Fenyx::Types
 	}
 #endif // LITTLE_ENDIAN
 
+/// @brief BytesArray - Convertit un nombre en tableau d'octets
+///
+/// @param[in] data: nombre à convertir
+///
+/// @return un STable d'octets représentant le nombre.
 barray BytesArray(allnum data) {
 	using T = std::decay_t<decltype(data)>;
 	barray bytes(0);
