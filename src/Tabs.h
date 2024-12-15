@@ -255,11 +255,10 @@ void DTable<T>::Clear() {
 template<class T>
 T& DTable<T>::operator[](DWORD idx) {
     if (!fatal) {
-        T* temp_d;
+        T* temp_d = new T[s_tab];
 
         if (idx >= c_tab) {
             if (s_tab != 0) {
-                temp_d = new T[s_tab];
                 if (temp_d == nullptr) {
                     error = fatal = true; s_tab = 0;
                     return v_def;
@@ -373,13 +372,12 @@ void MTable<K, V>::Clear() {
 template<class K, class V>
 V& MTable<K, V>::operator[](K idx) {
     if (!fatal) {
-        K* temp_k; V* temp_v;
+        K* temp_k = new K[s_tab]; V* temp_v = new V[s_tab];
 
         if (const DWORD idx_i = IsExist(idx); idx_i != s_tab) return values[idx_i];
 
         if (s_tab == c_tab) {
             if (s_tab != 0) {
-                temp_k = new K[s_tab]; temp_v = new V[s_tab];
                 if (temp_k == nullptr || temp_v == nullptr) {
                     if (temp_k != nullptr) delete[] temp_k; // NOLINT(*-delete-null-pointer)
                     if (temp_v != nullptr) delete[] temp_v; // NOLINT(*-delete-null-pointer)
