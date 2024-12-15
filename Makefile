@@ -1,4 +1,4 @@
-.PHONY: mrproper, clean, dox, install
+.PHONY: mrproper, clean, dox, install, tests
 # .PHONY: clean, doc, install, Prepare
 
 .SUFFIXES:
@@ -7,11 +7,14 @@ CC=g++
 AR=ar
 CXXFLAGS = -fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./
 
-all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox
-	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o Int.o
+all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox tests
+	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o
 
 install:
 
+
+
+# Object Files
 
 Defines.o: Defines.h Defines.cpp
 	@MakeInfo module Defines
@@ -33,6 +36,9 @@ AlgoMath.o: AlgoMath.h AlgoMath.cpp InfInt.h
 	@MakeInfo module AlgoMath
 	@g++ $(CXXFLAGS) -c AlgoMath.cpp -o build/AlgoMath.o
 
+
+# Others
+
 dox:
 	@MakeInfo doc API
 	@doxygen Doc/Doxygen/Doxyfile > DocCompileFile.txt 2>&1
@@ -46,3 +52,42 @@ clean:
 mrproper:
 	@MakeInfo clean BuildDir
 	@rm build
+
+
+# Testing
+
+tests: TestDefines.exe TestTabs.exe TestStrUtils.exe TestAlgoMath.exe
+	@./TestDefines.exe
+	@./TestStrUtils.exe
+
+TestDefines.exe: TestDefines.o
+	@MakeInfo program_s TestDefines
+	@g++ Defines.o TestDefines.o -o TestDefines.exe
+
+TestDefines.o: TestDefines.cpp Defines.o
+	@MakeInfo module TestDefines
+	@g++ $(CXXFLAGS) -c TestDefines.cpp -o TestDefines.o
+
+TestTabs.exe: TestTabs.o
+	@MakeInfo program_s TestTabs
+	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestTabs.o -o TestTabs.exe
+
+TestTabs.o: TestTabs.cpp Defines.o Utils.o StrUtils.o Tabs.o
+	@MakeInfo module TestTabs
+	@g++ $(CXXFLAGS) -c TestTabs.cpp -o TestTabs.o
+
+TestTabs.exe: TestAlgoMath.o
+	@MakeInfo program_s TestAlgoMath
+	@g++ Defines.o Utils.o Tabs.o TestAlgoMath.o -o TestAlgoMath.exe
+
+TestAlgoMath.o: TestAlgoMath.cpp Defines.o Tabs.o Utils.o
+	@MakeInfo module TestAlgoMath
+	@g++ $(CXXFLAGS) -c TestAlgoMath.cpp -o TestAlgoMath.o
+
+TestStrUtils.exe: TestStrUtils.o
+	@MakeInfo program_s TestStrUtils
+	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestStrUtils.o -o TestStrUtils.exe
+
+TestStrUtils.o: TestStrUtils.cpp Defines.o Utils.o StrUtils.o Tabs.o
+	@MakeInfo module TestStrUtils
+	@g++ $(CXXFLAGS) -c TestStrUtils.cpp -o TestStrUtils.o

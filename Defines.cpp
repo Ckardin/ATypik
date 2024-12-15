@@ -156,6 +156,9 @@ std::ostream& operator<<(std::ostream& os, TriBool const& b) {
         return os;
     }
 
+    if (b.n.value() == true) os << "T";
+    else                     os << "F";
+
     return os;
 }
 

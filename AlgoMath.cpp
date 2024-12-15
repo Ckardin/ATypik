@@ -134,7 +134,7 @@ bool   MillerRabin (InfInt const& n, const BYTE k) {
 	return true;
 }
 
-void   ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &r, InfInt &u, InfInt &v) {
+InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v) {
 	InfInt tr = a, tr_ = b, tu = 1, tv = 0, tu_ = 0, tv_ = 1;
 	InfInt q = 0, rs = 0, us = 0, vs = 0;
 
@@ -145,7 +145,9 @@ void   ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &r, InfInt &u, InfI
 		tr_ = rs - (q * tr_); tu_ = us - (q * tu_); tv_ = vs - (q * tv_);
 	}
 
-	r = tr; u = tu; v = tv;
+	u = tu; v = tv;
+
+	return tr;
 }
 
 
@@ -267,7 +269,7 @@ std::ostream& operator<<(std::ostream& os, Complex const& rhs) {
 }
 
 std::istream& operator>>(std::istream& is, Complex& rhs) {
-	const std::regex v_str("^\([0-9]+ [+-]{1} [0-9]+i\)$");
+	const std::regex v_str("^\([0-9]+ [+-]{1} [0-9]+i)$");
 	std::string str_, n1, p, n2;
 	is >> str_;
 

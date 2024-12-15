@@ -100,9 +100,7 @@ std::istream& operator>>(std::istream& is, sSWORD& v) {
 std::string CompleteNbr(allpnum nbr) {
 	return std::visit([](auto && v) -> std::string {
 		using T = std::decay_t<decltype(v)>;
-
-		if(v < 10) return std::string("0" + toString<T>(v));
-		           return toString<T>(v);
+		return (v < 10) ? std::string("0" + toString<T>(v)) : toString<T>(v);
 	}, nbr);
 }
 
