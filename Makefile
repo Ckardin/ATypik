@@ -76,6 +76,14 @@ TestTabs.o: TestTabs.cpp Defines.o Utils.o StrUtils.o Tabs.o
 	@MakeInfo module TestTabs
 	@g++ $(CXXFLAGS) -c TestTabs.cpp -o TestTabs.o
 
+TestTabs.exe: TestAlgoMath.o
+	@MakeInfo program_s TestAlgoMath
+	@g++ Defines.o Utils.o Tabs.o TestAlgoMath.o -o TestAlgoMath.exe
+
+TestAlgoMath.o: TestAlgoMath.cpp Defines.o Tabs.o Utils.o
+	@MakeInfo module TestAlgoMath
+	@g++ $(CXXFLAGS) -c TestAlgoMath.cpp -o TestAlgoMath.o
+
 TestStrUtils.exe: TestStrUtils.o
 	@MakeInfo program_s TestStrUtils
 	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestStrUtils.o -o TestStrUtils.exe
