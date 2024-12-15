@@ -56,7 +56,7 @@ mrproper:
 
 # Testing
 
-tests: TestDefines.exe TestTabs.exe TestStrUtils.exe
+tests: TestDefines.exe TestTabs.exe TestStrUtils.exe TestAlgoMath.exe
 	@./TestDefines.exe
 	@./TestStrUtils.exe
 

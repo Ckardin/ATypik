@@ -267,7 +267,7 @@ std::ostream& operator<<(std::ostream& os, Complex const& rhs) {
 }
 
 std::istream& operator>>(std::istream& is, Complex& rhs) {
-	const std::regex v_str("^\([0-9]+ [+-]{1} [0-9]+i\)$");
+	const std::regex v_str("^\([0-9]+ [+-]{1} [0-9]+i)$");
 	std::string str_, n1, p, n2;
 	is >> str_;
 

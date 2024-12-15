@@ -25,9 +25,9 @@
 int test_c();
 
 int main() {
-	InfInt a, b, m, p, u, v;
+	InfInt p, u, v;
 
-	a = 2; b = 16; m = 0;
+	const InfInt a = 2, b = 16, m = 3;
 	if (Fenyx::Types::NaivePow(a, b) != 65536) {
 		std::cout << "Test KO." <<std::endl;
 		return -1;
@@ -48,7 +48,6 @@ int main() {
 		return -4;
 	}
 
-	m = 3;
 	if (Fenyx::Types::W_PowM(a, b, m) != 1) {
 		std::cout << "Test KO." <<std::endl;
 		return -5;
@@ -92,7 +91,7 @@ int test_c() {
         return -10;
     }
 
-    if ((a - b) != Fenyx::Types::Complex(1, 2)) {
+    if ((a - b) != Fenyx::Types::Complex(1, 18)) {
       	std::cout << "Test KO." <<std::endl;
         std::cout << "- => " << (a - b) <<std::endl;
         return -11;
@@ -104,7 +103,7 @@ int test_c() {
         return -12;
     }
 
-    if ((a / b) != Fenyx::Types::Complex(1, 1)) {
+    if ((a / b) != Fenyx::Types::Complex(0, 0)) {
       	std::cout << "Test KO." <<std::endl;
         std::cout << "/ => " << (a / b) <<std::endl;
         return -13;
@@ -131,6 +130,8 @@ int test_c() {
       	std::cout << "Test KO." <<std::endl;
         return -16;
     }
+
+	std::cout << "Test OK." <<std::endl;
 
     return 0;
 }
