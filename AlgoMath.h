@@ -35,10 +35,10 @@ InfInt Pow2        (InfInt const& n);
 InfInt Pow16       (InfInt const& n);
 InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m);
 InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m);
+InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v);
 InfInt RandTestMR  (InfInt const& n);
 bool   MillerTest  (InfInt const& n, InfInt const& a);
 bool   MillerRabin (InfInt const& n, BYTE k = 48);
-void   ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &r, InfInt &u, InfInt &v);
 
 
 class Complex {

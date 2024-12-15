@@ -25,9 +25,8 @@
 int test_c();
 
 int main() {
-	InfInt p, u, v;
-
 	const InfInt a = 2, b = 16, m = 3;
+
 	if (Fenyx::Types::NaivePow(a, b) != 65536) {
 		std::cout << "Test KO." <<std::endl;
 		return -1;
@@ -68,8 +67,7 @@ int main() {
         return -7;
     }
 
-	Fenyx::Types::ExtEuclide(1457, 3475, p, u, v);
-    if (p != 1) {
+    if (InfInt u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v) != 1) {
       	std::cout << "Test KO." <<std::endl;
         return -8;
     }
