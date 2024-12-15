@@ -5,10 +5,13 @@
 
 CC=g++
 AR=ar
-CXXFLAGS = -fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./
+CXXFLAGS=-O2 -Wall -Wextra -Werror -std=c++17 -I./src
 
-all: Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o dox tests
-	g++ -o build/libATypik.dll -shared Defines.o Tabs.o Utils.o StrUtils.o AlgoMath.o
+all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
+	@MakeInfo dynamic ATypik
+	@$(CC) -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
+	@MakeInfo static ATypik
+	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
 
 install:
 
@@ -16,25 +19,25 @@ install:
 
 # Object Files
 
-Defines.o: Defines.h Defines.cpp
+build/Defines.o: src/Defines.h src/Defines.cpp
 	@MakeInfo module Defines
-	@g++ $(CXXFLAGS) -c Defines.cpp -o build/Defines.o
+	@$(CC) $(CXXFLAGS) -c src/Defines.cpp -o build/Defines.o
 
-Tabs.o: Tabs.h Tabs.cpp
+build/Tabs.o: src/Tabs.h src/Tabs.cpp
 	@MakeInfo module Tabs
-	@g++ $(CXXFLAGS) -c Tabs.cpp -o build/Tabs.o
+	@$(CC) $(CXXFLAGS) -c src/Tabs.cpp -o build/Tabs.o
 
-Utils.o: Utils.h Utils.cpp
+build/Utils.o: src/Utils.h src/Utils.cpp
 	@MakeInfo module Utils
-	@g++ $(CXXFLAGS) -c Utils.cpp -o build/Utils.o
+	@$(CC) $(CXXFLAGS) -c src/Utils.cpp -o build/Utils.o
 
-StrUtils.o: StrUtils.h StrUtils.cpp
+build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
 	@MakeInfo module StrUtils
-	@g++ $(CXXFLAGS) -c StrUtils.cpp -o build/StrUtils.o
+	@$(CC) $(CXXFLAGS) -c src/StrUtils.cpp -o build/StrUtils.o
 
-AlgoMath.o: AlgoMath.h AlgoMath.cpp InfInt.h
+build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp src/InfInt.h
 	@MakeInfo module AlgoMath
-	@g++ $(CXXFLAGS) -c AlgoMath.cpp -o build/AlgoMath.o
+	@$(CC) $(CXXFLAGS) -c src/AlgoMath.cpp -o build/AlgoMath.o
 
 
 # Others
@@ -45,49 +48,56 @@ dox:
 	@make -C Doc/Latex --no-print-directory > LatexCompileFile.txt 2>&1
 
 clean:
-	@MakeInfo clean libs
-	@rm build/*.dll
-	@rm build/*.lib
+	@MakeInfo clean objfiles
+	@rm build/*.o
+	@rm build/tests/*.o
 
 mrproper:
-	@MakeInfo clean BuildDir
-	@rm build
+	@MakeInfo clean libs
+	@rm build/*.$(A_SHLIB)
+	@rm build/*.$(A_STLIB)
+	@rm build/tests/*.$(A_EXT)
 
 
 # Testing
 
-tests: TestDefines.exe TestTabs.exe TestStrUtils.exe TestAlgoMath.exe
-	@./TestDefines.exe
-	@./TestStrUtils.exe
+tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestAlgoMath$(A_EXT)
+	@./build/tests/TestDefines$(A_EXT)
+	@./build/tests/TestTabs$(A_EXT)
+	@./build/tests/TestStrUtils$(A_EXT)
+	@./build/tests/TestAlgoMath$(A_EXT)
 
-TestDefines.exe: TestDefines.o
-	@MakeInfo program_s TestDefines
-	@g++ Defines.o TestDefines.o -o TestDefines.exe
 
-TestDefines.o: TestDefines.cpp Defines.o
+build/tests/TestDefines.o: tests/TestDefines.cpp build/Defines.o
 	@MakeInfo module TestDefines
-	@g++ $(CXXFLAGS) -c TestDefines.cpp -o TestDefines.o
+	@$(CC) $(CXXFLAGS) -c tests/TestDefines.cpp -o build/tests/TestDefines.o
 
-TestTabs.exe: TestTabs.o
-	@MakeInfo program_s TestTabs
-	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestTabs.o -o TestTabs.exe
-
-TestTabs.o: TestTabs.cpp Defines.o Utils.o StrUtils.o Tabs.o
+build/tests/TestTabs.o: tests/TestTabs.cpp
 	@MakeInfo module TestTabs
-	@g++ $(CXXFLAGS) -c TestTabs.cpp -o TestTabs.o
+	@$(CC) $(CXXFLAGS) -c tests/TestTabs.cpp -o build/tests/TestTabs.o
 
-TestTabs.exe: TestAlgoMath.o
-	@MakeInfo program_s TestAlgoMath
-	@g++ Defines.o Utils.o Tabs.o TestAlgoMath.o -o TestAlgoMath.exe
-
-TestAlgoMath.o: TestAlgoMath.cpp Defines.o Tabs.o Utils.o
-	@MakeInfo module TestAlgoMath
-	@g++ $(CXXFLAGS) -c TestAlgoMath.cpp -o TestAlgoMath.o
-
-TestStrUtils.exe: TestStrUtils.o
-	@MakeInfo program_s TestStrUtils
-	@g++ Defines.o Utils.o StrUtils.o Tabs.o TestStrUtils.o -o TestStrUtils.exe
-
-TestStrUtils.o: TestStrUtils.cpp Defines.o Utils.o StrUtils.o Tabs.o
+build/tests/TestStrUtils.o: tests/TestStrUtils.cpp
 	@MakeInfo module TestStrUtils
-	@g++ $(CXXFLAGS) -c TestStrUtils.cpp -o TestStrUtils.o
+	@$(CC) $(CXXFLAGS) -c tests/TestStrUtils.cpp -o build/tests/TestStrUtils.o
+
+build/tests/TestAlgoMath.o: tests/TestAlgoMath.cpp
+	@MakeInfo module TestAlgoMath
+	@$(CC) $(CXXFLAGS) -c tests/TestAlgoMath.cpp -o build/tests/TestAlgoMath.o
+
+
+build/tests/TestDefines$(A_EXT): build/tests/TestDefines.o build/Defines.o
+	@MakeInfo program_s TestDefines
+	@$(CC) build/Defines.o build/tests/TestDefines.o -o build/tests/TestDefines$(A_EXT)
+
+build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o
+	@MakeInfo program_s TestTabs
+	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o -o build/tests/TestTabs$(A_EXT)
+
+build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Tabs.o build/Defines.o build/Utils.o build/StrUtils.o
+	@MakeInfo program_s TestStrUtils
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o -o build/tests/TestStrUtils$(A_EXT)
+
+build/tests/TestAlgoMath$(A_EXT): build/tests/TestAlgoMath.o build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o
+	@MakeInfo program_s TestAlgoMath
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o build/tests/TestAlgoMath.o -o build/tests/TestAlgoMath$(A_EXT)
+
