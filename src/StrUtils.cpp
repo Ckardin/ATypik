@@ -24,6 +24,12 @@
 namespace Fenyx::Types
 {
 
+/// @brief operator<< - Surcharge de l'opérateur [<<] pour SWORD
+/// 
+/// @param os: flux de sortie 
+/// @param v: SWORD concerné
+/// 
+/// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, SWORD const& v) {
 	SWORD n = v;
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
@@ -40,7 +46,13 @@ std::ostream& operator<<(std::ostream& os, SWORD const& v) {
 	os << ret;
 	return os;
 }
-
+	
+/// @brief operator<< - Surcharge de l'opérateur [<<] pour sSWORD
+/// 
+/// @param os: flux de sortie
+/// @param v: sSWORD concerné
+/// 
+/// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, sSWORD const& v) {
 	sSWORD n = v;
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
@@ -63,6 +75,12 @@ std::ostream& operator<<(std::ostream& os, sSWORD const& v) {
 	return os;
 }
 
+/// @brief operator>> - Surcharge de l'opérateur [>>] pour SWORD
+/// 
+/// @param is: flux d'entrée
+/// @param v: SWORD concerné
+/// 
+/// @return Une référence sur le flux d'entrée affecté.
 std::istream& operator>>(std::istream& is, SWORD& v) {
 	std::string t;
 	is >> t;
@@ -76,6 +94,12 @@ std::istream& operator>>(std::istream& is, SWORD& v) {
 	return is;
 }
 
+/// @brief operator>> - Surcharge de l'opérateur [>>] pour sSWORD
+/// 
+/// @param is: flux d'entrée
+/// @param v: sSWORD concerné
+/// 
+/// @return Une référence sur le flux d'entrée affecté.
 std::istream& operator>>(std::istream& is, sSWORD& v) {
 	bool neg = false;
 	std::string t;
@@ -97,6 +121,11 @@ std::istream& operator>>(std::istream& is, sSWORD& v) {
 }
 
 
+/// @brief CompleteNbr - Rajoute un '0' avant un nombre inférieur à 10
+/// 
+/// @param nbr: nombre à compléter
+/// 
+/// @return Un std::string avec le nombre tel quel si supérieur à 10, sinon avec un '0' rajouté devant.
 std::string CompleteNbr(allpnum nbr) {
 	return std::visit([](auto && v) -> std::string {
 		using T = std::decay_t<decltype(v)>;
@@ -104,6 +133,11 @@ std::string CompleteNbr(allpnum nbr) {
 	}, nbr);
 }
 
+/// @brief IsNum - Test si un caractère représente un chiffre ou pas
+/// 
+/// @param c: caractère à tester
+/// 
+/// @return true si [c] représente un chiffre (0-9), false sinon.
 bool IsNum(char c) {
 	STable<char, 16> HexConv('0');
 
@@ -118,6 +152,11 @@ bool IsNum(char c) {
 	return false;
 }
 
+/// @brief IsHex - Test si un caractère représente un chiffre hexadécimal ou pas
+///
+/// @param c: caractère à tester
+///
+/// @return true si [c] représente un chiffre hexadécimal (0-9 ou A-F), false sinon.
 bool IsHex(char c) {
 	STable<char, 16> HexConv('0');
 
@@ -132,6 +171,11 @@ bool IsHex(char c) {
 	return false;
 }
 
+/// @brief IsNumS - Test si un std::string représente un nombre
+///
+/// @param str: std::string à tester
+///
+/// @return true si [s] représente un nombre (suite de caractères de 0-9), false sinon.
 bool IsNumS(std::string const& str) {
 	for (std::string::size_type i = 0; i < str.length(); ++i) {
 		if(!IsNum(str[i])) return false;
@@ -140,6 +184,11 @@ bool IsNumS(std::string const& str) {
 	return true;
 }
 
+/// @brief IsHexS - Test si un std::string représente un nombre hexadécimal
+///
+/// @param str: std::string à tester
+///
+/// @return true si [s] représente un nombre hexadécimal (suite de caractères de 0-9 et A-F), false sinon.
 bool IsHexS(std::string const& str) {
 	for (std::string::size_type i = 0; i < str.length(); ++i) {
 		if(!IsHex(str[i])) return false;
@@ -148,6 +197,12 @@ bool IsHexS(std::string const& str) {
 	return true;
 }
 
+/// @brief HexN - Donne la valeur en décimal (0-15) d'un caractère hexadécimal (0-F)
+///
+/// @param c: caractère concerné
+/// @param err: reférence sur booléan (true si erreur, false sinon)
+///
+/// @return La valeur décimal si réussi, 0 sinon.
 BYTE HexN(const char c, bool &err) {
 	STable<char, 16> HexConv('0');
 
