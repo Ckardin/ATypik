@@ -7,7 +7,7 @@ CC=g++
 AR=ar
 CXXFLAGS=-O2 -Wall -Wextra -Werror -std=c++17 -I./src
 
-all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
+all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o dox tests
 	@MakeInfo dynamic ATypik
 	@$(CC) -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
 	@MakeInfo static ATypik
@@ -44,19 +44,23 @@ build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp src/InfInt.h
 
 dox:
 	@MakeInfo doc API
-	@doxygen Doc/Doxygen/Doxyfile > DocCompileFile.txt 2>&1
-	@make -C Doc/Latex --no-print-directory > LatexCompileFile.txt 2>&1
+	@doxygen Doc/Doxygen/Doxyfile > build/doc/DocCompileFile.txt 2>&1
+	@make -C Doc/Latex --no-print-directory > build/doc/LatexCompileFile.txt 2>&1
 
 clean:
 	@MakeInfo clean objfiles
 	@rm build/*.o
 	@rm build/tests/*.o
+	@MakeInfo clean doclogs
+	@rm build/doc/*.txt
 
 mrproper:
 	@MakeInfo clean libs
 	@rm build/*.$(A_SHLIB)
 	@rm build/*.$(A_STLIB)
-	@rm build/tests/*.$(A_EXT)
+	@rm build/tests/*$(A_EXT)
+	@MakeInfo clean doxcompiled
+	@rm Doc/Latex/*
 
 
 # Testing
