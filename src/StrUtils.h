@@ -54,6 +54,11 @@ BYTE HexN(char c, bool &err);
 
 
 template<class T>
+/// @brief toString - Convertit une donnée en std::string
+///
+/// @param[in] t: donnée à convertir
+///
+/// /!\ S'assurer que le type de la donnée à convertir possède une surcharge de l'opérateur [<<].
 std::string toString(T const& t) {
 	std::ostringstream oss;
 	oss << t;
@@ -62,6 +67,11 @@ std::string toString(T const& t) {
 }
 
 template<class T>
+/// @brief toHexString - Convertit une donnée en std::string sous forme hexadécimale
+///
+/// @param[in] t: donnée à convertir
+///
+/// /!\ S'assurer que le type de la donnée à convertir possède une surcharge de l'opérateur [<<].
 std::string toHexString(T const& t) {
 	std::ostringstream oss;
 	oss << std::hex << t;
@@ -70,6 +80,11 @@ std::string toHexString(T const& t) {
 }
 
 template<class T>
+/// @brief fromString - Convertit un std::string en une donnée
+///
+/// @param{in] s: std::string à convertir
+///
+/// /!\ S'assurer que le type de la donnée à convertir possède une surcharge de l'opérateur [>>].
 T fromString(std::string const& s) {
 	T ret;
 	std::istringstream iss(s);

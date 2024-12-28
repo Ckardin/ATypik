@@ -28,6 +28,7 @@ namespace Fenyx::Types
 {
 
 template<class T, DWORD s>
+/// @brief STable - Classe qui permet de gérer un tableau de taille fixe
 class STable
 {
 public:
@@ -53,6 +54,7 @@ private:
 };
 
 template<class T>
+/// @brief DTable - Classe qui permet de gérer un tableau de taille dynamique
 class DTable
 {
 public:
@@ -80,6 +82,7 @@ private:
 };
 
 template<class K, class V>
+/// @brief MTable - Classe qui permet de gérer un tableau associatif clé/valeur
 class MTable
 {
 public:
@@ -121,6 +124,11 @@ barray BytesArray(allnum data);
 
 
 template<class T, DWORD s>
+/// @brief STable - Constructeur
+///
+/// @param[in] defv: valeur par défaut des emplacements du tableau
+///
+/// Constructeur de la classe STable.
 STable<T, s>::STable(T defv) {
     data = nullptr;
     data = new T[s];
@@ -137,11 +145,19 @@ STable<T, s>::STable(T defv) {
 }
 
 template<class T, DWORD s>
+/// @brief GetSize - Donne la taille du tableau
+///
+/// @return Un DWORD contenant la taille du tableau.
 DWORD STable<T, s>::GetSize() const {
     return s_tab;
 }
 
 template<class T, DWORD s>
+/// @brief GetValue - Donne la valeur contenue à un index spécifique
+///
+/// @param[in] idx: index
+///
+/// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
 T STable<T, s>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
@@ -156,11 +172,17 @@ T STable<T, s>::GetValue(DWORD idx) {
 }
 
 template<class T, DWORD s>
+/// @brief GetFatal - Test si une erreur fatale est remontée
+///
+/// @return true si erreur fatale, false sinon.
 bool STable<T, s>::GetFatal() const {
     return fatal;
 }
 
 template<class T, DWORD s>
+/// @brief GetError - Test si une erreur (fatale ou non) est remontée
+///
+/// @return true si erreur, false sinon.
 bool STable<T, s>::GetError() {
     if (error) {
         if (!fatal) error = false;
@@ -171,6 +193,11 @@ bool STable<T, s>::GetError() {
 }
 
 template<class T, DWORD s>
+/// @brief operator[] - Opérateur d'indexation du tableau
+///
+/// @param[in] idx: index
+///
+/// @return Une référence sur la valeur contenue à t[idx] si existe, [v_def] sinon.
 T& STable<T, s>::operator[](DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
@@ -185,12 +212,20 @@ T& STable<T, s>::operator[](DWORD idx) {
 }
 
 template<class T, DWORD s>
+/// @brief ~STable - Destructeur
+///
+/// Destructeur de la classe STable.
 STable<T, s>::~STable() {
     if (!fatal) delete[] data;
 }
 
 
 template<class T>
+/// @brief DTable - Constructeur
+///
+/// @param[in] defv: valeur par défaut des emplacements du tableau
+///
+/// Constructeur de la classe DTable.
 DTable<T>::DTable(T defv) {
     data = nullptr;
     data = new T[2];
@@ -208,11 +243,19 @@ DTable<T>::DTable(T defv) {
 }
 
 template<class T>
+/// @brief GetSize - Donne la taille du tableau
+///
+/// @return Un DWORD contenant la taille du tableau.
 DWORD DTable<T>::GetSize() const {
     return s_tab;
 }
 
-    template<class T>
+template<class T>
+/// @brief GetValue - Donne la valeur contenue à un index spécifique
+///
+/// @param[in] idx: index
+///
+/// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
 T DTable<T>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
@@ -227,11 +270,17 @@ T DTable<T>::GetValue(DWORD idx) {
 }
 
 template<class T>
+/// @brief GetFatal - Test si une erreur fatale est remontée
+///
+/// @return true si erreur fatale, false sinon.
 bool DTable<T>::GetFatal() const {
     return fatal;
 }
 
 template<class T>
+/// @brief GetError - Test si une erreur (fatale ou non) est remontée
+///
+/// @return true si erreur, false sinon.
 bool DTable<T>::GetError() {
     if (error) {
         if (!fatal) error = false;
@@ -242,17 +291,30 @@ bool DTable<T>::GetError() {
 }
 
 template<class T>
+/// @brief Erase - Efface une valeur
+///
+/// @param[in] idx: index de la valeur à effacer
+///
+/// Ne fais rien si l'index demandé est en dehors du tableau.
 void DTable<T>::Erase(DWORD idx) {
     for (DWORD i = idx; i < s_tab; i++) data[i] = data[i + 1];
     if (idx < s_tab) s_tab -= 1;
 }
 
 template<class T>
+/// @brief Clear - Vide le contenu du tableau
+///
+/// Pas de réallocation mémoire, seule la taille est remise à 0. Ne fais rien si erreur fatale.
 void DTable<T>::Clear() {
     if (!fatal) s_tab = 0;
 }
 
 template<class T>
+/// @brief operator[] - Opérateur d'indexation du tableau
+///
+/// @param[in] idx: index
+///
+/// @return Une référence sur la valeur contenue à t[idx] si existe, [v_def] sinon.
 T& DTable<T>::operator[](DWORD idx) {
     if (!fatal) {
         T* temp_d = new T[s_tab];
@@ -290,12 +352,21 @@ T& DTable<T>::operator[](DWORD idx) {
 }
 
 template<class T>
+/// @brief ~DTable - Destructeur
+///
+/// Destructeur de la classe DTable.
 DTable<T>::~DTable() {
     if (!fatal) delete[] data;
 }
 
 
 template<class K, class V>
+/// @brief MTable - Constructeur
+///
+/// @param[in] defv_k: valeur par défaut des clés
+/// @param[in] defv_v: valeur par défaut des emplacements du tableau
+///
+/// Constructeur de la classe MTable.
 MTable<K, V>::MTable(K defv_k, V defv_v) {
     keys = nullptr; values = nullptr;
     keys = new K[2]; values = new V[2];
@@ -317,11 +388,19 @@ MTable<K, V>::MTable(K defv_k, V defv_v) {
 }
 
 template<class K, class V>
+/// @brief GetSize - Donne la taille du tableau
+///
+/// @return Un DWORD contenant la taille du tableau.
 DWORD MTable<K, V>::GetSize() const {
     return s_tab;
 }
 
 template<class K, class V>
+/// @brief GetValue - Donne la valeur associée à une clé spécifique
+///
+/// @param[in] key: clé
+///
+/// @return La valeur contenue à t[key] si existe ou [vv_def] sinon.
 V MTable<K, V>::GetValue(K key) {
     if (!fatal) {
         DWORD idx = IsExist(key);
@@ -337,11 +416,17 @@ V MTable<K, V>::GetValue(K key) {
 }
 
 template<class K, class V>
+/// @brief GetFatal - Test si une erreur fatale est remontée
+///
+/// @return true si erreur fatale, false sinon.
 bool MTable<K, V>::GetFatal() const {
     return fatal;
 }
 
 template<class K, class V>
+/// @brief GetError - Test si une erreur (fatale ou non) est remontée
+///
+/// @return true si erreur, false sinon.
 bool MTable<K, V>::GetError() {
     if (error) {
         if (!fatal) error = false;
@@ -352,6 +437,11 @@ bool MTable<K, V>::GetError() {
 }
 
 template<class K, class V>
+/// @brief Erase - Efface une valeur
+///
+/// @param[in] idx: clé associée à la valeur à effacer
+///
+/// Ne fais rien si la clé demandée n'est pas dans le tableau.
 void MTable<K, V>::Erase(K const& idx) {
     if (!fatal) {
         const DWORD idx_i = IsExist(idx);
@@ -365,11 +455,19 @@ void MTable<K, V>::Erase(K const& idx) {
 }
 
 template<class K, class V>
+/// @brief Clear - Vide le contenu du tableau
+///
+/// Pas de réallocation mémoire, seule la taille est remise à 0. Ne fais rien si erreur fatale.
 void MTable<K, V>::Clear() {
     if (!fatal) s_tab = 0;
 }
 
 template<class K, class V>
+/// @brief operator[] - Opérateur d'indexation du tableau
+///
+/// @param[in] idx: clé
+///
+/// @return Une référence sur la valeur associée à idx si existe, [vv_def] sinon.
 V& MTable<K, V>::operator[](K idx) {
     if (!fatal) {
         K* temp_k = new K[s_tab]; V* temp_v = new V[s_tab];
@@ -416,6 +514,9 @@ V& MTable<K, V>::operator[](K idx) {
 }
 
 template<class K, class V>
+/// @brief ~MTable - Destructeur
+///
+/// Destructeur de la classe MTable.
 MTable<K, V>::~MTable() {
     if (!fatal) {
         delete[] keys;

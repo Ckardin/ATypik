@@ -24,6 +24,12 @@
 namespace Fenyx::Types
 {
 
+/// @brief NaivePow - Exponentiation naive
+///
+/// @param[in] a: base
+/// @param[in] b: exposant
+///
+/// @return Un InfInt correspondant à [a] puissance [b].
 InfInt NaivePow    (InfInt const& a, InfInt const& b) {
 	InfInt p = 1;
 
@@ -32,6 +38,12 @@ InfInt NaivePow    (InfInt const& a, InfInt const& b) {
 	return p;
 }
 
+/// @brief Pow - Exponentiation rapide
+///
+/// @param[in] x: base
+/// @param[in] n: exposant
+///
+/// @return Un InfInt correspondant à [x] puissance [n].
 InfInt Pow         (InfInt const& x, InfInt const& n) {
 	InfInt p = 1, a = x, e = n;
 
@@ -54,6 +66,11 @@ InfInt Pow         (InfInt const& x, InfInt const& n) {
 	return p;
 }
 
+/// @brief Pow2 - Exponention avec une base 2
+///
+/// @param[in] n: puissance à appliquer
+///
+/// @return Un InfInt correspondant à 2 puissance [n].
 InfInt Pow2        (InfInt const& n) {
 	InfInt p = 1;
 
@@ -62,6 +79,11 @@ InfInt Pow2        (InfInt const& n) {
 	return p;
 }
 
+/// @brief Pow16 - Exponention avec une base 16
+///
+/// @param[in] n: puissance à appliquer
+///
+/// @return Un InfInt correspondant à 16 puissance [n].
 InfInt Pow16       (InfInt const& n) {
 	InfInt p = 1;
 
@@ -70,6 +92,13 @@ InfInt Pow16       (InfInt const& n) {
 	return p;
 }
 
+/// @brief W_PowM - Exponentiation modulaire rapide (avec boucle while)
+///
+/// @param[in] a: base
+/// @param[in] b: exposant
+/// @param[in] m: modulo
+///
+/// @returnUn Un InfInt correspondant à ([a] puissance [b]) modulo [m].
 InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 	InfInt p = 1, x = a, n = b;
 	x = x % m;
@@ -84,6 +113,13 @@ InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 	return p;
 }
 
+/// @brief F_PowM - Exponentiation modulaire rapide (avec boucle for)
+///
+/// @param[in] a: base
+/// @param[in] b: exposant
+/// @param[in] m: modulo
+///
+/// @return Un InfInt correspondant à ([a] puissance [b]) modulo [m].
 InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 	InfInt p, x = a, n = b;
 
@@ -95,6 +131,13 @@ InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 	return p;
 }
 
+/// @brief RandTestMR - Génère un témoin de Miller valide
+///
+/// @param[in] n: nombre concerné par le test
+///
+/// @return Témoin de Miller valide et pseudo-aléatoire.
+///
+/// /!\ Utilise random_device().
 InfInt RandTestMR  (InfInt const& n) {
 	std::random_device rd;
 	InfInt ret = rd();
@@ -105,6 +148,12 @@ InfInt RandTestMR  (InfInt const& n) {
 	return ret;
 }
 
+/// @brief MillerTest - Effectue le Test de Miller-Rabin (sur un témoin)
+///
+/// @param[in] n: nombre à tester
+/// @param[in] a: témoin de Miller
+///
+/// @return false si [n] est probablement premier, true sinon.
 bool   MillerTest  (InfInt const& n, InfInt const& a) {
 	InfInt d = n - 1;
 	while ((d % 2) == 0) d /= 2;
@@ -123,6 +172,12 @@ bool   MillerTest  (InfInt const& n, InfInt const& a) {
 	return true;
 }
 
+/// @brief MillerRabin - Effectue le test de Miller-Rabin complet
+///
+/// @param[in] n: nombre à tester
+/// @param[in] k: nombre d'itérations du test
+///
+/// @return true si [n] est probablement premier, false sinon.
 bool   MillerRabin (InfInt const& n, const BYTE k) {
 	if (n <= 1 || n == 4) return false;
 	if (n <= 3)             return true;
@@ -134,6 +189,14 @@ bool   MillerRabin (InfInt const& n, const BYTE k) {
 	return true;
 }
 
+/// @brief ExtEuclide - Algorithme d'Euclide étendu
+///
+/// @param[in] a: nombre 1
+/// @param[in] b: nombre 2
+/// @param[out] u: coefficient de Bézout
+/// @param[out] v: coefficient de Bézout
+///
+/// @return Le PGCD de [a] et [b]
 InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v) {
 	InfInt tr = a, tr_ = b, tu = 1, tv = 0, tu_ = 0, tv_ = 1;
 	InfInt q = 0, rs = 0, us = 0, vs = 0;
@@ -151,52 +214,103 @@ InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v) {
 }
 
 
+/// @brief Complex - Constructeur par défaut
+///
+/// Constructeur par défaut de la classe Complex.
 Complex::Complex() {
 	re = im = 0;
 }
 
+/// @brief Complex - Constructeur d'affectation
+///
+/// @param[in] r: partie réelle
+/// @param[in] u: partie imaginaire
+///
+/// Constructeur d'affectation de la classe Complex.
 Complex::Complex(InfInt const& r, InfInt const& u) {
 	re = r; im = u;
 }
 
+/// @brief Complex - Constructeur de copie
+///
+/// @param[in] oth: nombre complexe de copie
+///
+/// Constructeur de copie de la classe Complex.
 Complex::Complex(Complex const& oth) {
 	re = oth.re; im = oth.im;
 }
 
+/// @brief IsReal - Test si le nombre complexe est "réel pur"
+///
+/// @return true si le nombre est "réel pur", false sinon.
 bool Complex::IsReal() const {
 	return (im == 0);
 }
 
+/// @brief IsImag - Test si le nombre complexe est "imaginaire pur"
+///
+/// @return true si le nombre est "imaginaire pur", false sinon
 bool Complex::IsImag() const {
 	return (re == 0);
 }
 
+/// @brief Real - Récupères la partie réelle d'un nombre complexe
+///
+/// @return La partie réelle du nombre complexe.
 InfInt Complex::Real() const {
 	return re;
 }
 
+/// @brief Imag - Récupères la partie imaginaire d'un nombre complexe
+///
+/// @return La partie imaginaire du nombre complexe.
 InfInt Complex::Imag() const {
 	return im;
 }
 
+/// @brief operator= - Opérateur d'affectation
+///
+/// @param[in] oth: nombre à affecter
+///
+/// @return Une référence sur le Complex affecté.
 Complex& Complex::operator=(Complex const& oth) = default;
 
+/// @brief operator+= - Opérateur d'affectation additive
+///
+/// @param[in] oth: Complex à affecter
+///
+/// @return Une référence sur le Complex affecté.
 Complex& Complex::operator+=(Complex const& oth) {
 	re = re + oth.re; im = im + oth.im;
 	return *this;
 }
 
+/// @brief operator-= - Opérateur d'affectation soustrative
+///
+/// @param[in] oth: Complex à affecter
+///
+/// @return Une référence sur le Complex affecté.
 Complex& Complex::operator-=(Complex const& oth) {
 	re = re - oth.re; im = im - oth.im;
 	return *this;
 }
 
+/// @brief operator*= - Opérateur d'affectation multiplicative
+///
+/// @param[in] oth: Complex à affecter
+///
+/// @return Une référence sur le Complex affecté.
 Complex& Complex::operator*=(Complex const& oth) {
 	re = (re * oth.re) - (im * oth.im);
 	im = (re * oth.im) + (im * oth.re);
 	return *this;
 }
 
+/// @brief operator/= - Opérateur d'affectation divisant
+///
+/// @param[in] oth: Complex à affecter
+///
+/// @return Une référence sur le Complex affecté.
 Complex& Complex::operator/=(Complex const& oth) {
 	const Complex conjugate(oth.re, -oth.im);
 	const Complex div_d((re * conjugate.re) - (im * conjugate.im), (re * conjugate.im) + (im * conjugate.re));
@@ -209,6 +323,12 @@ Complex& Complex::operator/=(Complex const& oth) {
 }
 
 
+/// @brief operator+ - Opérateur d'addition
+///
+/// @param[in] lhs: lhs
+/// @param[in] rhs: rhs
+///
+/// @return Un Complex égal à (lhs + rhs).
 Complex operator+(Complex const& lhs, Complex const& rhs) {
 	Complex ret;
 
@@ -218,6 +338,12 @@ Complex operator+(Complex const& lhs, Complex const& rhs) {
 	return ret;
 }
 
+/// @brief operator- - Opérateur de soustraction
+///
+/// @param[in] lhs: lhs
+/// @param[in] rhs: rhs
+///
+/// @return Un Complex égal à (lhs - rhs).
 Complex operator-(Complex const& lhs, Complex const& rhs) {
 	Complex ret;
 
@@ -227,6 +353,12 @@ Complex operator-(Complex const& lhs, Complex const& rhs) {
 	return ret;
 }
 
+/// @brief operator* - Opérateur de multiplication
+///
+/// @param[in] lhs: lhs
+/// @param[in] rhs: rhs
+///
+/// @return Un Complex égal à (lhs * rhs).
 Complex operator*(Complex const& lhs, Complex const& rhs) {
 	Complex ret;
 
@@ -236,6 +368,12 @@ Complex operator*(Complex const& lhs, Complex const& rhs) {
 	return ret;
 }
 
+/// @brief operator/ - Opérateur de division
+///
+/// @param[in] lhs: lhs
+/// @param[in] rhs: rhs
+///
+/// @return Un Complex égal à (lhs / rhs).
 Complex operator/(Complex const& lhs, Complex const& rhs) {
 	const Complex conjugate(rhs.re, -rhs.im);
 	const Complex div_d((lhs.re * conjugate.re) - (lhs.im * conjugate.im), (lhs.re * conjugate.im) + (lhs.im * conjugate.re));
@@ -248,14 +386,32 @@ Complex operator/(Complex const& lhs, Complex const& rhs) {
 	return ret;
 }
 
+/// @brief operator== - Test d'égalité entre Complex
+///
+/// @param[in] lhs: lhs
+/// @param[in] rhs: rhs
+///
+/// @return true si égaux, false sinon.
 bool operator==(Complex const& lhs, Complex const& rhs) {
 	return ((lhs.re == rhs.re) && (lhs.im == rhs.im));
 }
 
+/// @brief operator!= - Opérateur d'inégalité entre Complex
+///
+/// @param[in] lhs: lhs
+/// @param[in] rhs: rhs
+///
+/// @return true si différents, false sinon.
 bool operator!=(Complex const& lhs, Complex const& rhs) {
 	return ((lhs.re != rhs.re) || (lhs.im != rhs.im));
 }
 
+/// @brief operator<< - Opérateur de flux de sortie pour Complex
+///
+/// @param[in] os: flux de sortie
+/// @param[in] rhs: Complex concerné
+///
+/// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, Complex const& rhs) {
 	const InfInt r = rhs.re;
 	const InfInt i = rhs.im;
@@ -268,6 +424,12 @@ std::ostream& operator<<(std::ostream& os, Complex const& rhs) {
 	return os;
 }
 
+/// @brief operator>> - Opérateur de flux d'entrée pour Complex
+///
+/// @param[in] is: flux d'entrée
+/// @param[in] rhs: Complex concerné
+///
+/// @return Une référence sur le flux d'entrée affecté.
 std::istream& operator>>(std::istream& is, Complex& rhs) {
 	const std::regex v_str("^\([0-9]+ [+-]{1} [0-9]+i)$");
 	std::string str_, n1, p, n2;

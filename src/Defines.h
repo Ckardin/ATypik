@@ -45,6 +45,7 @@ typedef __int128_t sSWORD;
 using allpnum = std::variant<unsigned int, BYTE, WORD, DWORD, QWORD, SWORD>;
 using allnum  = std::variant<unsigned int, BYTE, WORD, DWORD, QWORD, SWORD, int, sBYTE, sWORD, sDWORD, sQWORD, sSWORD>;
 
+/// @brief TriBool - Classe qui permet de gérer les tri-booléan
 class TriBool
 {
 public:

@@ -41,6 +41,7 @@ bool   MillerTest  (InfInt const& n, InfInt const& a);
 bool   MillerRabin (InfInt const& n, BYTE k = 48);
 
 
+/// @brief TriBool - Classe qui permet de gérer les nombres complexes
 class Complex {
 public:
 	Complex();
