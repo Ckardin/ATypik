@@ -27,7 +27,7 @@ namespace Fenyx::Types
 
 /// @brief TriBool - Contructeur de copie
 ///
-/// @param b: TriBool de copie
+/// @param[in] b: TriBool de copie
 ///
 /// Constructeur de copie de la classe TriBool.
 TriBool::TriBool(TriBool const& b) {
@@ -37,8 +37,8 @@ TriBool::TriBool(TriBool const& b) {
 
 /// @brief TriBool - Constructeur d'affectation
 ///
-/// @param u: booléan (true si indéfini, false sinon)
-/// @param v: booléan (valeur à affecter)
+/// @param[in] u: booléan (true si indéfini, false sinon)
+/// @param[in] v: booléan (valeur à affecter)
 ///
 /// Constructeur d'affectation de la classe TriBool.
 TriBool::TriBool(const bool u, bool v) {
@@ -48,8 +48,8 @@ TriBool::TriBool(const bool u, bool v) {
 
 /// @brief SetValue - Affecter une valeur au tri-booléan
 ///
-/// @param u: booléan (true si indéfini, false sinon)
-/// @param v: booléan (valeur à affecter)
+/// @param[in] u: booléan (true si indéfini, false sinon)
+/// @param[in] v: booléan (valeur à affecter)
 void TriBool::SetValue(const bool u, bool v) {
     if(u) n.reset();
     else  n = v;
@@ -71,7 +71,7 @@ bool TriBool::GetValue() const {
 
 /// @brief operator= - Opérateur d'affectation
 ///
-/// @param b: TriBool à affecter
+/// @param[in] b: TriBool à affecter
 ///
 /// @return Une référence sur le TriBool affecté.
 TriBool& TriBool::operator= (TriBool const& b) {
@@ -83,7 +83,7 @@ TriBool& TriBool::operator= (TriBool const& b) {
 
 /// @brief operator|= - Opérateur d'affectation avec OR
 ///
-/// @param b: TriBool à affecter
+/// @param[in] b: TriBool à affecter
 ///
 /// @return Une référence sur le TriBool affecté.
 TriBool& TriBool::operator|=(TriBool const& b) {
@@ -96,7 +96,7 @@ TriBool& TriBool::operator|=(TriBool const& b) {
 
 /// @brief operator&= - Opérateur d'affectation avec AND
 ///
-/// @param b: TriBool à affecter
+/// @param[in] b: TriBool à affecter
 ///
 /// @return Une réference sur le TriBool affecté.
 TriBool& TriBool::operator&=(TriBool const& b) {
@@ -109,7 +109,7 @@ TriBool& TriBool::operator&=(TriBool const& b) {
 
 /// @brief operator^= - Opérateur d'affectation avec XOR
 ///
-/// @param b: TriBool à affecter
+/// @param[in] b: TriBool à affecter
 ///
 /// @return Une réference sur le TriBool affecté.
 TriBool& TriBool::operator^=(TriBool const& b) {
@@ -133,8 +133,8 @@ TriBool& TriBool::operator~ () {
 
 /// @brief operator| - Opérateur OR
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
 /// @return Un TriBool égal à (b1 OR b2).
 TriBool operator|(TriBool const& b1, TriBool const& b2) {
@@ -150,8 +150,8 @@ TriBool operator|(TriBool const& b1, TriBool const& b2) {
 
 /// @brief operator& - Opérateur AND
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
 /// @return Un TriBool égal à (b1 AND b2).
 TriBool operator&(TriBool const& b1, TriBool const& b2) {
@@ -167,8 +167,8 @@ TriBool operator&(TriBool const& b1, TriBool const& b2) {
 
 /// @brief operator^ - Opérateur XOR
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
 /// @return Un TriBool égal à (b1 XOR b2).
 TriBool operator^(TriBool const& b1, TriBool const& b2) {
@@ -184,8 +184,8 @@ TriBool operator^(TriBool const& b1, TriBool const& b2) {
 
 /// @brief operator== - Test d'égalité entre TriBool
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
 /// @return true si égaux, false sinon.
 bool operator==(TriBool const& b1, TriBool const& b2) {
@@ -196,18 +196,18 @@ bool operator==(TriBool const& b1, TriBool const& b2) {
 
 /// @brief operator!= - Test d'inégalité entre TriBool
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
-/// @return true si inégaux, false sinon.
+/// @return true si différents, false sinon.
 bool operator!=(TriBool const& b1, TriBool const& b2) {
     return !(b1 == b2);
 }
 
 /// @brief operator== - Test d'égalité entre TriBool et bool
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
 /// @return true si égaux, false sinon.
 bool operator==(TriBool const& b1, bool const& b2) {
@@ -218,18 +218,18 @@ bool operator==(TriBool const& b1, bool const& b2) {
 
 /// @brief operator!= - Test d'ínégalité entre TriBool et bool
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
-/// @return true si inégaux, false sinon.
+/// @return true si différents, false sinon.
 bool operator!=(TriBool const& b1, bool const& b2) {
     return !(b1 == b2);
 }
 
 /// @brief operator== - Test d'égalité entre bool et TriBool
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
 /// @return true si égaux, false sinon.
 bool operator==(bool const& b1, TriBool const& b2) {
@@ -240,18 +240,18 @@ bool operator==(bool const& b1, TriBool const& b2) {
 
 /// @brief operator!= - Test d'inégalité entre bool et TriBool
 ///
-/// @param b1: lhs
-/// @param b2: rhs
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
 ///
-/// @return true si inégaux, false sinon.
+/// @return true si différents, false sinon.
 bool operator!=(bool const& b1, TriBool const& b2) {
     return !(b1 == b2);
 }
 
 /// @brief operator<< - Opérateur de flux de sortie pour TriBool
 ///
-/// @param os: flux de sortie
-/// @param b: TriBool concerné
+/// @param[in] os: flux de sortie
+/// @param[in] b: TriBool concerné
 ///
 /// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, TriBool const& b) {
@@ -268,8 +268,8 @@ std::ostream& operator<<(std::ostream& os, TriBool const& b) {
 
 /// @brief operator>> - Opérateur de flux d'entrée pour TriBool
 ///
-/// @param is: flux d'entrée
-/// @param b: TriBool concerné
+/// @param[in] is: flux d'entrée
+/// @param[in] b: TriBool concerné
 ///
 /// @return Une référence sur le flux d'entrée affecté.
 std::istream& operator>>(std::istream& is, TriBool& b) {

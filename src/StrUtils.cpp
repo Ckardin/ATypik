@@ -24,10 +24,10 @@
 namespace Fenyx::Types
 {
 
-/// @brief operator<< - Surcharge de l'opérateur [<<] pour SWORD
+/// @brief operator<< - Opérateur de flux de sortie pour SWORD
 /// 
-/// @param os: flux de sortie 
-/// @param v: SWORD concerné
+/// @param[in] os: flux de sortie
+/// @param[in] v: SWORD concerné
 /// 
 /// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, SWORD const& v) {
@@ -47,10 +47,10 @@ std::ostream& operator<<(std::ostream& os, SWORD const& v) {
 	return os;
 }
 	
-/// @brief operator<< - Surcharge de l'opérateur [<<] pour sSWORD
+/// @brief operator<< - Opérateur de flux de sortie pour sSWORD
 /// 
-/// @param os: flux de sortie
-/// @param v: sSWORD concerné
+/// @param[in] os: flux de sortie
+/// @param[in] v: sSWORD concerné
 /// 
 /// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, sSWORD const& v) {
@@ -75,10 +75,10 @@ std::ostream& operator<<(std::ostream& os, sSWORD const& v) {
 	return os;
 }
 
-/// @brief operator>> - Surcharge de l'opérateur [>>] pour SWORD
+/// @brief operator>> - Opérateur de flux d'entrée pour SWORD
 /// 
-/// @param is: flux d'entrée
-/// @param v: SWORD concerné
+/// @param[in] is: flux d'entrée
+/// @param[in] v: SWORD concerné
 /// 
 /// @return Une référence sur le flux d'entrée affecté.
 std::istream& operator>>(std::istream& is, SWORD& v) {
@@ -94,10 +94,10 @@ std::istream& operator>>(std::istream& is, SWORD& v) {
 	return is;
 }
 
-/// @brief operator>> - Surcharge de l'opérateur [>>] pour sSWORD
+/// @brief operator>> - Opérateur de flux d'entrée pour sSWORD
 /// 
-/// @param is: flux d'entrée
-/// @param v: sSWORD concerné
+/// @param[in] is: flux d'entrée
+/// @param[in] v: sSWORD concerné
 /// 
 /// @return Une référence sur le flux d'entrée affecté.
 std::istream& operator>>(std::istream& is, sSWORD& v) {
@@ -123,7 +123,7 @@ std::istream& operator>>(std::istream& is, sSWORD& v) {
 
 /// @brief CompleteNbr - Rajoute un '0' avant un nombre inférieur à 10
 /// 
-/// @param nbr: nombre à compléter
+/// @param[in] nbr: nombre à compléter
 /// 
 /// @return Un std::string avec le nombre tel quel si supérieur à 10, sinon avec un '0' rajouté devant.
 std::string CompleteNbr(allpnum nbr) {
@@ -135,7 +135,7 @@ std::string CompleteNbr(allpnum nbr) {
 
 /// @brief IsNum - Test si un caractère représente un chiffre ou pas
 /// 
-/// @param c: caractère à tester
+/// @param[in] c: caractère à tester
 /// 
 /// @return true si [c] représente un chiffre (0-9), false sinon.
 bool IsNum(char c) {
@@ -154,7 +154,7 @@ bool IsNum(char c) {
 
 /// @brief IsHex - Test si un caractère représente un chiffre hexadécimal ou pas
 ///
-/// @param c: caractère à tester
+/// @param[in] c: caractère à tester
 ///
 /// @return true si [c] représente un chiffre hexadécimal (0-9 ou A-F), false sinon.
 bool IsHex(char c) {
@@ -173,7 +173,7 @@ bool IsHex(char c) {
 
 /// @brief IsNumS - Test si un std::string représente un nombre
 ///
-/// @param str: std::string à tester
+/// @param[in] str: std::string à tester
 ///
 /// @return true si [s] représente un nombre (suite de caractères de 0-9), false sinon.
 bool IsNumS(std::string const& str) {
@@ -186,7 +186,7 @@ bool IsNumS(std::string const& str) {
 
 /// @brief IsHexS - Test si un std::string représente un nombre hexadécimal
 ///
-/// @param str: std::string à tester
+/// @param[in] str: std::string à tester
 ///
 /// @return true si [s] représente un nombre hexadécimal (suite de caractères de 0-9 et A-F), false sinon.
 bool IsHexS(std::string const& str) {
@@ -199,8 +199,8 @@ bool IsHexS(std::string const& str) {
 
 /// @brief HexN - Donne la valeur en décimal (0-15) d'un caractère hexadécimal (0-F)
 ///
-/// @param c: caractère concerné
-/// @param err: reférence sur booléan (true si erreur, false sinon)
+/// @param[in] c: caractère concerné
+/// @param[out] err: reférence sur booléan (true si erreur, false sinon)
 ///
 /// @return La valeur décimal si réussi, 0 sinon.
 BYTE HexN(const char c, bool &err) {

@@ -174,7 +174,7 @@ T STable<T, s>::GetValue(DWORD idx) {
 template<class T, DWORD s>
 /// @brief GetFatal - Test si une erreur fatale est remontée
 ///
-/// @return [true] si erreur fatale, [false] sinon.
+/// @return true si erreur fatale, false sinon.
 bool STable<T, s>::GetFatal() const {
     return fatal;
 }
@@ -182,7 +182,7 @@ bool STable<T, s>::GetFatal() const {
 template<class T, DWORD s>
 /// @brief GetError - Test si une erreur (fatale ou non) est remontée
 ///
-/// @return [true] si erreur, [false] sinon.
+/// @return true si erreur, false sinon.
 bool STable<T, s>::GetError() {
     if (error) {
         if (!fatal) error = false;
@@ -272,7 +272,7 @@ T DTable<T>::GetValue(DWORD idx) {
 template<class T>
 /// @brief GetFatal - Test si une erreur fatale est remontée
 ///
-/// @return [true] si erreur fatale, [false] sinon.
+/// @return true si erreur fatale, false sinon.
 bool DTable<T>::GetFatal() const {
     return fatal;
 }
@@ -280,7 +280,7 @@ bool DTable<T>::GetFatal() const {
 template<class T>
 /// @brief GetError - Test si une erreur (fatale ou non) est remontée
 ///
-/// @return [true] si erreur, [false] sinon.
+/// @return true si erreur, false sinon.
 bool DTable<T>::GetError() {
     if (error) {
         if (!fatal) error = false;
@@ -418,7 +418,7 @@ V MTable<K, V>::GetValue(K key) {
 template<class K, class V>
 /// @brief GetFatal - Test si une erreur fatale est remontée
 ///
-/// @return [true] si erreur fatale, [false] sinon.
+/// @return true si erreur fatale, false sinon.
 bool MTable<K, V>::GetFatal() const {
     return fatal;
 }
@@ -426,7 +426,7 @@ bool MTable<K, V>::GetFatal() const {
 template<class K, class V>
 /// @brief GetError - Test si une erreur (fatale ou non) est remontée
 ///
-/// @return [true] si erreur, [false] sinon.
+/// @return true si erreur, false sinon.
 bool MTable<K, V>::GetError() {
     if (error) {
         if (!fatal) error = false;
