@@ -1,6 +1,8 @@
 .PHONY: mrproper, clean, dox, install, tests, cleant, all
 # .PHONY: clean, doc, install, Prepare
 
+# Version 1.0
+
 .SUFFIXES:
 
 CC=g++
@@ -67,7 +69,6 @@ clean:
 
 cleant:
 	@MakeInfo clean objfiles
-	@rm build/*.o
 	@rm build/tests/*.o
 	@MakeInfo clean tests
 	@rm build/tests/*$(A_EXT)
