@@ -15,7 +15,7 @@ L'utilisation est simplifiée et une documentation Doxygen est présente dans le
 
 ### Modules
 
-Les modules contenus dans libATypik sont les suivants:
+Les modules contenus dans libATypik sont les suivants :
 
 * Defines
   * Définit le type TriBool et uniformise les types de base à longueur fixe
@@ -31,12 +31,12 @@ Les modules contenus dans libATypik sont les suivants:
   * Test de Miller-Rabin
   * Nombres complexes
 
-A noter qu'un fichier header est également inclus, _InfInt.h_.
+À noter qu'un fichier header est également inclus, _InfInt.h_.
 Il est compagnon d'ATypik et provient du [repo du même nom](https://github.com/sercantutar/infint) fait par [sercantutar](https://github.com/sercantutar).
 
 ## Compatibilité
 
-La librairie ATypik est multi-système (comme tous les outils Ashes), à condition de posséder un compilateur "GCC like" (Exemple: MinGW).
+La librairie ATypik est multi-système (comme tous les outils Ashes), à condition de posséder un compilateur "GCC like" (Exemple : MinGW).
 
 ## Licence
 
@@ -46,7 +46,7 @@ La librairie ATypik est sous licence GPL V3 ou ultérieure. Celle-ci est appliqu
 
 ### Dépendances
 
-Une seule dépendance est nécessaire pour compiler libATypik:
+Une seule dépendance est nécessaire pour compiler libATypik :
 
 * AScripts
 
@@ -55,7 +55,7 @@ Celle-ci peut être clonée et installée via mon github. <br />
 
 ### Installation
 
-Vous pouvez tout simplement executer les commandes suivantes:
+Vous pouvez tout simplement lancer les commandes suivantes :
 
     ./Windows_prepare.ps1 OU ./Linux_prepare.sh
 
@@ -67,4 +67,21 @@ et enfin
 
     make install
 
-À noter que le dossier d'installation est défini par la variable d'envirronement ASHES_DIR (créée lors de l'installation d'AScripts).
+À noter que le dossier d'installation est défini par la variable d'environnement ASHES_DIR (créée lors de l'installation d'AScripts).
+
+## Tests
+
+Si vous lancez la commande `make tests`, la compilation de ceux-ci se fera et ils s'exécuteront dans la foulée.
+Si les tests réussissent, la ligne de commande devrait afficher ceci :
+
+    TRB1 => U
+    TRB2 => F
+    TRB3 => F
+
+    Test OK.
+    Test OK.
+    Test OK.
+    Test OK.
+
+Si l'affichage est différent, alors les tests ont échoué et je vous déconseille d'utiliser ATypik.
+Vous pourrez donc déclarer le problème via les "issues" de Github.

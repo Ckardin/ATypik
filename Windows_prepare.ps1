@@ -47,16 +47,16 @@ Write-Host "VAR(ASHES_DIR) OK"
 
 
 
-$BIN_DIR = $($env:ASHES_DIR) + "\bin"
+$SHR_DIR = $($env:ASHES_DIR) + "\share"
 $LIB_DIR = $($env:ASHES_DIR) + "\lib"
 $INC_DIR = $($env:ASHES_DIR) + "\inc"
 $MKI_FIL = $($env:ASHES_DIR) + "\bin\MakeInfo.exe"
 
 
-if(!(Test-Path -Path $BIN_DIR)) {
-    mkdir $BIN_DIR
+if(!(Test-Path -Path $SHR_DIR)) {
+    mkdir $SHR_DIR
 }
-Write-Host "BINDIR OK"
+Write-Host "SHRDIR OK"
 
 
 if(!(Test-Path -Path $LIB_DIR)) {
@@ -83,6 +83,6 @@ Set-Item -Path 'Env:\A_SHLIB' -Value 'dll'
 Set-Item -Path 'Env:\A_STLIB' -Value 'lib'
 Set-Item -Path 'Env:\A_EXT' -Value '.exe'
 
-Set-Item -Path 'Env:\BINDIR' -Value $BIN_DIR
+Set-Item -Path 'Env:\SHRDIR' -Value $SHR_DIR
 Set-Item -Path 'Env:\LIBDIR' -Value $LIB_DIR
 Set-Item -Path 'Env:\INCDIR' -Value $INC_DIR

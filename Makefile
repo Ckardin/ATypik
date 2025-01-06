@@ -1,4 +1,4 @@
-.PHONY: mrproper, clean, dox, install, tests
+.PHONY: mrproper, clean, dox, install, tests, cleant, all
 # .PHONY: clean, doc, install, Prepare
 
 .SUFFIXES:
@@ -7,13 +7,25 @@ CC=g++
 AR=ar
 CXXFLAGS=-O2 -Wall -Wextra -Werror -std=c++17 -I./src
 
-all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o dox tests
+all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o dox
 	@MakeInfo dynamic ATypik
 	@$(CC) -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
 	@MakeInfo static ATypik
 	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
 
 install:
+	@MakeInfo install libs
+	@install -p -m 755 build/libATypik.$(A_SHLIB) $(LIBDIR)
+	@install -p -m 755 build/libATypik.$(A_STLIB) $(LIBDIR)
+	@MakeInfo install headers
+	@install -p -m 755 src/Defines.h  $(INCDIR)
+	@install -p -m 755 src/Tabs.h     $(INCDIR)
+	@install -p -m 755 src/Utils.h    $(INCDIR)
+	@install -p -m 755 src/StrUtils.h $(INCDIR)
+	@install -p -m 755 src/AlgoMath.h $(INCDIR)
+	@MakeInfo install doc
+	@mv Doc/Latex/refman.pdf Doc/Latex/Dox_ATypik.pdf
+	@install -p -m 755 Doc/Latex/Dox_ATypik.pdf $(SHRDIR)
 
 
 
@@ -50,15 +62,20 @@ dox:
 clean:
 	@MakeInfo clean objfiles
 	@rm build/*.o
-	@rm build/tests/*.o
 	@MakeInfo clean doclogs
 	@rm build/doc/*.txt
+
+cleant:
+	@MakeInfo clean objfiles
+	@rm build/*.o
+	@rm build/tests/*.o
+	@MakeInfo clean tests
+	@rm build/tests/*$(A_EXT)
 
 mrproper:
 	@MakeInfo clean libs
 	@rm build/*.$(A_SHLIB)
 	@rm build/*.$(A_STLIB)
-	@rm build/tests/*$(A_EXT)
 	@MakeInfo clean doxcompiled
 	@rm Doc/Latex/*
 
