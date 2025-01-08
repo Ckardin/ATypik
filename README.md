@@ -28,7 +28,7 @@ Les modules contenus dans libATypik sont les suivants :
 * AlgoMath
   * Exponentiation rapide (classique + modulaire)
   * Algorithme d'Euclide étendu
-  * Test de Miller-Rabin
+  * Tests de primalité (Miller-Rabin, Fermat2 & Solovay-Strassen)
   * Nombres complexes
 
 À noter qu'un fichier header est également inclus, _InfInt.h_.
