@@ -25,6 +25,7 @@ install:
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
 	@install -p -m 755 src/AlgoMath.h $(INCDIR)
+	@install -p -m 755 src/InfInt.h   $(INCDIR)
 	@MakeInfo install doc
 	@mv Doc/Latex/refman.pdf Doc/Latex/Dox_ATypik.pdf
 	@install -p -m 755 Doc/Latex/Dox_ATypik.pdf $(SHRDIR)
