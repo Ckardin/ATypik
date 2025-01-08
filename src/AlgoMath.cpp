@@ -134,7 +134,7 @@ InfInt Pow16       (InfInt const& n) {
 /// @param[in] b: exposant
 /// @param[in] m: modulo
 ///
-/// @returnUn Un InfInt correspondant à ([a] puissance [b]) modulo [m].
+/// @return Un InfInt correspondant à ([a] puissance [b]) modulo [m].
 InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 	InfInt p = 1, x = a, n = b;
 	x = x % m;
