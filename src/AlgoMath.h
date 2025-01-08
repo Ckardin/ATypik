@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file AlgoMath.h
 /// @brief Header de AlgoMath
 /// @author F&nµx
-/// @version 1.0
-/// @date 09/11/2024
+/// @version 2.0
+/// @date 08/01/2025
 
 #ifndef ALGOMATH_H
 #define ALGOMATH_H
@@ -75,6 +75,9 @@ InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v);
 InfInt RandTestMR  (InfInt const& n);
 bool   MillerTest  (InfInt const& n, InfInt const& a);
 bool   MillerRabin (InfInt const& n, BYTE k = 48);
+bool   Fermat_2    (InfInt const& n);
+bool   SolovayStrassen(InfInt const& n, BYTE k = 100);
+DWORD SquareRt(DWORD n);
 
 
 /// @brief TriBool - Classe qui permet de gérer les nombres complexes
