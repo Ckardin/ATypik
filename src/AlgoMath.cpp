@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file AlgoMath.cpp
 /// @brief Source de AlgoMath
 /// @author F&nµx
-/// @version 1.0
-/// @date 02/11/2024
+/// @version 2.0
+/// @date 08/01/2025
 
 #include "AlgoMath.h"
 
@@ -225,6 +225,37 @@ bool   MillerRabin (InfInt const& n, const BYTE k) {
 	return true;
 }
 
+/// @brief Fermat_2 - Effectue le test de Fermat (en 2)
+///
+/// @param[in] n: nombre à tester
+///
+/// @return true si [n] est probablement premier, false sinon.
+bool   Fermat_2    (InfInt const& n) {
+	if (F_PowM(2, n - 1, n) == (InfInt(1) % n)) return true;
+	return false;
+}
+
+/// @brief SolovayStrassen - Effectue le test de Solovay-Strassen
+///
+/// @param[in] n: nombre à tester
+/// @param[in] k: nombre d'itérations du test
+///
+/// @return true si [n] est probablement premier, false sinon.
+bool   SolovayStrassen(InfInt const& n, BYTE k) {
+	const InfInt bt = (n - 1) - 2, m = (n - 1) / 2;
+	InfInt a = 0, x = 0;
+	std::random_device rd;
+
+	for (WORD i = 0; i < k; i = i + 1) {
+		a = (InfInt(rd()) * bt) + 2;
+		x = a / n;
+
+		if (x == 0 || (x % n) != (F_PowM(a, m, n))) return false;
+	}
+
+	return true;
+}
+
 /// @brief ExtEuclide - Algorithme d'Euclide étendu
 ///
 /// @param[in] a: nombre 1
@@ -247,6 +278,27 @@ InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v) {
 	u = tu; v = tv;
 
 	return tr;
+}
+
+/// @brief SquareRt - Donne la racine carrée d'un DWORD
+///
+/// @param[in] n: nombre concerné
+///
+/// @return La racine carrée de [n].
+///
+/// /!\ Utilise l'algorithme rapide (avec manipulation des bits).
+DWORD SquareRt(DWORD n) {
+	DWORD a = 0, b = n, d = 0;
+
+	for (DWORD c = 1 << 30; c; c >>= 2) {
+		d = a + c; a >>= 1;
+
+		if (b >= d) {
+			b -= d; a += c;
+		}
+	}
+
+	return a;
 }
 
 
