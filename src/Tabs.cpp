@@ -81,7 +81,7 @@ namespace Fenyx::Types
 /// @return un STable d'octets représentant le nombre.
 barray BytesArray(allnum data) {
 	using T = std::decay_t<decltype(data)>;
-	barray bytes(0);
+	barray bytes;
 
 	if (!bytes.GetFatal()) {
 		bytes[0] = sizeof(T);
