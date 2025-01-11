@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Tabs.h
 /// @brief Header de Tabs
 /// @author F&nµx
-/// @version 1.0
-/// @date 02/11/2024
+/// @version 2.5
+/// @date 11/01/2025
 
 #ifndef TABS_H
 #define TABS_H
@@ -68,12 +68,14 @@ template<class T, DWORD s>
 class STable
 {
 public:
-    explicit STable(T defv);
+    explicit STable();
+
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
+    void SetDefaultValue(T defv);
 
     T& operator[](DWORD idx);
 
@@ -94,12 +96,13 @@ template<class T>
 class DTable
 {
 public:
-    explicit DTable(T defv);
+    explicit DTable();
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
+    void SetDefaultValue(T defv);
     void Erase(DWORD idx);
     void Clear();
 
@@ -122,12 +125,13 @@ template<class K, class V>
 class MTable
 {
 public:
-    explicit MTable(K defv_k, V defv_v);
+    explicit MTable();
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] V GetValue(K key);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
+    void SetDefaultValue(K defv_k, V defv_v);
     void Erase(K const& idx);
     void Clear();
 
@@ -162,10 +166,8 @@ barray BytesArray(allnum data);
 template<class T, DWORD s>
 /// @brief STable - Constructeur
 ///
-/// @param[in] defv: valeur par défaut des emplacements du tableau
-///
 /// Constructeur de la classe STable.
-STable<T, s>::STable(T defv) {
+STable<T, s>::STable() {
     data = nullptr;
     data = new T[s];
 
@@ -176,8 +178,6 @@ STable<T, s>::STable(T defv) {
         error = fatal = false;
         s_tab = c_tab = s;
     }
-
-    v_def = defv;
 }
 
 template<class T, DWORD s>
@@ -229,6 +229,14 @@ bool STable<T, s>::GetError() {
 }
 
 template<class T, DWORD s>
+/// @brief SetDefaultValue - Définit la valeur par défaut d'une case du tableau
+///
+/// @param[in] defv: valeur par défaut
+void STable<T, s>::SetDefaultValue(T defv) {
+    v_def = defv;
+}
+
+template<class T, DWORD s>
 /// @brief operator[] - Opérateur d'indexation du tableau
 ///
 /// @param[in] idx: index
@@ -259,10 +267,8 @@ STable<T, s>::~STable() {
 template<class T>
 /// @brief DTable - Constructeur
 ///
-/// @param[in] defv: valeur par défaut des emplacements du tableau
-///
 /// Constructeur de la classe DTable.
-DTable<T>::DTable(T defv) {
+DTable<T>::DTable() {
     data = nullptr;
     data = new T[2];
 
@@ -272,10 +278,7 @@ DTable<T>::DTable(T defv) {
     } else {
         error = fatal = false;
         s_tab = 0; c_tab = 2;
-        data[0] = data[1] = defv;
     }
-
-    v_def = defv;
 }
 
 template<class T>
@@ -324,6 +327,14 @@ bool DTable<T>::GetError() {
     }
 
     return false;
+}
+
+template<class T>
+/// @brief SetDefaultValue - Définit la valeur par défaut d'une case du tableau
+///
+/// @param[in] defv: valeur par défaut
+void DTable<T>::SetDefaultValue(T defv) {
+    v_def = defv;
 }
 
 template<class T>
@@ -399,11 +410,8 @@ DTable<T>::~DTable() {
 template<class K, class V>
 /// @brief MTable - Constructeur
 ///
-/// @param[in] defv_k: valeur par défaut des clés
-/// @param[in] defv_v: valeur par défaut des emplacements du tableau
-///
 /// Constructeur de la classe MTable.
-MTable<K, V>::MTable(K defv_k, V defv_v) {
+MTable<K, V>::MTable() {
     keys = nullptr; values = nullptr;
     keys = new K[2]; values = new V[2];
 
@@ -415,12 +423,7 @@ MTable<K, V>::MTable(K defv_k, V defv_v) {
     } else {
         error = fatal = false;
         s_tab = 0; c_tab = 2;
-        keys[0]   = keys[1]   = defv_k;
-        values[0] = values[1] = defv_v;
     }
-
-    kv_def = defv_k;
-    vv_def = defv_v;
 }
 
 template<class K, class V>
@@ -470,6 +473,16 @@ bool MTable<K, V>::GetError() {
     }
 
     return false;
+}
+
+template<class K, class V>
+/// @brief SetDefaultValue - Définit la valeur par défaut d'une case du tableau
+///
+/// @param[in] defv_k: valeur par défaut des clés
+/// @param[in] defv_v: valeur par défaut pour les valeurs associées aux clés
+void MTable<K, V>::SetDefaultValue(K defv_k, V defv_v) {
+    kv_def = defv_k;
+    vv_def = defv_v;
 }
 
 template<class K, class V>
