@@ -69,7 +69,7 @@ namespace Fenyx::Types
 std::ostream& operator<<(std::ostream& os, SWORD const& v) {
 	SWORD n = v;
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
-	STable<char, 10> chars('0');
+	STable<char, 10> chars;
 
 	if (chars.GetFatal()) return os;
 	for (BYTE i = 0 ; i < 10 ; ++i) chars[i] = toChar(i + 48);
@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream& os, SWORD const& v) {
 std::ostream& operator<<(std::ostream& os, sSWORD const& v) {
 	sSWORD n = v;
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
-	STable<char, 10> chars('0');
+	STable<char, 10> chars;
 
 	if (chars.GetFatal()) return os;
 	for (BYTE i = 0 ; i < 10 ; ++i) chars[i] = toChar(i + 48);
@@ -174,8 +174,8 @@ std::string CompleteNbr(allpnum nbr) {
 /// @param[in] c: caractère à tester
 /// 
 /// @return true si [c] représente un chiffre (0-9), false sinon.
-bool IsNum(char c) {
-	STable<char, 16> HexConv('0');
+bool IsNum(const char c) {
+	STable<char, 16> HexConv;
 
 	if (HexConv.GetFatal()) return false;
 	for (BYTE i = 0 ; i < 10; ++i) HexConv[i] = toChar(i + 48);
@@ -193,8 +193,8 @@ bool IsNum(char c) {
 /// @param[in] c: caractère à tester
 ///
 /// @return true si [c] représente un chiffre hexadécimal (0-9 ou A-F), false sinon.
-bool IsHex(char c) {
-	STable<char, 16> HexConv('0');
+bool IsHex(const char c) {
+	STable<char, 16> HexConv;
 
 	if (HexConv.GetFatal()) return false;
 	for (BYTE i = 0 ; i < 10; ++i) HexConv[i] = toChar(i + 48);
@@ -240,7 +240,7 @@ bool IsHexS(std::string const& str) {
 ///
 /// @return La valeur décimal si réussi, 0 sinon.
 BYTE HexN(const char c, bool &err) {
-	STable<char, 16> HexConv('0');
+	STable<char, 16> HexConv;
 
 	if (HexConv.GetFatal()) {
 		err = true; return 0;
