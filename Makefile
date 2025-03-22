@@ -9,24 +9,25 @@ CC=g++
 AR=ar
 CXXFLAGS=-O2 -Wall -Wextra -Werror -std=c++17 -I./src
 
+
 all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o dox
-	@MakeInfo dynamic ATypik
+	@MakeInfo $(MILANG) dynamic ATypik
 	@$(CC) -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
-	@MakeInfo static ATypik
+	@MakeInfo $(MILANG) static ATypik
 	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
 
 install:
-	@MakeInfo install libs
+	@MakeInfo $(MILANG) install libs
 	@install -p -m 755 build/libATypik.$(A_SHLIB) $(LIBDIR)
 	@install -p -m 755 build/libATypik.$(A_STLIB) $(LIBDIR)
-	@MakeInfo install headers
+	@MakeInfo $(MILANG) install headers
 	@install -p -m 755 src/Defines.h  $(INCDIR)
 	@install -p -m 755 src/Tabs.h     $(INCDIR)
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
 	@install -p -m 755 src/AlgoMath.h $(INCDIR)
 	@install -p -m 755 src/InfInt.h   $(INCDIR)
-	@MakeInfo install doc
+	@MakeInfo $(MILANG) install doc
 	@mv Doc/Latex/refman.pdf Doc/Latex/Dox_ATypik.pdf
 	@install -p -m 755 Doc/Latex/Dox_ATypik.pdf $(SHRDIR)
 
@@ -35,50 +36,50 @@ install:
 # Object Files
 
 build/Defines.o: src/Defines.h src/Defines.cpp
-	@MakeInfo module Defines
+	@MakeInfo $(MILANG) module Defines
 	@$(CC) $(CXXFLAGS) -c src/Defines.cpp -o build/Defines.o
 
 build/Tabs.o: src/Tabs.h src/Tabs.cpp
-	@MakeInfo module Tabs
+	@MakeInfo $(MILANG) module Tabs
 	@$(CC) $(CXXFLAGS) -c src/Tabs.cpp -o build/Tabs.o
 
 build/Utils.o: src/Utils.h src/Utils.cpp
-	@MakeInfo module Utils
+	@MakeInfo $(MILANG) module Utils
 	@$(CC) $(CXXFLAGS) -c src/Utils.cpp -o build/Utils.o
 
 build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
-	@MakeInfo module StrUtils
+	@MakeInfo $(MILANG) module StrUtils
 	@$(CC) $(CXXFLAGS) -c src/StrUtils.cpp -o build/StrUtils.o
 
 build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp src/InfInt.h
-	@MakeInfo module AlgoMath
+	@MakeInfo $(MILANG) module AlgoMath
 	@$(CC) $(CXXFLAGS) -c src/AlgoMath.cpp -o build/AlgoMath.o
 
 
 # Others
 
 dox:
-	@MakeInfo doc API
+	@MakeInfo $(MILANG) doc API
 	@doxygen Doc/Doxygen/Doxyfile > build/doc/DocCompileFile.txt 2>&1
 	@make -C Doc/Latex --no-print-directory > build/doc/LatexCompileFile.txt 2>&1
 
 clean:
-	@MakeInfo clean objfiles
+	@MakeInfo $(MILANG) clean objfiles
 	@rm build/*.o
-	@MakeInfo clean doclogs
+	@MakeInfo $(MILANG) clean doclogs
 	@rm build/doc/*.txt
 
 cleant:
-	@MakeInfo clean objfiles
+	@MakeInfo $(MILANG) clean objfiles
 	@rm build/tests/*.o
-	@MakeInfo clean tests
+	@MakeInfo $(MILANG) clean tests
 	@rm build/tests/*$(A_EXT)
 
 mrproper:
-	@MakeInfo clean libs
+	@MakeInfo $(MILANG) clean libs
 	@rm build/*.$(A_SHLIB)
 	@rm build/*.$(A_STLIB)
-	@MakeInfo clean doxcompiled
+	@MakeInfo $(MILANG) clean doxcompiled
 	@rm Doc/Latex/*
 
 
@@ -92,35 +93,35 @@ tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/
 
 
 build/tests/TestDefines.o: tests/TestDefines.cpp build/Defines.o
-	@MakeInfo module TestDefines
+	@MakeInfo $(MILANG) module TestDefines
 	@$(CC) $(CXXFLAGS) -c tests/TestDefines.cpp -o build/tests/TestDefines.o
 
 build/tests/TestTabs.o: tests/TestTabs.cpp
-	@MakeInfo module TestTabs
+	@MakeInfo $(MILANG) module TestTabs
 	@$(CC) $(CXXFLAGS) -c tests/TestTabs.cpp -o build/tests/TestTabs.o
 
 build/tests/TestStrUtils.o: tests/TestStrUtils.cpp
-	@MakeInfo module TestStrUtils
+	@MakeInfo $(MILANG) module TestStrUtils
 	@$(CC) $(CXXFLAGS) -c tests/TestStrUtils.cpp -o build/tests/TestStrUtils.o
 
 build/tests/TestAlgoMath.o: tests/TestAlgoMath.cpp
-	@MakeInfo module TestAlgoMath
+	@MakeInfo $(MILANG) module TestAlgoMath
 	@$(CC) $(CXXFLAGS) -c tests/TestAlgoMath.cpp -o build/tests/TestAlgoMath.o
 
 
 build/tests/TestDefines$(A_EXT): build/tests/TestDefines.o build/Defines.o
-	@MakeInfo program_s TestDefines
+	@MakeInfo $(MILANG) program_s TestDefines
 	@$(CC) build/Defines.o build/tests/TestDefines.o -o build/tests/TestDefines$(A_EXT)
 
 build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o
-	@MakeInfo program_s TestTabs
+	@MakeInfo $(MILANG) program_s TestTabs
 	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o -o build/tests/TestTabs$(A_EXT)
 
 build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Tabs.o build/Defines.o build/Utils.o build/StrUtils.o
-	@MakeInfo program_s TestStrUtils
+	@MakeInfo $(MILANG) program_s TestStrUtils
 	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o -o build/tests/TestStrUtils$(A_EXT)
 
 build/tests/TestAlgoMath$(A_EXT): build/tests/TestAlgoMath.o build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o
-	@MakeInfo program_s TestAlgoMath
+	@MakeInfo $(MILANG) program_s TestAlgoMath
 	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o build/tests/TestAlgoMath.o -o build/tests/TestAlgoMath$(A_EXT)
 

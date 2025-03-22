@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # /// English version
 # Copyright (C) 2025 BOUCARD NICOLLE Jody
 
@@ -27,62 +29,41 @@
 # ATypik est distribué dans l'espoir qu'il sera utile, mais SANS AUCUNE GARANTIE; sans même la
 # garantie tacite de QUALITÉ MARCHANDE ou d'ADÉQUATION À UN BUT PARTICULIER. Consultez la GNU
 # General Public License pour plus de détails.
-#
+
 # Vous devez avoir reçu une copie de la GNU General Public License en même temps que ATypik. Si ce n'est pas le cas, consultez
 # <http://www.gnu.org/licenses>.
 
 
-# Install Script // Version Windows
+# Install Script // Version Linux
 
-if($($env:ASHES_DIR | grep -c .) -ceq 0) {
-    Set-Item -Path 'Env:\ASHES_DIR' -Value 'C:/Ashes'
-    setx ASHES_DIR C:/Ashes
-}
+<<"COMMENTS"
+COMMENTS
 
-if(!(Test-Path -Path $($env:ASHES_DIR))) {
-    mkdir $($env:ASHES_DIR)
-}
+if [ $(printenv | grep ASHES_DIR | grep -c .) -eq 0 ]; then
+    echo "export ASHES_DIR=$HOME/Ashes" >> ~/.bashrc
+    source ~/.bashrc
+fi
 
-Write-Host "VAR(ASHES_DIR) OK"
+echo "VAR(ASHES_DIR) OK"
 
+mkdir -p "$ASHES_DIR"/lib && echo "LIBDIR OK"
+mkdir -p "$ASHES_DIR"/inc && echo "INCDIR OK"
+mkdir -p "$ASHES_DIR"/share && echo "SHRDIR OK"
 
+if [ ! -f $ASHES_DIR/bin/MakeInfo ]; then
+    echo "AScripts/MakeInfo not found. Don't build the project."
+    return 1
+fi
 
-$SHR_DIR = $($env:ASHES_DIR) + "\share"
-$LIB_DIR = $($env:ASHES_DIR) + "\lib"
-$INC_DIR = $($env:ASHES_DIR) + "\inc"
-$MKI_FIL = $($env:ASHES_DIR) + "\bin\MakeInfo.exe"
+sed -i '11a A_SHLIB=so' Makefile
+sed -i '12a A_STLIB=a' Makefile
+sed -i '13a A_EXT=' Makefile
+sed -i '14a SHRDIR=$(ASHES_DIR)/share' Makefile
+sed -i '15a LIBDIR=$(ASHES_DIR)/lib' Makefile
+sed -i '16a INCDIR=$(ASHES_DIR)/inc' Makefile
 
-
-if(!(Test-Path -Path $SHR_DIR)) {
-    mkdir $SHR_DIR
-}
-Write-Host "SHRDIR OK"
-
-
-if(!(Test-Path -Path $LIB_DIR)) {
-    mkdir $LIB_DIR
-}
-Write-Host "LIBDIR OK"
-
-
-if(!(Test-Path -Path $INC_DIR)) {
-    mkdir $INC_DIR
-}
-Write-Host "INCDIR OK"
-
-if(!(Test-Path -Path $MKI_FIL)) {
-    Write-Host "AScripts/MakeInfo not found. Don't build the project."
-    return -1;
-}
-
-
-
-# Set-Item -Path 'Env:\CP' -Value 'Copy-Item'
-# Set-Item -Path 'Env:\RM' -Value 'Remove-Item'
-Set-Item -Path 'Env:\A_SHLIB' -Value 'dll'
-Set-Item -Path 'Env:\A_STLIB' -Value 'lib'
-Set-Item -Path 'Env:\A_EXT' -Value '.exe'
-
-Set-Item -Path 'Env:\SHRDIR' -Value $SHR_DIR
-Set-Item -Path 'Env:\LIBDIR' -Value $LIB_DIR
-Set-Item -Path 'Env:\INCDIR' -Value $INC_DIR
+if [ "$LANG" == "fr_FR.UTF-8" ]; then
+    sed -i '17a MILANG=fr' Makefile
+else
+    sed -i '17a MILANG=en' Makefile
+fi

@@ -32,7 +32,7 @@ Les modules contenus dans libATypik sont les suivants :
   * Nombres complexes
 
 À noter qu'un fichier header est également inclus, _InfInt.h_.
-Il est compagnon d'ATypik et provient du [repo du même nom](https://github.com/sercantutar/infint) fait par [sercantutar](https://github.com/sercantutar).
+C'est une dépendance d'ATypik qui provient du [repo du même nom](https://github.com/sercantutar/infint) fait par [sercantutar](https://github.com/sercantutar).
 
 ## Compatibilité
 
@@ -53,11 +53,13 @@ Une seule dépendance est nécessaire pour compiler libATypik :
 Celle-ci peut être clonée et installée via mon github. <br />
 (Le fichier _InfInt.h_ étant déjà inclus dans les sources, il n'est pas nécessaire d'en cloner le dépôt).
 
+Néanmoins, pour pouvoir compiler la doc, vous aurez besoin de `doxygen` et d'une distrib `latex` (comme TexLive ou MikTex).
+
 ### Installation
 
 Vous pouvez tout simplement lancer les commandes suivantes :
 
-    ./Windows_prepare.ps1 OU ./Linux_prepare.sh
+    ./WindowsPrepare.ps1 OU ./LinuxPrepare.{sh, zsh}
 
 puis
 
