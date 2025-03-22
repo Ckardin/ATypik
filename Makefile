@@ -7,8 +7,15 @@
 
 CC=g++
 AR=ar
-CXXFLAGS=-O2 -Wall -Wextra -Werror -std=c++17 -I./src
+CXXFLAGS=-fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./src
 
+A_SHLIB=so
+A_STLIB=a
+A_EXT=
+SHRDIR=$(ASHES_DIR)/share
+LIBDIR=$(ASHES_DIR)/lib
+INCDIR=$(ASHES_DIR)/inc
+MILANG=fr
 
 all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o dox
 	@MakeInfo $(MILANG) dynamic ATypik
@@ -28,8 +35,8 @@ install:
 	@install -p -m 755 src/AlgoMath.h $(INCDIR)
 	@install -p -m 755 src/InfInt.h   $(INCDIR)
 	@MakeInfo $(MILANG) install doc
-	@mv Doc/Latex/refman.pdf Doc/Latex/Dox_ATypik.pdf
-	@install -p -m 755 Doc/Latex/Dox_ATypik.pdf $(SHRDIR)
+	@mv Doc/Latex/refman.pdf Doc/Latex/ATypik.pdf
+	@install -p -m 755 Doc/Latex/ATypik.pdf $(SHRDIR)
 
 
 

@@ -59,9 +59,9 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #include <iostream>
 
 int main() {
-	Fenyx::Types::STable<Fenyx::Types::BYTE, 10> s1(0);
-	Fenyx::Types::DTable<Fenyx::Types::BYTE> d1(0);
-	Fenyx::Types::MTable<std::string, Fenyx::Types::BYTE> m1("", 0);
+	Fenyx::Types::STable<Fenyx::Types::BYTE, 10> s1;
+	Fenyx::Types::DTable<Fenyx::Types::BYTE> d1;
+	Fenyx::Types::MTable<std::string, Fenyx::Types::BYTE> m1;
 
 	if (s1.GetFatal() || d1.GetFatal() || m1.GetFatal()) {
 		std::cout << "Test KO." <<std::endl;

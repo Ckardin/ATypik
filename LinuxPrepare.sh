@@ -62,7 +62,9 @@ sed -i '14a SHRDIR=$(ASHES_DIR)/share' Makefile
 sed -i '15a LIBDIR=$(ASHES_DIR)/lib' Makefile
 sed -i '16a INCDIR=$(ASHES_DIR)/inc' Makefile
 
-if [ "$LANG" == "fr_FR.UTF-8" ]; then
+if [ -z "$LANG" ]; then
+    sed -i '17a MILANG=en' Makefile
+elif [ "$LANG" = "fr_FR.UTF-8" ]; then
     sed -i '17a MILANG=fr' Makefile
 else
     sed -i '17a MILANG=en' Makefile
