@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Tabs.cpp
 /// @brief Source de Tabs
 /// @author F&nµx
-/// @version 1.0
-/// @date 02/11/2024
+/// @version 2.5
+/// @date 29/03/2025
 
 #include "Tabs.h"
 
