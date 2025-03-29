@@ -53,11 +53,12 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @brief Header de Tabs
 /// @author F&nµx
 /// @version 2.5
-/// @date 11/01/2025
+/// @date 29/03/2025
 
 #ifndef TABS_H
 #define TABS_H
 
+#include <memory>
 #include "Defines.h"
 
 namespace Fenyx::Types
@@ -69,7 +70,7 @@ class STable
 {
 public:
     explicit STable();
-
+    STable(STable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T GetValue(DWORD idx);
@@ -78,11 +79,12 @@ public:
     void SetDefaultValue(T defv);
 
     T& operator[](DWORD idx);
+    STable& operator=(STable&& oth) noexcept;
 
-    ~STable();
+    ~STable() = default;
 
 private:
-    T *data;
+    std::unique_ptr<T[]> data;
 
   	DWORD s_tab;
     DWORD c_tab;
@@ -97,6 +99,7 @@ class DTable
 {
 public:
     explicit DTable();
+    DTable(DTable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T GetValue(DWORD idx);
@@ -107,11 +110,12 @@ public:
     void Clear();
 
     T& operator[](DWORD idx);
+    DTable& operator=(DTable&& oth) noexcept;
 
-    ~DTable();
+    ~DTable() = default;
 
 private:
-    T* data;
+    std::unique_ptr<T[]> data;
 
     DWORD s_tab;
     DWORD c_tab;
@@ -126,6 +130,7 @@ class MTable
 {
 public:
     explicit MTable();
+    MTable(MTable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] V GetValue(K key);
@@ -136,14 +141,15 @@ public:
     void Clear();
 
     V& operator[](K idx);
+    MTable& operator=(MTable&& oth) noexcept;
 
-    ~MTable();
+    ~MTable() = default;
 
 private:
     DWORD IsExist(K const& idx);
 
-    K* keys;
-    V* values;
+    std::unique_ptr<K[]> keys;
+    std::unique_ptr<V[]> values;
 
     DWORD s_tab;
     DWORD c_tab;
@@ -168,16 +174,31 @@ template<class T, DWORD s>
 ///
 /// Constructeur de la classe STable.
 STable<T, s>::STable() {
-    data = nullptr;
-    data = new T[s];
+    data = std::make_unique<T[]>(s);
 
-    if (data == nullptr) {
+    if (data.get() == nullptr) {
         error = fatal = true;
         s_tab = c_tab = 0;
     } else {
         error = fatal = false;
         s_tab = c_tab = s;
     }
+}
+
+template<class T, DWORD s>
+/// @brief STable - Constructeur de déplacement
+///
+/// @param[in] oth: STable à déplacer
+///
+/// Constructeur de déplacement la classe STable
+STable<T, s>::STable(STable&& oth) noexcept {
+    s_tab = oth.s_tab;
+    c_tab = oth.c_tab;
+    v_def = oth.v_def;
+
+    data = std::move(oth.data);
+    error = oth.error;
+    fatal = oth.fatal;
 }
 
 template<class T, DWORD s>
@@ -198,7 +219,7 @@ T STable<T, s>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
             error = true;
-            return v_def;
+            return data[s - 1];
         }
 
         return data[idx];
@@ -256,11 +277,23 @@ T& STable<T, s>::operator[](DWORD idx) {
 }
 
 template<class T, DWORD s>
-/// @brief ~STable - Destructeur
+/// @brief operator= - Opérateur de déplacement entre STable
 ///
-/// Destructeur de la classe STable.
-STable<T, s>::~STable() {
-    if (!fatal) delete[] data;
+/// @param[in] oth: STable à déplacer
+///
+/// @return Une référence sur le STable affecté.
+STable<T, s>& STable<T, s>::operator=(STable&& oth) noexcept {
+    if (this != &oth) {
+        s_tab = oth.s_tab;
+        c_tab = oth.c_tab;
+        v_def = oth.v_def;
+
+        data = std::move(oth.data);
+        error = oth.error;
+        fatal = oth.fatal;
+    }
+
+    return *this;
 }
 
 
@@ -269,16 +302,31 @@ template<class T>
 ///
 /// Constructeur de la classe DTable.
 DTable<T>::DTable() {
-    data = nullptr;
-    data = new T[2];
+    data = std::make_unique<T[]>(2);
 
-    if (data == nullptr) {
+    if (data.get() == nullptr) {
         error = fatal = true;
         s_tab = c_tab = 0;
     } else {
         error = fatal = false;
         s_tab = 0; c_tab = 2;
     }
+}
+
+template<class T>
+/// @brief DTable - Constructeur de déplacement
+///
+/// @param[in] oth: DTable à déplacer
+///
+/// Constructeur de déplacement la classe DTable
+DTable<T>::DTable(DTable&& oth) noexcept {
+    s_tab = oth.s_tab;
+    c_tab = oth.c_tab;
+    v_def = oth.v_def;
+
+    data = std::move(oth.data);
+    error = oth.error;
+    fatal = oth.fatal;
 }
 
 template<class T>
@@ -343,8 +391,8 @@ template<class T>
 /// @param[in] idx: index de la valeur à effacer
 ///
 /// Ne fais rien si l'index demandé est en dehors du tableau.
-void DTable<T>::Erase(DWORD idx) {
-    for (DWORD i = idx; i < s_tab; i++) data[i] = data[i + 1];
+void DTable<T>::Erase(const DWORD idx) {
+    for (DWORD i = idx; i < (s_tab - 1); i = i + 1) data[i] = data[i + 1];
     if (idx < s_tab) s_tab -= 1;
 }
 
@@ -364,31 +412,35 @@ template<class T>
 /// @return Une référence sur la valeur contenue à t[idx] si existe, [v_def] sinon.
 T& DTable<T>::operator[](DWORD idx) {
     if (!fatal) {
-        T* temp_d = new T[s_tab];
+        T* temp_d;
 
         if (idx >= c_tab) {
-            if (s_tab != 0) {
-                if (temp_d == nullptr) {
-                    error = fatal = true; s_tab = 0;
-                    return v_def;
-                }
+            // ReSharper disable once CppJoinDeclarationAndAssignment
+            temp_d = data.release();
 
-                for (DWORD i = 0; i < s_tab; ++i) temp_d[i] = data[i];
-            }
-            delete[] data; data = nullptr;
-
-            data = new T[idx + 1];
-            if (data == nullptr) {
-                error = true; fatal = true;
+            if (temp_d == nullptr) {
+                error = fatal = true;
+                s_tab = 0; c_tab = 0;
                 return v_def;
             }
 
-            if (s_tab != 0) for (DWORD i = 0; i < s_tab; ++i) data[i] = temp_d[i];
+            data = std::make_unique<T[]>(idx + 1);
+            if (data.get() == nullptr) {
+                error = true; fatal = true;
+                s_tab = 0; c_tab = 0;
+                return v_def;
+            }
+
+            if (s_tab != 0) {
+                for (DWORD i = 0; i < s_tab; i = i + 1) data[i] = temp_d[i];
+            }
             c_tab = idx + 1;
+
+            delete[] temp_d;
         }
 
         if (idx >= s_tab) {
-            for (QWORD i = s_tab; i < idx + 1; i++) data[i] = v_def;
+            for (QWORD i = s_tab; i < (idx + 1); i = i + 1) data[i] = v_def;
             s_tab = idx + 1;
         }
 
@@ -399,11 +451,23 @@ T& DTable<T>::operator[](DWORD idx) {
 }
 
 template<class T>
-/// @brief ~DTable - Destructeur
+/// @brief operator= - Opérateur de déplacement entre DTable
 ///
-/// Destructeur de la classe DTable.
-DTable<T>::~DTable() {
-    if (!fatal) delete[] data;
+/// @param[in] oth: DTable à déplacer
+///
+/// @return Une référence sur le DTable affecté.
+DTable<T>& DTable<T>::operator=(DTable&& oth) noexcept {
+    if (this != &oth) {
+        s_tab = oth.s_tab;
+        c_tab = oth.c_tab;
+        v_def = oth.v_def;
+
+        data = std::move(oth.data);
+        error = oth.error;
+        fatal = oth.fatal;
+    }
+
+    return *this;
 }
 
 
@@ -412,18 +476,34 @@ template<class K, class V>
 ///
 /// Constructeur de la classe MTable.
 MTable<K, V>::MTable() {
-    keys = nullptr; values = nullptr;
-    keys = new K[2]; values = new V[2];
+    keys   = std::make_unique<K[]>(2);
+    values = std::make_unique<V[]>(2);
 
-    if (keys == nullptr || values == nullptr) {
-        if (keys != nullptr)   delete[] keys; // NOLINT(*-delete-null-pointer)
-        if (values != nullptr) delete[] values; // NOLINT(*-delete-null-pointer)
+    if (keys.get() == nullptr || values.get() == nullptr) {
         error = fatal = true;
         s_tab = c_tab = 0;
     } else {
         error = fatal = false;
         s_tab = 0; c_tab = 2;
     }
+}
+
+template<class K, class V>
+/// @brief MTable - Constructeur de déplacement
+///
+/// @param[in] oth: MTable à déplacer
+///
+/// Constructeur de déplacement la classe MTable
+MTable<K, V>::MTable(MTable&& oth) noexcept {
+    s_tab  = oth.s_tab;
+    c_tab  = oth.c_tab;
+    kv_def = oth.kv_def;
+    vv_def = oth.vv_def;
+
+    keys   = std::move(oth.keys);
+    values = std::move(oth.values);
+    error  = oth.error;
+    fatal  = oth.fatal;
 }
 
 template<class K, class V>
@@ -496,8 +576,8 @@ void MTable<K, V>::Erase(K const& idx) {
         const DWORD idx_i = IsExist(idx);
 
         if  (idx_i == s_tab)                  return;
-        for (DWORD i = idx_i; i < s_tab; ++i) keys[i]   = keys[i + 1];
-        for (DWORD i = idx_i; i < s_tab; ++i) values[i] = values[i + 1];
+        for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) keys[i]   = keys[i + 1];
+        for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) values[i] = values[i + 1];
 
         s_tab -= 1;
     }
@@ -519,40 +599,41 @@ template<class K, class V>
 /// @return Une référence sur la valeur associée à idx si existe, [vv_def] sinon.
 V& MTable<K, V>::operator[](K idx) {
     if (!fatal) {
-        K* temp_k = new K[s_tab]; V* temp_v = new V[s_tab];
+        K* temp_k; V* temp_v;
 
         if (const DWORD idx_i = IsExist(idx); idx_i != s_tab) return values[idx_i];
 
         if (s_tab == c_tab) {
-            if (s_tab != 0) {
-                if (temp_k == nullptr || temp_v == nullptr) {
-                    if (temp_k != nullptr) delete[] temp_k; // NOLINT(*-delete-null-pointer)
-                    if (temp_v != nullptr) delete[] temp_v; // NOLINT(*-delete-null-pointer)
-                    error = fatal = true; s_tab = 0;
-                    return vv_def;
-                }
+            // ReSharper disable once CppJoinDeclarationAndAssignment
+            temp_k = keys.release();
+            // ReSharper disable once CppJoinDeclarationAndAssignment
+            temp_v = values.release();
 
-                for (DWORD i = 0; i < s_tab; ++i) temp_k[i] = keys[i];
-                for (DWORD i = 0; i < s_tab; ++i) temp_v[i] = values[i];
+            if (temp_k == nullptr || temp_v == nullptr) {
+                error = fatal = true;
+                s_tab = 0; c_tab = 0;
+                return vv_def;
             }
-            delete[] keys;   keys   = nullptr;
-            delete[] values; values = nullptr;
 
-            keys = new K[c_tab + 1]; values = new V[c_tab + 1];
+
+            keys   = std::make_unique<K[]>(c_tab + 1);
+            values = std::make_unique<V[]>(c_tab + 1);
+
             if (keys == nullptr || values == nullptr) {
-                if (keys != nullptr)   delete[] keys; // NOLINT(*-delete-null-pointer)
-                if (values != nullptr) delete[] values; // NOLINT(*-delete-null-pointer)
-
-                error = fatal = true; s_tab = 0;
+                error = fatal = true;
+                s_tab = 0; c_tab = 0;
                 return vv_def;
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; ++i) keys[i]   = temp_k[i];
-                for (DWORD i = 0; i < s_tab; ++i) values[i] = temp_v[i];
+                for (DWORD i = 0; i < s_tab; i = i + 1) keys[i]   = temp_k[i];
+                for (DWORD i = 0; i < s_tab; i = i + 1) values[i] = temp_v[i];
             }
 
             c_tab += 1;
+
+            delete[] temp_k;
+            delete[] temp_v;
         }
         s_tab += 1; keys[s_tab - 1] = idx;
 
@@ -562,20 +643,31 @@ V& MTable<K, V>::operator[](K idx) {
     return vv_def;
 }
 
-template<class K, class V>
-/// @brief ~MTable - Destructeur
+template<class T, class V>
+/// @brief operator= - Opérateur de déplacement entre MTable
 ///
-/// Destructeur de la classe MTable.
-MTable<K, V>::~MTable() {
-    if (!fatal) {
-        delete[] keys;
-        delete[] values;
+/// @param[in] oth: MTable à déplacer
+///
+/// @return Une référence sur le MTable affecté.
+MTable<T, V>& MTable<T, V>::operator=(MTable&& oth) noexcept {
+    if (this != &oth) {
+        s_tab  = oth.s_tab;
+        c_tab  = oth.c_tab;
+        kv_def = oth.kv_def;
+        vv_def = oth.vv_def;
+
+        keys   = std::move(oth.keys);
+        values = std::move(oth.values);
+        error  = oth.error;
+        fatal  = oth.fatal;
     }
+
+    return *this;
 }
 
 template<class K, class V>
 DWORD MTable<K, V>::IsExist(K const& idx) {
-    for (DWORD i = 0; i < s_tab; ++i) {
+    for (DWORD i = 0; i < s_tab; i = i + 1) {
         if (keys[i] == idx) return i;
     }
 
