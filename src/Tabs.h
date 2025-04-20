@@ -73,12 +73,13 @@ public:
     STable(STable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] T GetValue(DWORD idx);
+    [[nodiscard]] T const& GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(T defv);
 
     T& operator[](DWORD idx);
+    T const& operator[](DWORD idx) const;
     STable& operator=(STable&& oth) noexcept;
 
     ~STable() = default;
@@ -102,7 +103,7 @@ public:
     DTable(DTable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] T GetValue(DWORD idx);
+    [[nodiscard]] T const& GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(T defv);
@@ -110,6 +111,7 @@ public:
     void Clear();
 
     T& operator[](DWORD idx);
+    T const& operator[](DWORD idx) const;
     DTable& operator=(DTable&& oth) noexcept;
 
     ~DTable() = default;
@@ -133,7 +135,7 @@ public:
     MTable(MTable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] V GetValue(K key);
+    [[nodiscard]] V const& GetValue(K key);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(K defv_k, V defv_v);
@@ -141,6 +143,7 @@ public:
     void Clear();
 
     V& operator[](K idx);
+    V const& operator[](K key) const;
     MTable& operator=(MTable&& oth) noexcept;
 
     ~MTable() = default;
@@ -215,7 +218,7 @@ template<class T, DWORD s>
 /// @param[in] idx: index
 ///
 /// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
-T STable<T, s>::GetValue(DWORD idx) {
+T const& STable<T, s>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
             error = true;
@@ -254,11 +257,11 @@ template<class T, DWORD s>
 ///
 /// @param[in] defv: valeur par défaut
 void STable<T, s>::SetDefaultValue(T defv) {
-    v_def = defv;
+    v_def = std::move(defv);
 }
 
 template<class T, DWORD s>
-/// @brief operator[] - Opérateur d'indexation du tableau
+/// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: index
 ///
@@ -270,6 +273,21 @@ T& STable<T, s>::operator[](DWORD idx) {
             return v_def;
         }
 
+        return data[idx];
+    }
+
+    return v_def;
+}
+
+template<class T, DWORD s>
+/// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
+///
+/// @param[in] idx: index
+///
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+T const& STable<T, s>::operator[](DWORD idx) const {
+    if (!fatal) {
+        if (idx >= s_tab) return v_def;
         return data[idx];
     }
 
@@ -343,7 +361,7 @@ template<class T>
 /// @param[in] idx: index
 ///
 /// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
-T DTable<T>::GetValue(DWORD idx) {
+T const& DTable<T>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
             error = true;
@@ -382,7 +400,7 @@ template<class T>
 ///
 /// @param[in] defv: valeur par défaut
 void DTable<T>::SetDefaultValue(T defv) {
-    v_def = defv;
+    v_def = std::move(defv);
 }
 
 template<class T>
@@ -405,7 +423,7 @@ void DTable<T>::Clear() {
 }
 
 template<class T>
-/// @brief operator[] - Opérateur d'indexation du tableau
+/// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: index
 ///
@@ -432,18 +450,30 @@ T& DTable<T>::operator[](DWORD idx) {
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; i = i + 1) data[i] = temp_d[i];
+                for (DWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
             }
             c_tab = idx + 1;
 
             delete[] temp_d;
         }
 
-        if (idx >= s_tab) {
-            for (QWORD i = s_tab; i < (idx + 1); i = i + 1) data[i] = v_def;
-            s_tab = idx + 1;
-        }
+        if (idx >= s_tab) s_tab = idx + 1;
 
+        return data[idx];
+    }
+
+    return v_def;
+}
+
+template<class T>
+/// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
+///
+/// @param[in] idx: index
+///
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+T const& DTable<T>::operator[](DWORD idx) const {
+    if (!fatal) {
+        if (idx >= s_tab) return v_def;
         return data[idx];
     }
 
@@ -520,9 +550,9 @@ template<class K, class V>
 /// @param[in] key: clé
 ///
 /// @return La valeur contenue à t[key] si existe ou [vv_def] sinon.
-V MTable<K, V>::GetValue(K key) {
+V const& MTable<K, V>::GetValue(K key) {
     if (!fatal) {
-        DWORD idx = IsExist(key);
+        const DWORD idx = IsExist(key);
         if (idx == s_tab) {
             error = true;
             return vv_def;
@@ -561,8 +591,8 @@ template<class K, class V>
 /// @param[in] defv_k: valeur par défaut des clés
 /// @param[in] defv_v: valeur par défaut pour les valeurs associées aux clés
 void MTable<K, V>::SetDefaultValue(K defv_k, V defv_v) {
-    kv_def = defv_k;
-    vv_def = defv_v;
+    kv_def = std::move(defv_k);
+    vv_def = std::move(defv_v);
 }
 
 template<class K, class V>
@@ -592,7 +622,7 @@ void MTable<K, V>::Clear() {
 }
 
 template<class K, class V>
-/// @brief operator[] - Opérateur d'indexation du tableau
+/// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: clé
 ///
@@ -626,8 +656,8 @@ V& MTable<K, V>::operator[](K idx) {
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; i = i + 1) keys[i]   = temp_k[i];
-                for (DWORD i = 0; i < s_tab; i = i + 1) values[i] = temp_v[i];
+                for (DWORD i = 0; i < s_tab; i = i + 1) keys[i]   = std::move(temp_k[i]);
+                for (DWORD i = 0; i < s_tab; i = i + 1) values[i] = std::move(temp_v[i]);
             }
 
             c_tab += 1;
@@ -638,6 +668,23 @@ V& MTable<K, V>::operator[](K idx) {
         s_tab += 1; keys[s_tab - 1] = idx;
 
         return values[s_tab - 1];
+    }
+
+    return vv_def;
+}
+
+template<class K, class V>
+/// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
+///
+/// @param[in] key: clé
+///
+/// @return Une référence constante sur la valeur associée à idx si existe, [vv_def] sinon.
+V const& MTable<K, V>::operator[](K key) const {
+    if (!fatal) {
+        const DWORD idx = IsExist(key);
+        if (idx == s_tab) return vv_def;
+
+        return values[idx];
     }
 
     return vv_def;
