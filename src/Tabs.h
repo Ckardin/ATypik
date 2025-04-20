@@ -65,6 +65,37 @@ namespace Fenyx::Types
 {
 
 template<class T, DWORD s>
+class STable;
+
+template<class T, DWORD s>
+bool operator==(const STable<T, s>& t1, const STable<T, s>& t2);
+
+template<class T, DWORD s>
+bool operator!=(const STable<T, s>& t1, const STable<T, s>& t2);
+
+
+template<class T>
+class DTable;
+
+template<class T>
+bool operator==(const DTable<T>& t1, const DTable<T>& t2);
+
+template<class T>
+bool operator!=(const DTable<T>& t1, const DTable<T>& t2);
+
+
+template<class K, class V>
+class MTable;
+
+template<class K, class V>
+bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2);
+
+template<class K, class V>
+bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2);
+
+
+
+template<class T, DWORD s>
 /// @brief STable - Classe qui permet de gérer un tableau de taille fixe
 class STable
 {
@@ -73,12 +104,13 @@ public:
     STable(STable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] T GetValue(DWORD idx);
+    [[nodiscard]] T const& GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(T defv);
 
     T& operator[](DWORD idx);
+    T const& operator[](DWORD idx) const;
     STable& operator=(STable&& oth) noexcept;
 
     ~STable() = default;
@@ -91,6 +123,9 @@ private:
     T v_def;
     bool error;
     bool fatal;
+
+friend bool operator==<T, s>(const STable<T, s>& t1, const STable<T, s>& t2);
+friend bool operator!=<T, s>(const STable<T, s>& t1, const STable<T, s>& t2);
 };
 
 template<class T>
@@ -102,7 +137,7 @@ public:
     DTable(DTable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] T GetValue(DWORD idx);
+    [[nodiscard]] T const& GetValue(DWORD idx);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(T defv);
@@ -110,6 +145,7 @@ public:
     void Clear();
 
     T& operator[](DWORD idx);
+    T const& operator[](DWORD idx) const;
     DTable& operator=(DTable&& oth) noexcept;
 
     ~DTable() = default;
@@ -122,6 +158,9 @@ private:
     T v_def;
     bool error;
     bool fatal;
+
+friend bool operator==<T>(const DTable<T>& lhs, const DTable<T>& rhs);
+friend bool operator!=<T>(const DTable<T>& lhs, const DTable<T>& rhs);
 };
 
 template<class K, class V>
@@ -133,7 +172,7 @@ public:
     MTable(MTable&& oth) noexcept;
 
     [[nodiscard]] DWORD GetSize() const;
-    [[nodiscard]] V GetValue(K key);
+    [[nodiscard]] V const& GetValue(K key);
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(K defv_k, V defv_v);
@@ -141,6 +180,7 @@ public:
     void Clear();
 
     V& operator[](K idx);
+    V const& operator[](K key) const;
     MTable& operator=(MTable&& oth) noexcept;
 
     ~MTable() = default;
@@ -157,6 +197,9 @@ private:
     V vv_def;
     bool error;
     bool fatal;
+
+friend bool operator==<K, V>(const MTable<K, V>& lhs, const MTable<K, V>& rhs);
+friend bool operator!=<K, V>(const MTable<K, V>& lhs, const MTable<K, V>& rhs);
 };
 
 using barray = STable<BYTE, 17>;
@@ -215,7 +258,7 @@ template<class T, DWORD s>
 /// @param[in] idx: index
 ///
 /// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
-T STable<T, s>::GetValue(DWORD idx) {
+T const& STable<T, s>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
             error = true;
@@ -254,11 +297,11 @@ template<class T, DWORD s>
 ///
 /// @param[in] defv: valeur par défaut
 void STable<T, s>::SetDefaultValue(T defv) {
-    v_def = defv;
+    v_def = std::move(defv);
 }
 
 template<class T, DWORD s>
-/// @brief operator[] - Opérateur d'indexation du tableau
+/// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: index
 ///
@@ -270,6 +313,21 @@ T& STable<T, s>::operator[](DWORD idx) {
             return v_def;
         }
 
+        return data[idx];
+    }
+
+    return v_def;
+}
+
+template<class T, DWORD s>
+/// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
+///
+/// @param[in] idx: index
+///
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+T const& STable<T, s>::operator[](DWORD idx) const {
+    if (!fatal) {
+        if (idx >= s_tab) return v_def;
         return data[idx];
     }
 
@@ -294,6 +352,34 @@ STable<T, s>& STable<T, s>::operator=(STable&& oth) noexcept {
     }
 
     return *this;
+}
+
+template<class T, DWORD s>
+/// @brief operator== - Opérateur d'égalité entre STable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si égaux, false sinon.
+bool operator==(const STable<T, s>& t1, const STable<T, s>& t2) {
+    if (t1.s_tab != t2.s_tab) return false;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.data[i] != t2.data[i]) return false;
+    }
+
+    return true;
+}
+
+template<class T, DWORD s>
+/// @brief operator== - Opérateur d'inégalité entre STable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si inégaux, false sinon.
+bool operator!=(const STable<T, s>& t1, const STable<T, s>& t2) {
+    return !(t1 == t2);
 }
 
 
@@ -343,7 +429,7 @@ template<class T>
 /// @param[in] idx: index
 ///
 /// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
-T DTable<T>::GetValue(DWORD idx) {
+T const& DTable<T>::GetValue(DWORD idx) {
     if (!fatal) {
         if (idx >= s_tab) {
             error = true;
@@ -382,7 +468,7 @@ template<class T>
 ///
 /// @param[in] defv: valeur par défaut
 void DTable<T>::SetDefaultValue(T defv) {
-    v_def = defv;
+    v_def = std::move(defv);
 }
 
 template<class T>
@@ -405,7 +491,7 @@ void DTable<T>::Clear() {
 }
 
 template<class T>
-/// @brief operator[] - Opérateur d'indexation du tableau
+/// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: index
 ///
@@ -432,18 +518,30 @@ T& DTable<T>::operator[](DWORD idx) {
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; i = i + 1) data[i] = temp_d[i];
+                for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
             }
             c_tab = idx + 1;
 
             delete[] temp_d;
         }
 
-        if (idx >= s_tab) {
-            for (QWORD i = s_tab; i < (idx + 1); i = i + 1) data[i] = v_def;
-            s_tab = idx + 1;
-        }
+        if (idx >= s_tab) s_tab = idx + 1;
 
+        return data[idx];
+    }
+
+    return v_def;
+}
+
+template<class T>
+/// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
+///
+/// @param[in] idx: index
+///
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+T const& DTable<T>::operator[](DWORD idx) const {
+    if (!fatal) {
+        if (idx >= s_tab) return v_def;
         return data[idx];
     }
 
@@ -468,6 +566,34 @@ DTable<T>& DTable<T>::operator=(DTable&& oth) noexcept {
     }
 
     return *this;
+}
+
+template<class T>
+/// @brief operator== - Opérateur d'égalité entre DTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si égaux, false sinon.
+bool operator==(const DTable<T>& t1, const DTable<T>& t2) {
+    if (t1.s_tab != t2.s_tab) return false;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.data[i] != t2.data[i]) return false;
+    }
+
+    return true;
+}
+
+template<class T>
+/// @brief operator== - Opérateur d'inégalité entre DTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si inégaux, false sinon.
+bool operator!=(const DTable<T>& t1, const DTable<T>& t2) {
+    return !(t1 == t2);
 }
 
 
@@ -520,9 +646,9 @@ template<class K, class V>
 /// @param[in] key: clé
 ///
 /// @return La valeur contenue à t[key] si existe ou [vv_def] sinon.
-V MTable<K, V>::GetValue(K key) {
+V const& MTable<K, V>::GetValue(K key) {
     if (!fatal) {
-        DWORD idx = IsExist(key);
+        const DWORD idx = IsExist(key);
         if (idx == s_tab) {
             error = true;
             return vv_def;
@@ -561,8 +687,8 @@ template<class K, class V>
 /// @param[in] defv_k: valeur par défaut des clés
 /// @param[in] defv_v: valeur par défaut pour les valeurs associées aux clés
 void MTable<K, V>::SetDefaultValue(K defv_k, V defv_v) {
-    kv_def = defv_k;
-    vv_def = defv_v;
+    kv_def = std::move(defv_k);
+    vv_def = std::move(defv_v);
 }
 
 template<class K, class V>
@@ -575,7 +701,7 @@ void MTable<K, V>::Erase(K const& idx) {
     if (!fatal) {
         const DWORD idx_i = IsExist(idx);
 
-        if  (idx_i == s_tab)                  return;
+        if  (idx_i == s_tab)                              return;
         for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) keys[i]   = keys[i + 1];
         for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) values[i] = values[i + 1];
 
@@ -592,7 +718,7 @@ void MTable<K, V>::Clear() {
 }
 
 template<class K, class V>
-/// @brief operator[] - Opérateur d'indexation du tableau
+/// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: clé
 ///
@@ -615,7 +741,6 @@ V& MTable<K, V>::operator[](K idx) {
                 return vv_def;
             }
 
-
             keys   = std::make_unique<K[]>(c_tab + 1);
             values = std::make_unique<V[]>(c_tab + 1);
 
@@ -626,8 +751,8 @@ V& MTable<K, V>::operator[](K idx) {
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; i = i + 1) keys[i]   = temp_k[i];
-                for (DWORD i = 0; i < s_tab; i = i + 1) values[i] = temp_v[i];
+                for (QWORD i = 0; i < s_tab; i = i + 1) keys[i]   = std::move(temp_k[i]);
+                for (QWORD i = 0; i < s_tab; i = i + 1) values[i] = std::move(temp_v[i]);
             }
 
             c_tab += 1;
@@ -638,6 +763,23 @@ V& MTable<K, V>::operator[](K idx) {
         s_tab += 1; keys[s_tab - 1] = idx;
 
         return values[s_tab - 1];
+    }
+
+    return vv_def;
+}
+
+template<class K, class V>
+/// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
+///
+/// @param[in] key: clé
+///
+/// @return Une référence constante sur la valeur associée à idx si existe, [vv_def] sinon.
+V const& MTable<K, V>::operator[](K key) const {
+    if (!fatal) {
+        const DWORD idx = IsExist(key);
+        if (idx == s_tab) return vv_def;
+
+        return values[idx];
     }
 
     return vv_def;
@@ -667,11 +809,43 @@ MTable<T, V>& MTable<T, V>::operator=(MTable&& oth) noexcept {
 
 template<class K, class V>
 DWORD MTable<K, V>::IsExist(K const& idx) {
-    for (DWORD i = 0; i < s_tab; i = i + 1) {
+    for (QWORD i = 0; i < s_tab; i = i + 1) {
         if (keys[i] == idx) return i;
     }
 
     return s_tab;
+}
+
+template<class K, class V>
+/// @brief operator== - Opérateur d'égalité entre MTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si égaux, false sinon.
+bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2) {
+    if (t1.s_tab != t2.s_tab) return false;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.keys[i] != t2.keys[i]) return false;
+    }
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.values[i] != t2.values[i]) return false;
+    }
+
+    return true;
+}
+
+template<class K, class V>
+/// @brief operator== - Opérateur d'inégalité entre MTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si inégaux, false sinon.
+bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2) {
+    return !(t1 == t2);
 }
 
 }
