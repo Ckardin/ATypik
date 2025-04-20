@@ -65,6 +65,37 @@ namespace Fenyx::Types
 {
 
 template<class T, DWORD s>
+class STable;
+
+template<class T, DWORD s>
+bool operator==(const STable<T, s>& t1, const STable<T, s>& t2);
+
+template<class T, DWORD s>
+bool operator!=(const STable<T, s>& t1, const STable<T, s>& t2);
+
+
+template<class T>
+class DTable;
+
+template<class T>
+bool operator==(const DTable<T>& t1, const DTable<T>& t2);
+
+template<class T>
+bool operator!=(const DTable<T>& t1, const DTable<T>& t2);
+
+
+template<class K, class V>
+class MTable;
+
+template<class K, class V>
+bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2);
+
+template<class K, class V>
+bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2);
+
+
+
+template<class T, DWORD s>
 /// @brief STable - Classe qui permet de gérer un tableau de taille fixe
 class STable
 {
@@ -92,6 +123,9 @@ private:
     T v_def;
     bool error;
     bool fatal;
+
+friend bool operator==<T, s>(const STable<T, s>& t1, const STable<T, s>& t2);
+friend bool operator!=<T, s>(const STable<T, s>& t1, const STable<T, s>& t2);
 };
 
 template<class T>
@@ -124,6 +158,9 @@ private:
     T v_def;
     bool error;
     bool fatal;
+
+friend bool operator==<T>(const DTable<T>& lhs, const DTable<T>& rhs);
+friend bool operator!=<T>(const DTable<T>& lhs, const DTable<T>& rhs);
 };
 
 template<class K, class V>
@@ -160,6 +197,9 @@ private:
     V vv_def;
     bool error;
     bool fatal;
+
+friend bool operator==<K, V>(const MTable<K, V>& lhs, const MTable<K, V>& rhs);
+friend bool operator!=<K, V>(const MTable<K, V>& lhs, const MTable<K, V>& rhs);
 };
 
 using barray = STable<BYTE, 17>;
@@ -314,6 +354,34 @@ STable<T, s>& STable<T, s>::operator=(STable&& oth) noexcept {
     return *this;
 }
 
+template<class T, DWORD s>
+/// @brief operator== - Opérateur d'égalité entre STable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si égaux, false sinon.
+bool operator==(const STable<T, s>& t1, const STable<T, s>& t2) {
+    if (t1.s_tab != t2.s_tab) return false;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.data[i] != t2.data[i]) return false;
+    }
+
+    return true;
+}
+
+template<class T, DWORD s>
+/// @brief operator== - Opérateur d'inégalité entre STable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si inégaux, false sinon.
+bool operator!=(const STable<T, s>& t1, const STable<T, s>& t2) {
+    return !(t1 == t2);
+}
+
 
 template<class T>
 /// @brief DTable - Constructeur
@@ -450,7 +518,7 @@ T& DTable<T>::operator[](DWORD idx) {
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
+                for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
             }
             c_tab = idx + 1;
 
@@ -498,6 +566,34 @@ DTable<T>& DTable<T>::operator=(DTable&& oth) noexcept {
     }
 
     return *this;
+}
+
+template<class T>
+/// @brief operator== - Opérateur d'égalité entre DTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si égaux, false sinon.
+bool operator==(const DTable<T>& t1, const DTable<T>& t2) {
+    if (t1.s_tab != t2.s_tab) return false;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.data[i] != t2.data[i]) return false;
+    }
+
+    return true;
+}
+
+template<class T>
+/// @brief operator== - Opérateur d'inégalité entre DTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si inégaux, false sinon.
+bool operator!=(const DTable<T>& t1, const DTable<T>& t2) {
+    return !(t1 == t2);
 }
 
 
@@ -605,7 +701,7 @@ void MTable<K, V>::Erase(K const& idx) {
     if (!fatal) {
         const DWORD idx_i = IsExist(idx);
 
-        if  (idx_i == s_tab)                  return;
+        if  (idx_i == s_tab)                              return;
         for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) keys[i]   = keys[i + 1];
         for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) values[i] = values[i + 1];
 
@@ -645,7 +741,6 @@ V& MTable<K, V>::operator[](K idx) {
                 return vv_def;
             }
 
-
             keys   = std::make_unique<K[]>(c_tab + 1);
             values = std::make_unique<V[]>(c_tab + 1);
 
@@ -656,8 +751,8 @@ V& MTable<K, V>::operator[](K idx) {
             }
 
             if (s_tab != 0) {
-                for (DWORD i = 0; i < s_tab; i = i + 1) keys[i]   = std::move(temp_k[i]);
-                for (DWORD i = 0; i < s_tab; i = i + 1) values[i] = std::move(temp_v[i]);
+                for (QWORD i = 0; i < s_tab; i = i + 1) keys[i]   = std::move(temp_k[i]);
+                for (QWORD i = 0; i < s_tab; i = i + 1) values[i] = std::move(temp_v[i]);
             }
 
             c_tab += 1;
@@ -714,11 +809,43 @@ MTable<T, V>& MTable<T, V>::operator=(MTable&& oth) noexcept {
 
 template<class K, class V>
 DWORD MTable<K, V>::IsExist(K const& idx) {
-    for (DWORD i = 0; i < s_tab; i = i + 1) {
+    for (QWORD i = 0; i < s_tab; i = i + 1) {
         if (keys[i] == idx) return i;
     }
 
     return s_tab;
+}
+
+template<class K, class V>
+/// @brief operator== - Opérateur d'égalité entre MTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si égaux, false sinon.
+bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2) {
+    if (t1.s_tab != t2.s_tab) return false;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.keys[i] != t2.keys[i]) return false;
+    }
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.values[i] != t2.values[i]) return false;
+    }
+
+    return true;
+}
+
+template<class K, class V>
+/// @brief operator== - Opérateur d'inégalité entre MTable
+///
+/// @param[in] t1: lhs
+/// @param[in] t2: rhs
+///
+/// @return true si inégaux, false sinon.
+bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2) {
+    return !(t1 == t2);
 }
 
 }
