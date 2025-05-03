@@ -159,8 +159,8 @@ private:
     bool error;
     bool fatal;
 
-friend bool operator==<T>(const DTable<T>& lhs, const DTable<T>& rhs);
-friend bool operator!=<T>(const DTable<T>& lhs, const DTable<T>& rhs);
+friend bool operator==<T>(const DTable<T>& t1, const DTable<T>& t2);
+friend bool operator!=<T>(const DTable<T>& t1, const DTable<T>& t2);
 };
 
 template<class K, class V>
@@ -198,8 +198,8 @@ private:
     bool error;
     bool fatal;
 
-friend bool operator==<K, V>(const MTable<K, V>& lhs, const MTable<K, V>& rhs);
-friend bool operator!=<K, V>(const MTable<K, V>& lhs, const MTable<K, V>& rhs);
+friend bool operator==<K, V>(const MTable<K, V>& t1, const MTable<K, V>& t2);
+friend bool operator!=<K, V>(const MTable<K, V>& t1, const MTable<K, V>& t2);
 };
 
 using barray = STable<BYTE, 17>;
