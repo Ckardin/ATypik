@@ -191,6 +191,8 @@ public:
     unsigned int toUnsignedInt() const; // throw
     unsigned long toUnsignedLong() const; // throw
     unsigned long long toUnsignedLongLong() const; // throw
+    
+    uint64_t GetL64();
 
 private:
     static ELEM_TYPE dInR(const InfInt& R, const InfInt& D);
