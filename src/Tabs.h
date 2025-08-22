@@ -64,6 +64,27 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
+template<class U, class V>
+/// @brief Pair - Classe qui permet de gérer une paire de 2 valeurs
+class Pair
+{
+public:
+    Pair(const U &f, const V &s);
+
+    U First();
+    V Second();
+
+    void Set(const U &f, const V &s);
+    void SetFirst(const U &f);
+    void SetSecond(const V &s);
+
+    ~Pair() = default;
+
+private:
+    U first;
+    V second;
+};
+
 template<class T, DWORD s>
 class STable;
 
@@ -141,8 +162,11 @@ public:
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(T defv);
+    void SetCapacity(DWORD cap);
     void Erase(DWORD idx);
     void Clear();
+
+    [[nodiscard]] bool IsEmpty() const;
 
     T& operator[](DWORD idx);
     T const& operator[](DWORD idx) const;
@@ -210,6 +234,61 @@ using barray = STable<BYTE, 17>;
 
 barray BytesArray(allnum data);
 
+
+
+template<class U, class V>
+/// @brief Pair - Constructeur
+///
+/// @param[in] f: f-value
+/// @param[in] s: s-value
+///
+/// Constructeur de la classe Pair.
+Pair<U, V>::Pair(const U &f, const V &s) {
+    first  = f;
+    second = s;
+}
+
+template<class U, class V>
+/// @brief First - Récupère la première valeur de la paire
+///
+/// @return La première valeur contenue dans la paire.
+U Pair<U, V>::First() {
+    return first;
+}
+
+template<class U, class V>
+/// @brief Second - Récupère la deuxième valeur de la paire
+///
+/// @return La deuxième valeur contenue dans la paire.
+V Pair<U, V>::Second() {
+    return second;
+}
+
+template<class U, class V>
+/// @brief Set - Permet de modifier les deux valeurs
+///
+/// @param[in] f: f-value
+/// @param[in] s: s-value
+void Pair<U, V>::Set(const U &f, const V &s) {
+    first  = f;
+    second = s;
+}
+
+template<class U, class V>
+/// @brief SetFirst - Permet de modifier la première valeur de la paire
+///
+/// @param[in] f: f-value
+void Pair<U, V>::SetFirst(const U &f) {
+    first = f;
+}
+
+template<class U, class V>
+/// @brief SetFirst - Permet de modifier la deuxième valeur de la paire
+///
+/// @param[in] s: s-value
+void Pair<U, V>::SetSecond(const V &s) {
+    second = s;
+}
 
 
 template<class T, DWORD s>
@@ -472,6 +551,36 @@ void DTable<T>::SetDefaultValue(T defv) {
 }
 
 template<class T>
+void DTable<T>::SetCapacity(DWORD cap) {
+    if (!fatal) {
+        if (cap > c_tab) {
+            // ReSharper disable once CppJoinDeclarationAndAssignment
+            T* temp_d = data.release();
+
+            if (temp_d == nullptr) {
+                error = fatal = true;
+                s_tab = 0; c_tab = 0;
+                return;
+            }
+
+            data = std::make_unique<T[]>(cap);
+            if (data.get() == nullptr) {
+                error = true; fatal = true;
+                s_tab = 0; c_tab = 0;
+                return;
+            }
+
+            if (s_tab != 0) {
+                for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
+            }
+            c_tab = cap;
+
+            delete[] temp_d;
+        }
+    }
+}
+
+template<class T>
 /// @brief Erase - Efface une valeur
 ///
 /// @param[in] idx: index de la valeur à effacer
@@ -488,6 +597,16 @@ template<class T>
 /// Pas de réallocation mémoire, seule la taille est remise à 0. Ne fais rien si erreur fatale.
 void DTable<T>::Clear() {
     if (!fatal) s_tab = 0;
+}
+
+template<class T>
+/// @brief IsEmpty - Test si le tableau est vide
+///
+/// @return True si tableau vide, false sinon.
+///
+/// Ne test que la taille, pas la capacité (pour des raisons logiques, pardi !)
+bool DTable<T>::IsEmpty() const {
+    return (s_tab == 0);
 }
 
 template<class T>
