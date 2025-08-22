@@ -1,0 +1,105 @@
+/*
+---------------------------------------------
+|    ____                                   |
+|   /\  _`\                                 |
+|   \ \ \L\_\ __    ___   __  __   __  _    |
+|    \ \  _\/'__`\/' _ `\/\ \/\ \ /\ \/'\   |
+|     \ \ \/\  __//\ \/\ \ \ \_\ \\/>  </   |
+|      \ \_\ \____\ \_\ \_\/`____ \/\_/\_\  |
+|       \/_/\/____/\/_/\/_/`/___/> \//\/_/  |
+|                             /\___/        |
+|                             \/__/         |
+|                                           |
+---------------------------------------------
+*/
+
+/// @file Int.h
+/// @brief Header de Int
+/// @author F&nµx
+/// @version 1.0
+/// @date 22/08/2025
+
+#ifndef INT_H
+#define INT_H
+
+#include "Tabs.h"
+
+namespace Fenyx::Types
+{
+
+class Int
+{
+public:
+	Int();
+
+	Int(int value);
+	Int(const Int& other);
+	Int(const DTable<DWORD> &other);
+	Int(DWORD value);
+
+	DTable<DWORD> GetTab() const;
+	QWORD GetL64();
+	std::string GetStr() const;
+	bool IsZero() const;
+
+	Int& operator=(const Int& other);
+	Int& operator=(DWORD other);
+	Int& operator=(int other);
+
+	Int& operator+=(const Int& other);
+	Int& operator-=(const Int& other);
+	Int& operator*=(const Int& other);
+	Int& operator/=(const Int& other);
+
+	/// ADD
+	///
+	/// SI 2 neg => Addition, signe (-)
+	/// SI 1 neg => Soustraction avec plus grand
+	///				--> Si plus petit a signe (-), alors signe (+)
+	///				--> Si plus grand a signe (-), alors signe (-)
+	///	SI 0 neg => Addition, signe (+)
+
+	///	SUB
+	///
+	///	SI 2 neg => Soustraction avec plus grand, signe (-) si A > B, signe (+) sinon
+	///	SI 1 neg => Addition, signe (-) si A neg, signe (+) sinon
+	///	SI 0 neg => Soustraction avec plus grand, signe (-) si A < B, signe (+) sinon
+
+private:
+	Int Add(const Int &A, const Int &B);
+	Int Sub(const Int &A, const Int &B);
+	Int Karatsuba(const Int &A, const Int &B);
+	Int LongMul(const Int &A, const Int &B);
+	STable<Int, 2> BurnikelZiegler(const Int &A, const Int &B);
+	STable<Int, 2> LongDiv(const Int &A, const Int &B);
+	Int Slice(WORD strt, WORD len);
+
+	void Normalize();
+	Pair<BYTE, bool> ChooseOpSign(const Int &A, const Int &B, BYTE op);
+
+	DTable<DWORD> v;
+	bool sign;
+
+friend Int operator+(const Int &A, const Int &B);
+friend Int operator-(const Int &A, const Int &B);
+friend Int operator*(const Int &A, const Int &B);
+friend Int operator/(const Int &A, const Int &B);
+friend Int operator%(const Int &A, const Int &B);
+
+friend Int operator<<(const Int &A, DWORD b);
+friend Int operator>>(const Int &A, DWORD b);
+friend Int operator&(const Int &A, const Int &B);
+friend Int operator|(const Int &A, const Int &B);
+friend Int operator^(const Int &A, const Int &B);
+
+friend bool operator==(const Int &A, const Int &B);
+friend bool operator!=(const Int &A, const Int &B);
+friend bool operator<(const Int &A, const Int &B);
+friend bool operator>(const Int &A, const Int &B);
+friend bool operator<=(const Int &A, const Int &B);
+friend bool operator>=(const Int &A, const Int &B);
+};
+
+}
+
+#endif //INT_H
