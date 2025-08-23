@@ -58,6 +58,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef TABS_H
 #define TABS_H
 
+#include <cassert>
 #include <memory>
 #include "Defines.h"
 
@@ -629,19 +630,20 @@ T& DTable<T>::operator[](DWORD idx) {
                 return v_def;
             }
 
-            data = std::make_unique<T[]>(idx + 1);
+            const DWORD ns = (s_tab > (idx + 1)) ? s_tab : (idx + 1);
+            T* nd = new T[ns];
+
+            for (QWORD i = 0; i < s_tab; i = i + 1) nd[i] = std::move(temp_d[i]);
+            delete[] temp_d;
+
+            data.reset(nd);
+            c_tab = ns;
+
             if (data.get() == nullptr) {
                 error = true; fatal = true;
                 s_tab = 0; c_tab = 0;
                 return v_def;
             }
-
-            if (s_tab != 0) {
-                for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
-            }
-            c_tab = idx + 1;
-
-            delete[] temp_d;
         }
 
         if (idx >= s_tab) s_tab = idx + 1;

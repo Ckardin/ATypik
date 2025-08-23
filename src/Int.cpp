@@ -421,8 +421,8 @@ Int Int::LongMul(const Int &A, const Int &B) {
 
 Pair<Int, Int> Int::BurnikelZiegler(const Int &A, const Int &B) {
 	if (B.IsZero()) throw std::runtime_error("Division by zero");
-	if (A.IsZero()) return Pair(Int(0), B);
-	if (A < B)      return Pair(Int(0), A);
+	if (A.IsZero()) return {Int(0), B};
+	if (A < B)      return {Int(0), A};
 
 	const DWORD n = A.v.GetSize();
 	const DWORD k = n / 2;
@@ -438,13 +438,13 @@ Pair<Int, Int> Int::BurnikelZiegler(const Int &A, const Int &B) {
 	Pair<Int, Int> qrl = BurnikelZiegler(rp, B);
 	Int Q = (qrh.First() << (32 * k)) + qrl.First();
 
-	return Pair(Q, qrl.Second());
+	return {Q, qrl.Second()};
 }
 
 Pair<Int, Int> Int::LongDiv(const Int &A, const Int &B) {
 	if (B.IsZero()) throw std::runtime_error("Division by zero");
-	if (A.IsZero()) return Pair(Int(0), B);
-	if (A < B)      return Pair(Int(0), A);
+	if (A.IsZero()) return {Int(0), B};
+	if (A < B)      return {Int(0), A};
 
 	QWORD q, rh0, rh1, bh, carry;
 	SWORD t, t1;
@@ -495,7 +495,7 @@ Pair<Int, Int> Int::LongDiv(const Int &A, const Int &B) {
 	Q.Normalize();
 	R.Normalize();
 
-	return Pair(Q, R);
+	return {Q, R};
 }
 
 sDWORD Int::CmpAbs(const Int &A, const Int &B) {
@@ -703,7 +703,7 @@ Int operator>>(const Int &A, DWORD b) {
 	QWORD temp;
 	Int ret;
 
-	if (sh_word >= A.v.GetSize()) return Int(0);
+	if (sh_word >= A.v.GetSize()) return 0;
 
 	for (sQWORD i = A.v.GetSize() - 1; (i + 1) > sh_word; i = i - 1) {
 		temp = (static_cast<QWORD>(A.v[i]) << 32) >> sh_bits;
@@ -815,7 +815,6 @@ bool operator!=(const Int &A, const Int &B) {
 
 	for (QWORD i = 0; i < A.v.GetSize(); i = i + 1) {
 		if (A.v[i] != B.v[i]) {
-			std::cout << "i: " << i << " / A: " << A.v[i] << " / B: " << B.v[i] << std::endl;
 			return true;
 		}
 	}

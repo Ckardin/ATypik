@@ -58,9 +58,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef ALGOMATH_H
 #define ALGOMATH_H
 
-#include "Utils.h" // for <random> include and [Defines]
-#include "Int.h"
 #include <regex>
+#include "Int.h"
 
 namespace Fenyx::Types
 {

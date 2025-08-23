@@ -61,7 +61,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 int test_c();
 
 int main() {
-	const InfInt a = 2, b = 16, m = 3;
+	const Fenyx::Types::Int a = 2, b = 16, m = 3;
 
 	if (Fenyx::Types::NaivePow(a, b) != 65536) {
 		std::cout << "Test AlgoMath => KO (Naive pow)" <<std::endl;
@@ -103,7 +103,7 @@ int main() {
         return -7;
     }
 
-    if (InfInt u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v) != 1) {
+    if (Fenyx::Types::Int u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v) != 1) {
     	std::cout << "Test AlgoMath => KO (Extended-Euclide algorithm)" <<std::endl;
         return -8;
     }

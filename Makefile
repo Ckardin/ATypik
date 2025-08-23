@@ -56,7 +56,7 @@ build/Int.o: src/Int.h src/Int.cpp
 	@MakeInfo $(MILANG) module Int
 	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/Int.cpp -o build/Int.o
 
-build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp src/InfInt.h
+build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp
 	@MakeInfo $(MILANG) module AlgoMath
 	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/AlgoMath.cpp -o build/AlgoMath.o
 
@@ -90,11 +90,12 @@ mrproper:
 
 # Testing
 
-tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestAlgoMath$(A_EXT)
+tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestAlgoMath$(A_EXT) build/tests/TestInt$(A_EXT)
 	@./build/tests/TestDefines$(A_EXT)
 	@./build/tests/TestTabs$(A_EXT)
 	@./build/tests/TestStrUtils$(A_EXT)
 	@./build/tests/TestAlgoMath$(A_EXT)
+	@./build/tests/TestInt$(A_EXT)
 
 
 build/tests/TestDefines.o: tests/TestDefines.cpp build/Defines.o
@@ -108,6 +109,10 @@ build/tests/TestTabs.o: tests/TestTabs.cpp
 build/tests/TestStrUtils.o: tests/TestStrUtils.cpp
 	@MakeInfo $(MILANG) module TestStrUtils
 	@$(CC) $(CXXFLAGS) -c tests/TestStrUtils.cpp -o build/tests/TestStrUtils.o
+
+build/tests/TestInt.o: tests/TestInt.cpp
+	@MakeInfo $(MILANG) module TestInt
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestInt.cpp -o build/tests/TestInt.o
 
 build/tests/TestAlgoMath.o: tests/TestAlgoMath.cpp
 	@MakeInfo $(MILANG) module TestAlgoMath
@@ -126,7 +131,11 @@ build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Tabs.o build/
 	@MakeInfo $(MILANG) program_s TestStrUtils
 	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o -flto -o build/tests/TestStrUtils$(A_EXT)
 
-build/tests/TestAlgoMath$(A_EXT): build/tests/TestAlgoMath.o build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o
+build/tests/TestInt$(A_EXT): build/tests/TestInt.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
+	@MakeInfo $(MILANG) program_s TestInt
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestInt.o -flto -o build/tests/TestInt$(A_EXT)
+
+build/tests/TestAlgoMath$(A_EXT): build/tests/TestAlgoMath.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o
 	@MakeInfo $(MILANG) program_s TestAlgoMath
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o build/tests/TestAlgoMath.o -flto -o build/tests/TestAlgoMath$(A_EXT)
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o build/tests/TestAlgoMath.o -flto -o build/tests/TestAlgoMath$(A_EXT)
 

@@ -59,7 +59,6 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #define INT_H
 
 #include <algorithm>
-#include "AlgoMath.h"
 #include "Tabs.h"
 #include "StrUtils.h"
 
