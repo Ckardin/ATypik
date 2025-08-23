@@ -24,11 +24,19 @@
 namespace Fenyx::Types
 {
 
+/// @brief Int - Constructeur
+///
+/// Constructeur de la classe Int.
 Int::Int() {
 	v.Clear();
 	sign = true;
 }
 
+/// @brief Int - Constructeur
+///
+/// @param[in] value: valeur à affecter
+///
+/// Constructeur d'affectation de la classe Int.
 Int::Int(const int value) {
 	v.Clear();
 	sign = (value >= 0);
@@ -36,6 +44,11 @@ Int::Int(const int value) {
 	v[0] = (value > 0) ? value : 0 - value;
 }
 
+/// @brief Int - Constructeur
+///
+/// @param[in] other: valeur à copier
+///
+/// Constructeur de copie de la classe Int.
 Int::Int(const Int& other) {
 	v.Clear();
 	sign = other.sign;
@@ -43,6 +56,12 @@ Int::Int(const Int& other) {
 	for (QWORD i = 0; i < other.v.GetSize(); i = i + 1) v[i] = other.v[i];
 }
 
+/// @brief Int - Constructeur
+///
+/// @param[in] other: tableau de DWORD à affecter
+/// @param[in] sg: signe du nombre à affecter
+///
+/// Constructeur d'affectation brute de la classe Int.
 Int::Int(const DTable<DWORD> &other, bool sg) {
 	v.Clear();
 	sign = sg;
@@ -50,6 +69,11 @@ Int::Int(const DTable<DWORD> &other, bool sg) {
 	for (QWORD i = 0; i < other.GetSize(); i = i + 1) v[i] = other[i];
 }
 
+/// @brief Int - Constructeur
+///
+/// @param[in] value: valeur unitaire à affecter
+///
+/// Constructeur d'affectation unitaire de la classe Int.
 Int::Int(const DWORD value) {
 	v.Clear();
 	sign = true;
@@ -57,6 +81,9 @@ Int::Int(const DWORD value) {
 	v[0] = value;
 }
 
+/// @brief GetTab - Permet de récupérer le tableau de DWORD
+///
+/// @return Un tableau de DWORD représentant la valeur absolue du nombre stocké.
 DTable<DWORD> Int::GetTab() const {
 	DTable<DWORD> ret;
 
@@ -65,6 +92,9 @@ DTable<DWORD> Int::GetTab() const {
 	return ret;
 }
 
+/// @brief GetL64 - Récupère les 64 bits de poids faible
+///
+/// @return Un QWORD représentant les 64 bits de poids faible du nombre stocké.
 QWORD Int::GetL64() {
 	const QWORD p0 = (!v.IsEmpty())    ? v[0] : 0;
 	const QWORD p1 = (v.GetSize() > 1) ? v[1] : 0;
@@ -72,6 +102,9 @@ QWORD Int::GetL64() {
 	return ((p1 << 32) | p0);
 }
 
+/// @brief GetStr - Convertit le nombre stocké en chaine de caractères
+///
+/// @return Une chaîne de caractères décimaux représentant le nombre stocké.
 std::string Int::GetStr() const {
 	Int A;
 	for (QWORD i = 0; i < v.GetSize(); i = i + 1) A.v[i] = v[i];
@@ -106,10 +139,18 @@ std::string Int::GetStr() const {
 	return ret;
 }
 
+/// @brief IsZero - Test si le nombre vaut 0 ou pas
+///
+/// @return True si le nombre stocké vaut 0, false sinon.
 bool Int::IsZero() const {
 	return (v.GetSize() == 1 && v[0] == 0);
 }
 
+/// @brief operator= - Opérateur d'affectation entre Int
+///
+/// @param[in] other: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator=(const Int& other) {
 	v.Clear();
 	sign = other.sign;
@@ -119,6 +160,11 @@ Int& Int::operator=(const Int& other) {
 	return *this;
 }
 
+/// @brief operator= - Opérateur d'affectation unitaire
+///
+/// @param[in] other: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator=(const DWORD other) {
 	v.Clear();
 	sign = true;
@@ -128,6 +174,11 @@ Int& Int::operator=(const DWORD other) {
 	return *this;
 }
 
+/// @brief operator= - Opérateur d'affectation
+///
+/// @param[in] other: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator=(const int other) {
 	v.Clear();
 	sign = (other >= 0);
@@ -137,6 +188,11 @@ Int& Int::operator=(const int other) {
 	return *this;
 }
 
+/// @brief operator+= - Opérateur d'affectation additif
+///
+/// @param[in] B: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator+=(const Int& B) {
 	Int A;
 
@@ -152,6 +208,11 @@ Int& Int::operator+=(const Int& B) {
 	return *this;
 }
 
+/// @brief operator-= - Opérateur d'affectation soustractif
+///
+/// @param[in] B: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator-=(const Int& B) {
 	Int A;
 
@@ -167,6 +228,11 @@ Int& Int::operator-=(const Int& B) {
 	return *this;
 }
 
+/// @brief operator*= - Opérateur d'affectation multiplicatif
+///
+/// @param[in] B: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator*=(const Int& B) {
 	Int A;
 
@@ -182,6 +248,11 @@ Int& Int::operator*=(const Int& B) {
 	return *this;
 }
 
+/// @brief operator/= - Opérateur d'affectation divisible
+///
+/// @param[in] B: r-value
+///
+/// @return Une référence sur le Int affecté.
 Int& Int::operator/=(const Int& B) {
 	Int A;
 
@@ -478,6 +549,12 @@ Int Int::ChooseOpSign(const Int &A, const Int &B, const BYTE op) {
 }
 
 
+/// @brief operator+ - Opérateur d'addition
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de [A] + [B].
 Int operator+(const Int &A, const Int &B) {
 	Int ret;
 
@@ -486,6 +563,12 @@ Int operator+(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator- - Opérateur de soustraction
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de [A] - [B].
 Int operator-(const Int &A, const Int &B) {
 	Int ret;
 
@@ -494,6 +577,12 @@ Int operator-(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator* - Opérateur de multiplication
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de [A] * [B].
 Int operator*(const Int &A, const Int &B) {
 	Int ret;
 
@@ -502,6 +591,12 @@ Int operator*(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator/ - Opérateur de division
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de la division euclidienne de [A] par [B], uniquement le quotient.
 Int operator/(const Int &A, const Int &B) {
 	Int ret;
 
@@ -510,6 +605,12 @@ Int operator/(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator% - Opérateur modulo
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le reste de la division euclidienne de [A] par [B].
 Int operator%(const Int &A, const Int &B) {
 	Int ret;
 
@@ -518,6 +619,12 @@ Int operator%(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator<< - Opérateur de décalage à gauche
+///
+/// @param[in] A: l-value
+/// @param[in] b: nombre de bits à décaler
+///
+/// @return Le résultat de l'opération binaire [A] << [b].
 Int operator<<(const Int &A, DWORD b) {
 	const DWORD sh_word = b / 32, sh_bits = b % 32;
 	DWORD carry = 0;
@@ -536,6 +643,12 @@ Int operator<<(const Int &A, DWORD b) {
 	return ret;
 }
 
+/// @brief operator>> - Opérateur de décalage à droite
+///
+/// @param[in] A: l-value
+/// @param[in] b: nombre de bits à décaler
+///
+/// @return Le résultat de l'opération binaire [A] >> [b].
 Int operator>>(const Int &A, DWORD b) {
 	const DWORD sh_word = b / 32, sh_bits = b % 32;
 	DWORD carry = 0;
@@ -557,6 +670,12 @@ Int operator>>(const Int &A, DWORD b) {
 	return ret;
 }
 
+/// @brief operator& - Opérateur ET logique
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de l'opération binaire [A] & [B].
 Int operator&(const Int &A, const Int &B) {
 	const DWORD n = (A.v.GetSize() >= B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize();
 	Int ret;
@@ -574,6 +693,12 @@ Int operator&(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator| - Opérateur OU logique
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de l'opération binaire [A] | [B].
 Int operator|(const Int &A, const Int &B) {
 	const DWORD n = (A.v.GetSize() >= B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize();
 	Int ret;
@@ -591,6 +716,12 @@ Int operator|(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator^ - Opérateur XOR logique
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return Le résultat de l'opération binaire [A] ^ [B].
 Int operator^(const Int &A, const Int &B) {
 	const DWORD n = (A.v.GetSize() >= B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize();
 	Int ret;
@@ -608,6 +739,12 @@ Int operator^(const Int &A, const Int &B) {
 	return ret;
 }
 
+/// @brief operator== - Opérateur d'égalité entre Int
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return True si [A] = [B], false sinon.
 bool operator==(const Int &A, const Int &B) {
 	if (A.v.GetSize() != B.v.GetSize()) return false;
 	if (A.sign != B.sign)               return false;
@@ -619,6 +756,12 @@ bool operator==(const Int &A, const Int &B) {
 	return true;
 }
 
+/// @brief operator!= - Opérateur d'inégalité entre Int
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return False si [A] = [B], true sinon.
 bool operator!=(const Int &A, const Int &B) {
 	if (A.v.GetSize() != B.v.GetSize()) return true;
 	if (A.sign != B.sign)               return true;
@@ -633,6 +776,12 @@ bool operator!=(const Int &A, const Int &B) {
 	return false;
 }
 
+/// @brief operator< - Opérateur d'infériorité entre Int
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return True si [A] < [B], false sinon.
 bool operator<(const Int &A, const Int &B) {
 	if (A.sign && !(B.sign)) return false;
 	if (!(A.sign) && B.sign) return true;
@@ -658,6 +807,12 @@ bool operator<(const Int &A, const Int &B) {
 	return false;
 }
 
+/// @brief operator> - Opérateur de supériorité entre Int
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return True si [A] > [B], false sinon.
 bool operator>(const Int &A, const Int &B) {
 	if (A.sign && !(B.sign)) return true;
 	if (!(A.sign) && B.sign) return false;
@@ -683,10 +838,22 @@ bool operator>(const Int &A, const Int &B) {
 	return false;
 }
 
+/// @brief operator<= - Opérateur d'infériorité ou égalité
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return True si [A] <= [B], false sinon.
 bool operator<=(const Int &A, const Int &B) {
 	return ((A == B) || (A < B));
 }
 
+/// @brief operator>= - Opérateur de supériorité ou égalité
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return True si [A] >= [B], false sinon.
 bool operator>=(const Int &A, const Int &B) {
 	return ((A == B) || (A > B));
 }

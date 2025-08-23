@@ -30,6 +30,7 @@
 namespace Fenyx::Types
 {
 
+/// @brief Int - Classe qui permets la prise en charge de grands nombres entiers relatifs
 class Int
 {
 public:
