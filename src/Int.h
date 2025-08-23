@@ -22,7 +22,10 @@
 #ifndef INT_H
 #define INT_H
 
+#include <algorithm>
+#include <iostream>
 #include "Tabs.h"
+#include "StrUtils.h"
 
 namespace Fenyx::Types
 {
@@ -34,7 +37,7 @@ public:
 
 	Int(int value);
 	Int(const Int& other);
-	Int(const DTable<DWORD> &other);
+	Int(const DTable<DWORD> &other, bool sg);
 	Int(DWORD value);
 
 	DTable<DWORD> GetTab() const;
@@ -46,10 +49,10 @@ public:
 	Int& operator=(DWORD other);
 	Int& operator=(int other);
 
-	Int& operator+=(const Int& other);
-	Int& operator-=(const Int& other);
-	Int& operator*=(const Int& other);
-	Int& operator/=(const Int& other);
+	Int& operator+=(const Int& B);
+	Int& operator-=(const Int& B);
+	Int& operator*=(const Int& B);
+	Int& operator/=(const Int& B);
 
 	/// ADD
 	///
@@ -66,16 +69,18 @@ public:
 	///	SI 0 neg => Soustraction avec plus grand, signe (-) si A < B, signe (+) sinon
 
 private:
-	Int Add(const Int &A, const Int &B);
-	Int Sub(const Int &A, const Int &B);
-	Int Karatsuba(const Int &A, const Int &B);
-	Int LongMul(const Int &A, const Int &B);
-	STable<Int, 2> BurnikelZiegler(const Int &A, const Int &B);
-	STable<Int, 2> LongDiv(const Int &A, const Int &B);
-	Int Slice(WORD strt, WORD len);
+	static Int Add(const Int &A, const Int &B);
+	static Int Sub(const Int &A, const Int &B);
+	static Int Karatsuba(const Int &A, const Int &B);
+	static Int LongMul(const Int &A, const Int &B);
+	static Pair<Int, Int> BurnikelZiegler(const Int &A, const Int &B);
+	static Pair<Int, Int> LongDiv(const Int &A, const Int &B);
+	static sDWORD CmpAbs(const Int &A, const Int &B);
+	Int Slice(DWORD strt, DWORD len) const;
 
 	void Normalize();
-	Pair<BYTE, bool> ChooseOpSign(const Int &A, const Int &B, BYTE op);
+
+	static Int ChooseOpSign(const Int &A, const Int &B, BYTE op);
 
 	DTable<DWORD> v;
 	bool sign;
