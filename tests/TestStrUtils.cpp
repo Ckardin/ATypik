@@ -67,47 +67,47 @@ int main() {
 
     // std::cout << "Test CompleteNbr() => ";
     if (Fenyx::Types::CompleteNbr(n1) != "09") {
-      	std::cout << "Test KO." <<std::endl;
+      	std::cout << "Test StrUtils => KO (CompleteNbr)" <<std::endl;
         return -1;
     }
     // else                                       std::cout << "OK" <<std::endl;
 
 	// std::cout << "Test IsNum() => ";
 	if (!Fenyx::Types::IsNum(hex2.c_str()[2])) {
-        std::cout << "Test KO." <<std::endl;
+        std::cout << "Test StrUtils => KO (Num verify)" <<std::endl;
         return -2;
     }
 	// else                                       std::cout << "OK" <<std::endl;
 
 	// std::cout << "Test IsHex() => ";
 	if (!Fenyx::Types::IsHex(hex1.c_str()[2])) {
-        std::cout << "Test KO." <<std::endl;
+        std::cout << "Test StrUtils => KO (Hex verify)" <<std::endl;
         return -3;
     }
 	// else                                       std::cout << "OK" <<std::endl;
 
 	// std::cout << "Test IsNumS() => ";
 	if (!Fenyx::Types::IsNumS(hex2)) {
-        std::cout << "Test KO." <<std::endl;
+        std::cout << "Test StrUtils => KO (Num string verify)" <<std::endl;
         return -4;
     }
 	// else                             std::cout << "OK" <<std::endl;
 
 	// std::cout << "Test IsHexS() => ";
 	if (!Fenyx::Types::IsHexS(hex1)) {
-        std::cout << "Test KO." <<std::endl;
+        std::cout << "Test StrUtils => KO (Hex string verify)" <<std::endl;
         return -5;
     }
 	// else                             std::cout << "OK" <<std::endl;
 
 	// std::cout << "Test HexN() => ";
 	if (const Fenyx::Types::BYTE t = Fenyx::Types::HexN(hex1.c_str()[2], err); t != 10 || err){
-        std::cout << "Test KO." <<std::endl;
+        std::cout << "Test StrUtils => KO (Hex converting)" <<std::endl;
         return -6;
     }
-	// else                                                                                          std::cout << "OK" <<std::endl;
+	// else                             std::cout << "OK" <<std::endl;
 
-    std::cout << "Test OK." <<std::endl;
+    std::cout << "Test StrUtils => OK" <<std::endl;
 
     return 0;
 }

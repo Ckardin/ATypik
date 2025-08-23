@@ -64,7 +64,7 @@ int main() {
 	Fenyx::Types::MTable<std::string, Fenyx::Types::BYTE> m1;
 
 	if (s1.GetFatal() || d1.GetFatal() || m1.GetFatal()) {
-		std::cout << "Test KO." <<std::endl;
+		std::cout << "Test Tabs => KO (Memory limit)" <<std::endl;
 		return -1;
 	}
 
@@ -73,7 +73,7 @@ int main() {
 	for (Fenyx::Types::BYTE i = 0; i < 10; ++i) {
 		d1[i] = i;
 		if (d1.GetFatal()) {
-			std::cout << "Test KO." <<std::endl;
+			std::cout << "Test Tabs => KO (Storage loop-num)" <<std::endl;
 			return -2;
 		}
 	}
@@ -81,22 +81,22 @@ int main() {
 	for (Fenyx::Types::WORD i = 0; i < 10; ++i) {
 		m1["v" + Fenyx::Types::toString<Fenyx::Types::WORD>(i)] = static_cast<Fenyx::Types::BYTE>(i);
 		if (m1.GetFatal()) {
-			std::cout << "Test KO." <<std::endl;
+			std::cout << "Test Tabs => KO (Map idx-calc)" <<std::endl;
 			return -3;
 		}
 	}
 
 	if (s1[1] != 1 || d1[1] != 1 || m1["v1"] != 1) {
-		std::cout << "Test KO." <<std::endl;
+		std::cout << "Test Tabs => KO (Index access)" <<std::endl;
 		return -4;
 	}
 
 	if (s1.GetSize() != d1.GetSize() || d1.GetSize() != m1.GetSize()) {
-		std::cout << "Test KO." <<std::endl;
+		std::cout << "Test Tabs => KO (Size verify)" <<std::endl;
 		return -5;
 	}
 
-	std::cout << "Test OK." <<std::endl;
+	std::cout << "Test Tabs => OK" <<std::endl;
 
 	return 0;
 }

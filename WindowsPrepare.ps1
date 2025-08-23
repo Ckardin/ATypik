@@ -86,3 +86,25 @@ Set-Item -Path 'Env:\A_EXT' -Value '.exe'
 Set-Item -Path 'Env:\SHRDIR' -Value $SHR_DIR
 Set-Item -Path 'Env:\LIBDIR' -Value $LIB_DIR
 Set-Item -Path 'Env:\INCDIR' -Value $INC_DIR
+
+Set-Item -Path 'Env:\MILANG' -Value "fr"
+
+if(!(Test-Path -Path build)) {
+    mkdir build
+}
+
+if(!(Test-Path -Path build/tests)) {
+    mkdir build/tests
+}
+
+if(!(Test-Path -Path build/doc)) {
+    mkdir build/doc
+}
+
+if(!(Test-Path -Path Doc/Latex)) {
+    mkdir Doc/Latex
+}
+
+New-Item -Path ./build/doc -Name "DocCompileFile.txt" -ItemType "file" -Value ""
+New-Item -Path ./build/doc -Name "LatexCompileFile.txt" -ItemType "file" -Value ""
+

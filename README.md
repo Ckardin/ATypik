@@ -25,14 +25,13 @@ Les modules contenus dans libATypik sont les suivants :
   * Fonctions utiles générales
 * StrUtils
   * Fonctions utiles liées aux chaines de caractères
+* Int
+  * Définit et permet la manipulation de grands entiers signés
 * AlgoMath
   * Exponentiation rapide (classique + modulaire)
   * Algorithme d'Euclide étendu
   * Tests de primalité (Miller-Rabin, Fermat2 & Solovay-Strassen)
   * Nombres complexes
-
-À noter qu'un fichier header est également inclus, _InfInt.h_.
-C'est une dépendance d'ATypik qui provient du [repo du même nom](https://github.com/sercantutar/infint) fait par [sercantutar](https://github.com/sercantutar).
 
 ## Compatibilité
 
@@ -51,7 +50,6 @@ Une seule dépendance est nécessaire pour compiler libATypik :
 * AScripts
 
 Celle-ci peut être clonée et installée via mon github. <br />
-(Le fichier _InfInt.h_ étant déjà inclus dans les sources, il n'est pas nécessaire d'en cloner le dépôt).
 
 Néanmoins, pour pouvoir compiler la doc, vous aurez besoin de `doxygen` et d'une distrib `latex` (comme TexLive ou MikTex).
 
@@ -59,7 +57,15 @@ Néanmoins, pour pouvoir compiler la doc, vous aurez besoin de `doxygen` et d'un
 
 Vous pouvez tout simplement lancer les commandes suivantes :
 
-    ./WindowsPrepare.ps1 OU ./LinuxPrepare.{sh, zsh}
+    ./WindowsPrepare.ps1
+
+OU
+
+    ./LinuxPrepare.sh
+
+OU
+
+    ./LinuxPrepare.zsh
 
 puis
 
@@ -74,16 +80,7 @@ et enfin
 ## Tests
 
 Si vous lancez la commande `make tests`, la compilation de ceux-ci se fera et ils s'exécuteront dans la foulée.
-Si les tests réussissent, la ligne de commande devrait afficher ceci :
-
-    TRB1 => U
-    TRB2 => F
-    TRB3 => F
-
-    Test OK.
-    Test OK.
-    Test OK.
-    Test OK.
+Si les tests réussissent, vous n'aurez que des OK qui s'afficheront.
 
 Si l'affichage est différent, alors les tests ont échoué et je vous déconseille d'utiliser ATypik.
 Vous pourrez donc déclarer le problème via les "issues" de Github.

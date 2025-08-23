@@ -69,3 +69,9 @@ elif [ "$LANG" = "fr_FR.UTF-8" ]; then
 else
     sed -i '17a MILANG=en' Makefile
 fi
+
+mkdir -p build/tests
+mkdir -p build/doc
+mkdir -p Doc/Latex
+touch build/doc/DocCompileFile.txt
+touch build/doc/LatexCompileFile.txt

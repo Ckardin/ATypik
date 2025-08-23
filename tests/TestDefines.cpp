@@ -57,6 +57,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 
 #include "Defines.h"
 #include <iostream>
+#include <sstream>
 
 int main(void) {
  	Fenyx::Types::TriBool trb;
@@ -64,20 +65,32 @@ int main(void) {
     Fenyx::Types::TriBool trb3(trb2);
 
     if (trb2 != trb3) {
-      	std::cout << "Test KO." << std::endl;
+      	std::cout << "Test TriBool => KO (equality verify)" << std::endl;
         return -1;
    	}
     if (trb2.GetValue() != false) {
-      	std::cout << "Test KO." << std::endl;
+      	std::cout << "Test TriBool => KO (value verify)" << std::endl;
         return -2;
     }
 
-    std::cout << "TRB1 => " << trb << std::endl;
-    std::cout << "TRB2 => " << trb2 << std::endl;
-    std::cout << "TRB3 => " << trb3 << std::endl;
-    std::cout << "" <<std::endl;
+	std::string s_trb, s_trb2, s_trb3;
+	std::ostringstream oss0, oss1, oss2;
 
-    std::cout << "Test OK." << std::endl;
+	oss0 << trb;
+	s_trb = oss0.str();
+
+	oss1 << trb2;
+	s_trb2 = oss1.str();
+
+	oss2 << trb3;
+	s_trb3 = oss2.str();
+
+    if (s_trb != "U" || s_trb2 != "F" || s_trb3 != "F") {
+	    std::cout << "Test TriBool => KO (String converting)" << std::endl;
+    	return -3;
+    }
+
+    std::cout << "Test TriBool => OK" << std::endl;
 
     return 0;
 }

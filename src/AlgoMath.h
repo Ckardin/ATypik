@@ -58,25 +58,24 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef ALGOMATH_H
 #define ALGOMATH_H
 
-#include "Utils.h" // for <random> include and [Defines]
-#include "InfInt.h"
 #include <regex>
+#include "Int.h"
 
 namespace Fenyx::Types
 {
 
-InfInt NaivePow    (InfInt const& a, InfInt const& b);
-InfInt Pow         (InfInt const& x, InfInt const& n);
-InfInt Pow2        (InfInt const& n);
-InfInt Pow16       (InfInt const& n);
-InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m);
-InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m);
-InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v);
-InfInt RandTestMR  (InfInt const& n);
-bool   MillerTest  (InfInt const& n, InfInt const& a);
-bool   MillerRabin (InfInt const& n, BYTE k = 48);
-bool   Fermat_2    (InfInt const& n);
-bool   SolovayStrassen(InfInt const& n, BYTE k = 100);
+Int NaivePow    (Int const& a, Int const& b);
+Int Pow         (Int const& x, Int const& n);
+Int Pow2        (Int const& n);
+Int Pow16       (Int const& n);
+Int W_PowM      (Int const& a, Int const& b, Int const& m);
+Int F_PowM      (Int const& a, Int const& b, Int const& m);
+Int ExtEuclide  (Int const& a, Int const& b, Int &u, Int &v);
+Int RandTestMR  (Int const& n);
+bool   MillerTest  (Int const& n, Int const& a);
+bool   MillerRabin (Int const& n, BYTE k = 48);
+bool   Fermat_2    (Int const& n);
+bool   SolovayStrassen(Int const& n, BYTE k = 100);
 DWORD SquareRt(DWORD n);
 
 
@@ -84,13 +83,13 @@ DWORD SquareRt(DWORD n);
 class Complex {
 public:
 	Complex();
-	Complex(InfInt const& r, InfInt const& u);
+	Complex(Int const& r, Int const& u);
 	Complex(Complex const& oth);
 
 	[[nodiscard]] bool IsReal() const;
 	[[nodiscard]] bool IsImag() const;
-	[[nodiscard]] InfInt Real() const;
-	[[nodiscard]] InfInt Imag() const;
+	[[nodiscard]] Int Real() const;
+	[[nodiscard]] Int Imag() const;
 
 	Complex& operator=(Complex const& oth);
 	Complex& operator+=(Complex const& oth);
@@ -99,8 +98,8 @@ public:
 	Complex& operator/=(Complex const& oth);
 
 private:
-	InfInt re;
-	InfInt im;
+	Int re;
+	Int im;
 
 	friend Complex operator+(Complex const& lhs, Complex const& rhs);
 	friend Complex operator-(Complex const& lhs, Complex const& rhs);
@@ -111,7 +110,6 @@ private:
 	friend bool operator!=(Complex const& lhs, Complex const& rhs);
 
 	friend std::ostream& operator<<(std::ostream& os, Complex const& rhs);
-	friend std::istream& operator>>(std::istream& is, Complex& rhs);
 };
 
 }

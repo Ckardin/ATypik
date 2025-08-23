@@ -7,14 +7,15 @@
 
 CC=g++
 AR=ar
-CXXFLAGS=-fPIC -O2 -Wall -Wextra -Werror -std=c++17 -I./src
+CXXFLAGS=-fPIC -O3 -Wall -Wextra -Werror -std=c++17 -flto -I./src
+SPEFLAGS=-march=native -funroll-loops -fomit-frame-pointer
 
 
-all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o dox
+all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o dox
 	@MakeInfo $(MILANG) dynamic ATypik
-	@$(CC) -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
+	@$(CC) -flto -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o
 	@MakeInfo $(MILANG) static ATypik
-	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/AlgoMath.o
+	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o
 
 install:
 	@MakeInfo $(MILANG) install libs
@@ -26,7 +27,7 @@ install:
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
 	@install -p -m 755 src/AlgoMath.h $(INCDIR)
-	@install -p -m 755 src/InfInt.h   $(INCDIR)
+	@install -p -m 755 src/Int.h   $(INCDIR)
 	@MakeInfo $(MILANG) install doc
 	@mv Doc/Latex/refman.pdf Doc/Latex/ATypik.pdf
 	@install -p -m 755 Doc/Latex/ATypik.pdf $(SHRDIR)
@@ -41,7 +42,7 @@ build/Defines.o: src/Defines.h src/Defines.cpp
 
 build/Tabs.o: src/Tabs.h src/Tabs.cpp
 	@MakeInfo $(MILANG) module Tabs
-	@$(CC) $(CXXFLAGS) -c src/Tabs.cpp -o build/Tabs.o
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/Tabs.cpp -o build/Tabs.o
 
 build/Utils.o: src/Utils.h src/Utils.cpp
 	@MakeInfo $(MILANG) module Utils
@@ -51,9 +52,13 @@ build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
 	@MakeInfo $(MILANG) module StrUtils
 	@$(CC) $(CXXFLAGS) -c src/StrUtils.cpp -o build/StrUtils.o
 
-build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp src/InfInt.h
+build/Int.o: src/Int.h src/Int.cpp
+	@MakeInfo $(MILANG) module Int
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/Int.cpp -o build/Int.o
+
+build/AlgoMath.o: src/AlgoMath.h src/AlgoMath.cpp
 	@MakeInfo $(MILANG) module AlgoMath
-	@$(CC) $(CXXFLAGS) -c src/AlgoMath.cpp -o build/AlgoMath.o
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/AlgoMath.cpp -o build/AlgoMath.o
 
 
 # Others
@@ -85,11 +90,12 @@ mrproper:
 
 # Testing
 
-tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestAlgoMath$(A_EXT)
+tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestAlgoMath$(A_EXT) build/tests/TestInt$(A_EXT)
 	@./build/tests/TestDefines$(A_EXT)
 	@./build/tests/TestTabs$(A_EXT)
 	@./build/tests/TestStrUtils$(A_EXT)
 	@./build/tests/TestAlgoMath$(A_EXT)
+	@./build/tests/TestInt$(A_EXT)
 
 
 build/tests/TestDefines.o: tests/TestDefines.cpp build/Defines.o
@@ -98,30 +104,38 @@ build/tests/TestDefines.o: tests/TestDefines.cpp build/Defines.o
 
 build/tests/TestTabs.o: tests/TestTabs.cpp
 	@MakeInfo $(MILANG) module TestTabs
-	@$(CC) $(CXXFLAGS) -c tests/TestTabs.cpp -o build/tests/TestTabs.o
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestTabs.cpp -o build/tests/TestTabs.o
 
 build/tests/TestStrUtils.o: tests/TestStrUtils.cpp
 	@MakeInfo $(MILANG) module TestStrUtils
 	@$(CC) $(CXXFLAGS) -c tests/TestStrUtils.cpp -o build/tests/TestStrUtils.o
 
+build/tests/TestInt.o: tests/TestInt.cpp
+	@MakeInfo $(MILANG) module TestInt
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestInt.cpp -o build/tests/TestInt.o
+
 build/tests/TestAlgoMath.o: tests/TestAlgoMath.cpp
 	@MakeInfo $(MILANG) module TestAlgoMath
-	@$(CC) $(CXXFLAGS) -c tests/TestAlgoMath.cpp -o build/tests/TestAlgoMath.o
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestAlgoMath.cpp -o build/tests/TestAlgoMath.o
 
 
 build/tests/TestDefines$(A_EXT): build/tests/TestDefines.o build/Defines.o
 	@MakeInfo $(MILANG) program_s TestDefines
-	@$(CC) build/Defines.o build/tests/TestDefines.o -o build/tests/TestDefines$(A_EXT)
+	@$(CC) build/Defines.o build/tests/TestDefines.o -flto -o build/tests/TestDefines$(A_EXT)
 
 build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o
 	@MakeInfo $(MILANG) program_s TestTabs
-	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o -o build/tests/TestTabs$(A_EXT)
+	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o -flto -o build/tests/TestTabs$(A_EXT)
 
 build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Tabs.o build/Defines.o build/Utils.o build/StrUtils.o
 	@MakeInfo $(MILANG) program_s TestStrUtils
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o -o build/tests/TestStrUtils$(A_EXT)
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o -flto -o build/tests/TestStrUtils$(A_EXT)
 
-build/tests/TestAlgoMath$(A_EXT): build/tests/TestAlgoMath.o build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o
+build/tests/TestInt$(A_EXT): build/tests/TestInt.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
+	@MakeInfo $(MILANG) program_s TestInt
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestInt.o -flto -o build/tests/TestInt$(A_EXT)
+
+build/tests/TestAlgoMath$(A_EXT): build/tests/TestAlgoMath.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o
 	@MakeInfo $(MILANG) program_s TestAlgoMath
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/AlgoMath.o build/tests/TestAlgoMath.o -o build/tests/TestAlgoMath$(A_EXT)
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/AlgoMath.o build/tests/TestAlgoMath.o -flto -o build/tests/TestAlgoMath$(A_EXT)
 
