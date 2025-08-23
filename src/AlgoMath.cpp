@@ -65,11 +65,11 @@ namespace Fenyx::Types
 /// @param[in] a: base
 /// @param[in] b: exposant
 ///
-/// @return Un InfInt correspondant à [a] puissance [b].
-InfInt NaivePow    (InfInt const& a, InfInt const& b) {
-	InfInt p = 1;
+/// @return Un Int correspondant à [a] puissance [b].
+Int NaivePow    (Int const& a, Int const& b) {
+	Int p = 1;
 
-	for (InfInt i = 1; i <= b; i = i + 1) p *= a;
+	for (Int i = 1; i <= b; i = i + 1) p *= a;
 
 	return p;
 }
@@ -79,9 +79,9 @@ InfInt NaivePow    (InfInt const& a, InfInt const& b) {
 /// @param[in] x: base
 /// @param[in] n: exposant
 ///
-/// @return Un InfInt correspondant à [x] puissance [n].
-InfInt Pow         (InfInt const& x, InfInt const& n) {
-	InfInt p = 1, a = x, e = n;
+/// @return Un Int correspondant à [x] puissance [n].
+Int Pow         (Int const& x, Int const& n) {
+	Int p = 1, a = x, e = n;
 
 	if (n == 0 || x == 1) return 1;
 	if (n < 0  || x == 0) return 0;
@@ -106,11 +106,11 @@ InfInt Pow         (InfInt const& x, InfInt const& n) {
 ///
 /// @param[in] n: puissance à appliquer
 ///
-/// @return Un InfInt correspondant à 2 puissance [n].
-InfInt Pow2        (InfInt const& n) {
-	InfInt p = 1;
+/// @return Un Int correspondant à 2 puissance [n].
+Int Pow2        (Int const& n) {
+	Int p = 1;
 
-	for (InfInt i = 0; i < n; i = i + 1) p = p * 2;
+	for (Int i = 0; i < n; i = i + 1) p = p * 2;
 
 	return p;
 }
@@ -119,11 +119,11 @@ InfInt Pow2        (InfInt const& n) {
 ///
 /// @param[in] n: puissance à appliquer
 ///
-/// @return Un InfInt correspondant à 16 puissance [n].
-InfInt Pow16       (InfInt const& n) {
-	InfInt p = 1;
+/// @return Un Int correspondant à 16 puissance [n].
+Int Pow16       (Int const& n) {
+	Int p = 1;
 
-	for (InfInt i = 0; i < n; i = i + 1) p = p * 16;
+	for (Int i = 0; i < n; i = i + 1) p = p * 16;
 
 	return p;
 }
@@ -134,9 +134,9 @@ InfInt Pow16       (InfInt const& n) {
 /// @param[in] b: exposant
 /// @param[in] m: modulo
 ///
-/// @return Un InfInt correspondant à ([a] puissance [b]) modulo [m].
-InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
-	InfInt p = 1, x = a, n = b;
+/// @return Un Int correspondant à ([a] puissance [b]) modulo [m].
+Int W_PowM      (Int const& a, Int const& b, Int const& m) {
+	Int p = 1, x = a, n = b;
 	x = x % m;
 
 	while (n > 0) {
@@ -155,9 +155,9 @@ InfInt W_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 /// @param[in] b: exposant
 /// @param[in] m: modulo
 ///
-/// @return Un InfInt correspondant à ([a] puissance [b]) modulo [m].
-InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
-	InfInt p, x = a, n = b;
+/// @return Un Int correspondant à ([a] puissance [b]) modulo [m].
+Int F_PowM      (Int const& a, Int const& b, Int const& m) {
+	Int p, x = a, n = b;
 
 	for (p = 1; n > 0; n = n / 2) {
 		if (n % 2 != 0) p = (p * x) % m;
@@ -174,12 +174,12 @@ InfInt F_PowM      (InfInt const& a, InfInt const& b, InfInt const& m) {
 /// @return Témoin de Miller valide et pseudo-aléatoire.
 ///
 /// /!\ Utilise random_device().
-InfInt RandTestMR  (InfInt const& n) {
+Int RandTestMR  (Int const& n) {
 	std::random_device rd;
-	InfInt ret = rd();
+	Int ret = rd();
 
 	ret = n % ret;
-	if (ret >= (n - 2) || ret <= 2) ret = InfInt(2) + (ret % (n - 4));
+	if (ret >= (n - 2) || ret <= 2) ret = Int(2) + (ret % (n - 4));
 
 	return ret;
 }
@@ -190,11 +190,11 @@ InfInt RandTestMR  (InfInt const& n) {
 /// @param[in] a: témoin de Miller
 ///
 /// @return false si [n] est probablement premier, true sinon.
-bool   MillerTest  (InfInt const& n, InfInt const& a) {
-	InfInt d = n - 1;
+bool   MillerTest  (Int const& n, Int const& a) {
+	Int d = n - 1;
 	while ((d % 2) == 0) d /= 2;
 
-	InfInt x = W_PowM(a, d, n);
+	Int x = W_PowM(a, d, n);
 
 	if (x == 1 || x == (n - 1)) return false;
 
@@ -214,12 +214,12 @@ bool   MillerTest  (InfInt const& n, InfInt const& a) {
 /// @param[in] k: nombre d'itérations du test
 ///
 /// @return true si [n] est probablement premier, false sinon.
-bool   MillerRabin (InfInt const& n, const BYTE k) {
+bool   MillerRabin (Int const& n, const BYTE k) {
 	if (n <= 1 || n == 4) return false;
 	if (n <= 3)             return true;
 
 	for (WORD i = 0; i < k; i = i + 1) {
-		if (InfInt a = RandTestMR(n); MillerTest(n, a)) return false;
+		if (Int a = RandTestMR(n); MillerTest(n, a)) return false;
 	}
 
 	return true;
@@ -230,8 +230,8 @@ bool   MillerRabin (InfInt const& n, const BYTE k) {
 /// @param[in] n: nombre à tester
 ///
 /// @return true si [n] est probablement premier, false sinon.
-bool   Fermat_2    (InfInt const& n) {
-	if (F_PowM(2, n - 1, n) == (InfInt(1) % n)) return true;
+bool   Fermat_2    (Int const& n) {
+	if (F_PowM(2, n - 1, n) == (Int(1) % n)) return true;
 	return false;
 }
 
@@ -241,13 +241,13 @@ bool   Fermat_2    (InfInt const& n) {
 /// @param[in] k: nombre d'itérations du test
 ///
 /// @return true si [n] est probablement premier, false sinon.
-bool   SolovayStrassen(InfInt const& n, BYTE k) {
-	const InfInt bt = (n - 1) - 2, m = (n - 1) / 2;
-	InfInt a = 0, x = 0;
+bool   SolovayStrassen(Int const& n, BYTE k) {
+	const Int bt = (n - 1) - 2, m = (n - 1) / 2;
+	Int a = 0, x = 0;
 	std::random_device rd;
 
 	for (WORD i = 0; i < k; i = i + 1) {
-		a = (InfInt(rd()) * bt) + 2;
+		a = (Int(rd()) * bt) + 2;
 		x = a / n;
 
 		if (x == 0 || (x % n) != (F_PowM(a, m, n))) return false;
@@ -264,9 +264,9 @@ bool   SolovayStrassen(InfInt const& n, BYTE k) {
 /// @param[out] v: coefficient de Bézout
 ///
 /// @return Le PGCD de [a] et [b]
-InfInt ExtEuclide  (InfInt const& a, InfInt const& b, InfInt &u, InfInt &v) {
-	InfInt tr = a, tr_ = b, tu = 1, tv = 0, tu_ = 0, tv_ = 1;
-	InfInt q = 0, rs = 0, us = 0, vs = 0;
+Int ExtEuclide  (Int const& a, Int const& b, Int &u, Int &v) {
+	Int tr = a, tr_ = b, tu = 1, tv = 0, tu_ = 0, tv_ = 1;
+	Int q = 0, rs = 0, us = 0, vs = 0;
 
 	while (tr_ != 0) {
 		q   = tr / tr_;
@@ -315,7 +315,7 @@ Complex::Complex() {
 /// @param[in] u: partie imaginaire
 ///
 /// Constructeur d'affectation de la classe Complex.
-Complex::Complex(InfInt const& r, InfInt const& u) {
+Complex::Complex(Int const& r, Int const& u) {
 	re = r; im = u;
 }
 
@@ -345,14 +345,14 @@ bool Complex::IsImag() const {
 /// @brief Real - Récupères la partie réelle d'un nombre complexe
 ///
 /// @return La partie réelle du nombre complexe.
-InfInt Complex::Real() const {
+Int Complex::Real() const {
 	return re;
 }
 
 /// @brief Imag - Récupères la partie imaginaire d'un nombre complexe
 ///
 /// @return La partie imaginaire du nombre complexe.
-InfInt Complex::Imag() const {
+Int Complex::Imag() const {
 	return im;
 }
 
@@ -400,9 +400,9 @@ Complex& Complex::operator*=(Complex const& oth) {
 ///
 /// @return Une référence sur le Complex affecté.
 Complex& Complex::operator/=(Complex const& oth) {
-	const Complex conjugate(oth.re, -oth.im);
+	const Complex conjugate(oth.re, -Int(oth.im));
 	const Complex div_d((re * conjugate.re) - (im * conjugate.im), (re * conjugate.im) + (im * conjugate.re));
-	const InfInt div_c = (oth.re * oth.re) - (oth.im * oth.im);
+	const Int div_c = (oth.re * oth.re) - (oth.im * oth.im);
 
 	re = div_d.re / div_c;
 	im = div_d.im / div_c;
@@ -463,9 +463,9 @@ Complex operator*(Complex const& lhs, Complex const& rhs) {
 ///
 /// @return Un Complex égal à (lhs / rhs).
 Complex operator/(Complex const& lhs, Complex const& rhs) {
-	const Complex conjugate(rhs.re, -rhs.im);
+	const Complex conjugate(rhs.re, -Int(rhs.im));
 	const Complex div_d((lhs.re * conjugate.re) - (lhs.im * conjugate.im), (lhs.re * conjugate.im) + (lhs.im * conjugate.re));
-	const InfInt div_c = (rhs.re * rhs.re) - (rhs.im * rhs.im);
+	const Int div_c = (rhs.re * rhs.re) - (rhs.im * rhs.im);
 	Complex ret;
 
 	ret.re = lhs.re / div_c;
@@ -501,47 +501,15 @@ bool operator!=(Complex const& lhs, Complex const& rhs) {
 ///
 /// @return Une référence sur le flux de sortie affecté.
 std::ostream& operator<<(std::ostream& os, Complex const& rhs) {
-	const InfInt r = rhs.re;
-	const InfInt i = rhs.im;
+	const Int r = rhs.re;
+	const Int i = rhs.im;
 
-	os << "(" << r << " ";
-	if (i < 0) os << "- " << (-i);
-	else         os << "+ " << i;
+	os << "(" << r.GetStr() << " ";
+	if (i < 0) os << "- " << (-Int(i)).GetStr();
+	else         os << "+ " << i.GetStr();
 	os << "i)";
 
 	return os;
-}
-
-/// @brief operator>> - Opérateur de flux d'entrée pour Complex
-///
-/// @param[in] is: flux d'entrée
-/// @param[in] rhs: Complex concerné
-///
-/// @return Une référence sur le flux d'entrée affecté.
-std::istream& operator>>(std::istream& is, Complex& rhs) {
-	const std::regex v_str("^\([0-9]+ [+-]{1} [0-9]+i)$");
-	std::string str_, n1, p, n2;
-	is >> str_;
-
-	if (!regex_match(str_, v_str)) {
-		rhs.re = rhs.im = 0;
-		return is;
-	}
-
-	str_.erase(str_.begin());
-	str_.erase(str_.size() - 2, 2);
-
-	std::istringstream iss(str_);
-	std::getline(iss, n1, ' ');
-	std::getline(iss, p, ' ');
-	std::getline(iss, n2, ' ');
-
-	const InfInt tr(n1);
-	const InfInt ti(n2);
-	rhs.re = tr;
-	rhs.im = (p == "+") ? ti : -ti;
-
-	return is;
 }
 
 }
