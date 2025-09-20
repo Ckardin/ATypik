@@ -65,6 +65,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
+DWORD NextPow2(DWORD n);
+
 /// @brief Int - Classe qui permets la prise en charge de grands nombres entiers relatifs
 class Int
 {
@@ -76,10 +78,13 @@ public:
 	Int(const DTable<DWORD> &other, bool sg);
 	Int(DWORD value);
 
-	DTable<DWORD> GetTab() const;
-	QWORD GetL64();
-	std::string GetStr() const;
-	bool IsZero() const;
+	[[nodiscard]] DTable<DWORD> GetTab() const;
+	[[nodiscard]] QWORD GetL64() const;
+	[[nodiscard]] std::string GetStr() const;
+	[[nodiscard]] bool IsZero() const;
+	[[nodiscard]] bool IsEven() const;
+	[[nodiscard]] bool IsOdd() const;
+	[[nodiscard]] bool IsNeg() const;
 
 	Int& operator=(const Int& other);
 	Int& operator=(DWORD other);
@@ -91,6 +96,8 @@ public:
 	Int& operator/=(const Int& B);
 
 	Int& operator-();
+
+	static Int Random(DWORD bits); // For test only
 
 	/// ADD
 	///
@@ -109,16 +116,22 @@ public:
 private:
 	static Int Add(const Int &A, const Int &B);
 	static Int Sub(const Int &A, const Int &B);
+	static Int Mul(const Int &A, const Int &B);
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
+	static Int SmallMul(const Int &A, DWORD B);
 	static Pair<Int, Int> BurnikelZiegler(const Int &A, const Int &B);
-	static Pair<Int, Int> LongDiv(const Int &A, const Int &B);
+	static Pair<Int, Int> BZ32(const DTable<Int> &A, const DTable<Int> &B);
+	static Pair<Int, Int> BZ21(const DTable<Int> &A, const DTable<Int> &B);
+	static Pair<Int, Int> SchoolDiv(const Int &A, const Int &B);
+	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
-	Int Slice(DWORD strt, DWORD len) const;
+	[[nodiscard]] Int Abs();
+	[[nodiscard]] Int WShift(DWORD b) const;
+	[[nodiscard]] Int ExtByZero(DWORD s) const;
+	[[nodiscard]] Int Slice(DWORD strt, DWORD len) const;
 
 	void Normalize();
-
-	static Int ChooseOpSign(const Int &A, const Int &B, BYTE op);
 
 	DTable<DWORD> v;
 	bool sign;

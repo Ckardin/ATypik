@@ -70,6 +70,7 @@ template<class U, class V>
 class Pair
 {
 public:
+    Pair() = default;
     Pair(const U &f, const V &s);
 
     U First();
@@ -114,6 +115,27 @@ bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2);
 
 template<class K, class V>
 bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2);
+
+
+template<class T>
+/// @brief Stack - Classe qui permet de gérer une pile de données
+class Stack
+{
+public:
+    Stack();
+    Stack(const Stack &s);
+
+    T const& Top();
+    void Pop();
+    void Push(const T &v);
+
+    DWORD GetSize();
+
+    ~Stack() = default;
+
+private:
+    DTable<T> stack;
+};
 
 
 
@@ -163,7 +185,7 @@ public:
     [[nodiscard]] bool GetFatal() const;
     [[nodiscard]] bool GetError();
     void SetDefaultValue(T defv);
-    void SetCapacity(DWORD cap);
+    void SetCapacity(DWORD cap, T val);
     void Erase(DWORD idx);
     void Clear();
 
@@ -289,6 +311,57 @@ template<class U, class V>
 /// @param[in] s: s-value
 void Pair<U, V>::SetSecond(const V &s) {
     second = s;
+}
+
+
+template<class T>
+/// @brief Stack - Constructeur
+///
+/// Constructeur de la classe Stack.
+Stack<T>::Stack() {
+    stack.Clear();
+}
+
+template<class T>
+/// @brief Stack - Constructeur de copie
+///
+/// @param[in] s: Stack à copier
+///
+/// Constructeur de copie de la classe Stack.
+Stack<T>::Stack(const Stack &s) {
+    stack.Clear();
+
+    for (QWORD i = 0; i < s.stack.GetSize(); i = i + 1) stack[i] = s.stack[i];
+}
+
+template<class T>
+/// @brief Top - Récupères le haut de la pile
+///
+/// @return La valeur la plus haute dans la pile.
+T const& Stack<T>::Top() {
+    return stack[stack.GetSize() - 1];
+}
+
+template<class T>
+/// @brief Pop - Retire la valeur haute de la pile
+void Stack<T>::Pop() {
+    stack.Erase(stack.GetSize() - 1);
+}
+
+template<class T>
+/// @brief Push - Ajoute une valeur au-dessus de la pile
+///
+/// @param[in] v: valeur à ajouter
+void Stack<T>::Push(const T &v) {
+    stack[stack.GetSize()] = v;
+}
+
+template<class T>
+/// @brief GetSize - Donne la taille du tableau
+///
+/// @return Un DWORD contenant la taille du tableau.
+DWORD Stack<T>::GetSize() {
+    return stack.GetSize();
 }
 
 
@@ -552,7 +625,11 @@ void DTable<T>::SetDefaultValue(T defv) {
 }
 
 template<class T>
-void DTable<T>::SetCapacity(DWORD cap) {
+/// @brief SetCapacity - Pré-alloue une certaine taille
+///
+/// @param cap: capacité du tableau à pré-allouer
+/// @param val: valeur à écrire sur la nouvelle taille
+void DTable<T>::SetCapacity(DWORD cap, T val) {
     if (!fatal) {
         if (cap > c_tab) {
             // ReSharper disable once CppJoinDeclarationAndAssignment
@@ -574,8 +651,10 @@ void DTable<T>::SetCapacity(DWORD cap) {
             if (s_tab != 0) {
                 for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
             }
-            c_tab = cap;
 
+            for (QWORD i = s_tab; i < cap; i = i + 1) data[i] = val;
+
+            c_tab = cap;
             delete[] temp_d;
         }
     }

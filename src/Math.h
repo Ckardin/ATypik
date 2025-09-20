@@ -49,10 +49,10 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 ---------------------------------------------
 */
 
-/// @file AlgoMath.h
-/// @brief Header de AlgoMath
+/// @file Math.h
+/// @brief Header de Math
 /// @author F&nµx
-/// @version 2.0
+/// @version 3.0
 /// @date 08/01/2025
 
 #ifndef ALGOMATH_H
@@ -66,20 +66,14 @@ namespace Fenyx::Types
 
 Int NaivePow    (Int const& a, Int const& b);
 Int Pow         (Int const& x, Int const& n);
-Int Pow2        (Int const& n);
-Int Pow16       (Int const& n);
-Int W_PowM      (Int const& a, Int const& b, Int const& m);
-Int F_PowM      (Int const& a, Int const& b, Int const& m);
+Int Pow2        (DWORD n);
+Int Pow16       (DWORD n);
+Int PowM        (Int const& a, Int const& b, Int const& m);
 Int ExtEuclide  (Int const& a, Int const& b, Int &u, Int &v);
-Int RandTestMR  (Int const& n);
-bool   MillerTest  (Int const& n, Int const& a);
-bool   MillerRabin (Int const& n, BYTE k = 48);
-bool   Fermat_2    (Int const& n);
-bool   SolovayStrassen(Int const& n, BYTE k = 100);
 DWORD SquareRt(DWORD n);
 
 
-/// @brief TriBool - Classe qui permet de gérer les nombres complexes
+/// @brief Complex - Classe qui permet de gérer les nombres complexes
 class Complex {
 public:
 	Complex();

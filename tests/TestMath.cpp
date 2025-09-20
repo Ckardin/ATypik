@@ -49,13 +49,13 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 ---------------------------------------------
 */
 
-/// @file TestAlgoMath.cpp
-/// @brief Source de TestAlgoMath
+/// @file TestMath.cpp
+/// @brief Source de TestMath
 /// @author F&nµx
 /// @version 1.0
 /// @date 14/12/2024
 
-#include "AlgoMath.h"
+#include "../src/Math.h"
 #include <iostream>
 
 int test_c();
@@ -64,35 +64,32 @@ int main() {
 	const Fenyx::Types::Int a = 2, b = 16, m = 3;
 
 	if (Fenyx::Types::NaivePow(a, b) != 65536) {
-		std::cout << "Test AlgoMath => KO (Naive pow)" <<std::endl;
+		std::cout << "Test Math => KO (Naive pow)" <<std::endl;
 		return -1;
 	}
 
 	if (Fenyx::Types::Pow(a, b) != 65536) {
-		std::cout << "Test AlgoMath => KO (Pow)" <<std::endl;
+		std::cout << "Test Math => KO (Pow)" <<std::endl;
+		std::cout << Fenyx::Types::Pow(a, b).GetStr() <<std::endl;
 		return -2;
 	}
 
-	if (Fenyx::Types::Pow2(b) != 65536) {
-		std::cout << "Test AlgoMath => KO (Pow of 2)" <<std::endl;
+	if (Fenyx::Types::Pow2(b.GetL64()) != 65536) {
+		std::cout << "Test Math => KO (Pow of 2)" <<std::endl;
 		return -3;
 	}
 
-	if (Fenyx::Types::Pow16(a) != 256) {
-		std::cout << "Test AlgoMath => KO (Pow of 16)" <<std::endl;
+	if (Fenyx::Types::Pow16(a.GetL64()) != 256) {
+		std::cout << "Test Math => KO (Pow of 16)" <<std::endl;
 		return -4;
 	}
 
-	if (Fenyx::Types::W_PowM(a, b, m) != 1) {
-		std::cout << "Test AlgoMath => KO (Exponent-Pow with while-loop)" <<std::endl;
+	if (Fenyx::Types::PowM(a, b, m) != 1) {
+		std::cout << "Test Math => KO (Exponent-Pow with while-loop)" <<std::endl;
 		return -5;
 	}
 
-	if (Fenyx::Types::F_PowM(a, b, m) != 1) {
-		std::cout << "Test AlgoMath => KO (Exponent-Pow with for-loop)" <<std::endl;
-		return -5;
-	}
-
+	/*
 	if (!Fenyx::Types::MillerRabin(7877)) {
 		std::cout << "Test AlgoMath => KO (Miller-Rabin, prime)" <<std::endl;
         return -6;
@@ -102,9 +99,10 @@ int main() {
     	std::cout << "Test AlgoMath => KO (Miller-Rabin, composite)" <<std::endl;
         return -7;
     }
+    */
 
     if (Fenyx::Types::Int u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v) != 1) {
-    	std::cout << "Test AlgoMath => KO (Extended-Euclide algorithm)" <<std::endl;
+    	std::cout << "Test Math => KO (Extended-Euclide algorithm)" <<std::endl;
         return -8;
     }
 

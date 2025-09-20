@@ -55,7 +55,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @version 1.0
 /// @date 16/11/2024
 
-#include "StrUtils.h"
+#include "../src/StrUtils.h"
 #include <iostream>
 
 int main() {

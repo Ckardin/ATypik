@@ -49,13 +49,14 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 ---------------------------------------------
 */
 
-/// @file AlgoMath.cpp
-/// @brief Source de AlgoMath
+/// @file Math.cpp
+/// @brief Source de Math
 /// @author F&nµx
-/// @version 2.0
+/// @version 3.0
 /// @date 08/01/2025
 
-#include "AlgoMath.h"
+#include "Math.h"
+#include <iostream>
 
 namespace Fenyx::Types
 {
@@ -85,18 +86,15 @@ Int Pow         (Int const& x, Int const& n) {
 
 	if (n == 0 || x == 1) return 1;
 	if (n < 0  || x == 0) return 0;
-	if (n == 1)             return x;
+	if (n == 1)              return x;
 
-	if (n < 20 && x < 1000) NaivePow(x, n);
+	if (n < 20 && x < 1000) return NaivePow(x, n);
 
-	while (e != 0) {
-		if ((e % 2) == 0) {
-			a = a * a;
-			e = e / 2;
-		} else {
-			p = p * a;
-			e = (e - 1);
-		}
+	while (!e.IsZero()) {
+		if (e.IsOdd()) p *= a;
+
+		a *= a;
+		e /= 2;
 	}
 
 	return p;
@@ -107,12 +105,8 @@ Int Pow         (Int const& x, Int const& n) {
 /// @param[in] n: puissance à appliquer
 ///
 /// @return Un Int correspondant à 2 puissance [n].
-Int Pow2        (Int const& n) {
-	Int p = 1;
-
-	for (Int i = 0; i < n; i = i + 1) p = p * 2;
-
-	return p;
+Int Pow2        (const DWORD n) {
+	return (Int(1) << n);
 }
 
 /// @brief Pow16 - Exponention avec une base 16
@@ -120,140 +114,27 @@ Int Pow2        (Int const& n) {
 /// @param[in] n: puissance à appliquer
 ///
 /// @return Un Int correspondant à 16 puissance [n].
-Int Pow16       (Int const& n) {
-	Int p = 1;
-
-	for (Int i = 0; i < n; i = i + 1) p = p * 16;
-
-	return p;
+Int Pow16       (const DWORD n) {
+	return (Int(1) << (4 * n));
 }
 
-/// @brief W_PowM - Exponentiation modulaire rapide (avec boucle while)
+/// @brief PowM - Exponentiation modulaire rapide (avec boucle for)
 ///
 /// @param[in] a: base
 /// @param[in] b: exposant
 /// @param[in] m: modulo
 ///
 /// @return Un Int correspondant à ([a] puissance [b]) modulo [m].
-Int W_PowM      (Int const& a, Int const& b, Int const& m) {
-	Int p = 1, x = a, n = b;
-	x = x % m;
-
-	while (n > 0) {
-		if ((n % 2) != 0) p = (p * x) % m;
-
-		n = n / 2;
-		x = (x * x) % m;
-	}
-
-	return p;
-}
-
-/// @brief F_PowM - Exponentiation modulaire rapide (avec boucle for)
-///
-/// @param[in] a: base
-/// @param[in] b: exposant
-/// @param[in] m: modulo
-///
-/// @return Un Int correspondant à ([a] puissance [b]) modulo [m].
-Int F_PowM      (Int const& a, Int const& b, Int const& m) {
+Int PowM        (Int const& a, Int const& b, Int const& m) {
 	Int p, x = a, n = b;
 
-	for (p = 1; n > 0; n = n / 2) {
-		if (n % 2 != 0) p = (p * x) % m;
+	for (p = 1; n > 0; n /= 2) {
+		if (n.IsOdd()) p = (p * x) % m;
+
 		x = (x * x) % m;
 	}
 
 	return p;
-}
-
-/// @brief RandTestMR - Génère un témoin de Miller valide
-///
-/// @param[in] n: nombre concerné par le test
-///
-/// @return Témoin de Miller valide et pseudo-aléatoire.
-///
-/// /!\ Utilise random_device().
-Int RandTestMR  (Int const& n) {
-	std::random_device rd;
-	Int ret = rd();
-
-	ret = n % ret;
-	if (ret >= (n - 2) || ret <= 2) ret = Int(2) + (ret % (n - 4));
-
-	return ret;
-}
-
-/// @brief MillerTest - Effectue le Test de Miller-Rabin (sur un témoin)
-///
-/// @param[in] n: nombre à tester
-/// @param[in] a: témoin de Miller
-///
-/// @return false si [n] est probablement premier, true sinon.
-bool   MillerTest  (Int const& n, Int const& a) {
-	Int d = n - 1;
-	while ((d % 2) == 0) d /= 2;
-
-	Int x = W_PowM(a, d, n);
-
-	if (x == 1 || x == (n - 1)) return false;
-
-	while (d != (n - 1)) {
-		x = W_PowM(x, 2, n);
-		d = d * 2;
-
-		if (x == (n - 1)) return false;
-	}
-
-	return true;
-}
-
-/// @brief MillerRabin - Effectue le test de Miller-Rabin complet
-///
-/// @param[in] n: nombre à tester
-/// @param[in] k: nombre d'itérations du test
-///
-/// @return true si [n] est probablement premier, false sinon.
-bool   MillerRabin (Int const& n, const BYTE k) {
-	if (n <= 1 || n == 4) return false;
-	if (n <= 3)             return true;
-
-	for (WORD i = 0; i < k; i = i + 1) {
-		if (Int a = RandTestMR(n); MillerTest(n, a)) return false;
-	}
-
-	return true;
-}
-
-/// @brief Fermat_2 - Effectue le test de Fermat (en 2)
-///
-/// @param[in] n: nombre à tester
-///
-/// @return true si [n] est probablement premier, false sinon.
-bool   Fermat_2    (Int const& n) {
-	if (F_PowM(2, n - 1, n) == (Int(1) % n)) return true;
-	return false;
-}
-
-/// @brief SolovayStrassen - Effectue le test de Solovay-Strassen
-///
-/// @param[in] n: nombre à tester
-/// @param[in] k: nombre d'itérations du test
-///
-/// @return true si [n] est probablement premier, false sinon.
-bool   SolovayStrassen(Int const& n, BYTE k) {
-	const Int bt = (n - 1) - 2, m = (n - 1) / 2;
-	Int a = 0, x = 0;
-	std::random_device rd;
-
-	for (WORD i = 0; i < k; i = i + 1) {
-		a = (Int(rd()) * bt) + 2;
-		x = a / n;
-
-		if (x == 0 || (x % n) != (F_PowM(a, m, n))) return false;
-	}
-
-	return true;
 }
 
 /// @brief ExtEuclide - Algorithme d'Euclide étendu

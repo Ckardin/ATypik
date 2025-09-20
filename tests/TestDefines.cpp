@@ -55,7 +55,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @version 1.0
 /// @date 02/11/2024
 
-#include "Defines.h"
+#include "../src/Defines.h"
 #include <iostream>
 #include <sstream>
 

@@ -62,17 +62,21 @@ int Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Ty
 
 int main() {
 	Fenyx::Types::Int A(2000000000), B(50), C(20000), E(51);
-	int ret;
 
-	ret = Test(A, B, C, E, 2000000050, 1999999950, 1000000, 40000000, 14);
+	std::cout << "" <<std::endl;
+	std::cout << "" <<std::endl;
+	std::cout << "=== Test {Int} sur petites valeurs ===" <<std::endl;
+	std::cout << "" <<std::endl;
+
+	Fenyx::Types::sDWORD ret = Test(A, B, C, E, 2000000050, 1999999950, 1000000, 40000000, 14);
 	if (ret != 0) return ret;
 
 	B = Fenyx::Types::Int(-50); E = Fenyx::Types::Int(-51);
-	ret = Test(A, B, C, E, 1999999950, 2000000050, -1000000, -40000000, 14);
+	ret = Test(A, B, C, E, 1999999950, 2000000050, -1000000, -40000000, -14);
 	if (ret != 0) return ret;
 
 	A = Fenyx::Types::Int(-2000000000); B = Fenyx::Types::Int(50); C = Fenyx::Types::Int(-20000); E = Fenyx::Types::Int(51);
-	ret = Test(A, B, C, E, -1999999950, -2000000050, -1000000, -40000000, 14);
+	ret = Test(A, B, C, E, -1999999950, -2000000050, -1000000, -40000000, -14);
 	if (ret != 0) return ret;
 
 	B = Fenyx::Types::Int(-50); E = Fenyx::Types::Int(-51);
@@ -84,35 +88,35 @@ int main() {
 	return 0;
 }
 
-int Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Types::Int &C, const Fenyx::Types::Int &E, const int s, const int d, const int m, const int q, const int r) {
-	Fenyx::Types::Int S = A + B;
-	Fenyx::Types::Int D = A - B;
-	Fenyx::Types::Int M = C * B;
-	Fenyx::Types::Int Q = A / B;
-	Fenyx::Types::Int R = A % E;
+Fenyx::Types::sDWORD Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Types::Int &C, const Fenyx::Types::Int &E, const int s, const int d, const int m, const int q, const int r) {
+	const Fenyx::Types::Int S = A + B;
+	const Fenyx::Types::Int D = A - B;
+	const Fenyx::Types::Int M = C * B;
+	const Fenyx::Types::Int Q = A / B;
+	const Fenyx::Types::Int R = A % E;
 
 	if (S != Fenyx::Types::Int(s)) {
-		std::cout << "Test Int Add => KO (" << S.GetStr() << ")" << std::endl;
+		std::cout << "Test Add => KO (" << S.GetStr() << ")" << std::endl;
 		return -1;
 	}
 
 	if (D != Fenyx::Types::Int(d)) {
-		std::cout << "Test Int Sub => KO (" << D.GetStr() << ")" << std::endl;
+		std::cout << "Test Sub => KO (" << D.GetStr() << ")" << std::endl;
 		return -2;
 	}
 
 	if (M != Fenyx::Types::Int(m)) {
-		std::cout << "Test Int Mul => KO (" << M.GetStr() << ")" << std::endl;
+		std::cout << "Test Mul => KO (" << M.GetStr() << ")" << std::endl;
 		return -3;
 	}
 
 	if (Q != Fenyx::Types::Int(q)) {
-		std::cout << "Test Int Div => KO (" << Q.GetStr() << ")" << std::endl;
+		std::cout << "Test Div => KO (" << Q.GetStr() << ")" << std::endl;
 		return -4;
 	}
 
 	if (R != Fenyx::Types::Int(r)) {
-		std::cout << "Test Int Mod => KO (" << R.GetStr() << ")" << std::endl;
+		std::cout << "Test Mod => KO (" << R.GetStr() << ")" << std::endl;
 		return -5;
 	}
 
