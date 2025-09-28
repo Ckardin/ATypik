@@ -72,7 +72,7 @@ int main() {
 	if (ret != 0) return ret;
 
 	B = Fenyx::Types::Int(-50); E = Fenyx::Types::Int(-51);
-	ret = Test(A, B, C, E, 1999999950, 2000000050, -1000000, -40000000, -14);
+	ret = Test(A, B, C, E, 1999999950, 2000000050, -1000000, -40000000, 14);
 	if (ret != 0) return ret;
 
 	A = Fenyx::Types::Int(-2000000000); B = Fenyx::Types::Int(50); C = Fenyx::Types::Int(-20000); E = Fenyx::Types::Int(51);
@@ -80,7 +80,7 @@ int main() {
 	if (ret != 0) return ret;
 
 	B = Fenyx::Types::Int(-50); E = Fenyx::Types::Int(-51);
-	ret = Test(A, B, C, E, -2000000050, -1999999950, 1000000, 40000000, 14);
+	ret = Test(A, B, C, E, -2000000050, -1999999950, 1000000, 40000000, -14);
 	if (ret != 0) return ret;
 
 	std::cout << "Test Int => OK" <<std::endl;

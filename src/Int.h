@@ -65,6 +65,9 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
+inline constexpr QWORD b32 = (1ULL << 32);
+inline constexpr DWORD bs109 = 1000000000;
+
 DWORD NextPow2(DWORD n);
 
 /// @brief Int - Classe qui permets la prise en charge de grands nombres entiers relatifs
@@ -77,25 +80,30 @@ public:
 	Int(const Int& other);
 	Int(const DTable<DWORD> &other, bool sg);
 	Int(DWORD value);
+	Int(QWORD value);
 
 	[[nodiscard]] DTable<DWORD> GetTab() const;
 	[[nodiscard]] QWORD GetL64() const;
-	[[nodiscard]] std::string GetStr() const;
+	[[nodiscard]] Int GetOpposite() const;
+	[[nodiscard]] std::string GetStr() const; // A OPTIMISER
 	[[nodiscard]] bool IsZero() const;
 	[[nodiscard]] bool IsEven() const;
 	[[nodiscard]] bool IsOdd() const;
 	[[nodiscard]] bool IsNeg() const;
+	[[nodiscard]] Int Abs() const;
+
+	[[nodiscard]] DWORD TrailZero() const;
+	static Pair<Int, Int> DivMod(const Int& A, const Int& B);
 
 	Int& operator=(const Int& other);
 	Int& operator=(DWORD other);
+	Int& operator=(QWORD other);
 	Int& operator=(int other);
 
 	Int& operator+=(const Int& B);
 	Int& operator-=(const Int& B);
 	Int& operator*=(const Int& B);
 	Int& operator/=(const Int& B);
-
-	Int& operator-();
 
 	static Int Random(DWORD bits); // For test only
 
@@ -114,21 +122,21 @@ public:
 	///	SI 0 neg => Soustraction avec plus grand, signe (-) si A < B, signe (+) sinon
 
 private:
-	static Int Add(const Int &A, const Int &B);
-	static Int Sub(const Int &A, const Int &B);
+	static Int Add(const Int &A, const Int &B); // A OPTIMISER
+	static Int Sub(const Int &A, const Int &B); // A OPTIMISER
 	static Int Mul(const Int &A, const Int &B);
+	static Pair<Int, Int> Div(const Int &A, const Int &B);
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
-	static Pair<Int, Int> BurnikelZiegler(const Int &A, const Int &B);
-	static Pair<Int, Int> BZ32(const DTable<Int> &A, const DTable<Int> &B);
-	static Pair<Int, Int> BZ21(const DTable<Int> &A, const DTable<Int> &B);
-	static Pair<Int, Int> SchoolDiv(const Int &A, const Int &B);
+	// static Pair<Int, Int> BurnikelZiegler(const Int &A, const Int &B);
+	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
-	[[nodiscard]] Int Abs();
 	[[nodiscard]] Int WShift(DWORD b) const;
-	[[nodiscard]] Int ExtByZero(DWORD s) const;
+	[[nodiscard]] Int BLShift(DWORD b) const;
+	[[nodiscard]] Int BRShift(DWORD b) const;
+	[[nodiscard]] Int ExtByZero(DWORD s) const; // POURQUOI C'EST LÀ ???
 	[[nodiscard]] Int Slice(DWORD strt, DWORD len) const;
 
 	void Normalize();
@@ -155,6 +163,10 @@ friend bool operator>(const Int &A, const Int &B);
 friend bool operator<=(const Int &A, const Int &B);
 friend bool operator>=(const Int &A, const Int &B);
 };
+
+extern const Int Zero;
+extern const Int One;
+extern const Int slimb;
 
 }
 

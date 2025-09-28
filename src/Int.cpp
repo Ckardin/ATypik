@@ -62,6 +62,10 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
+const Int Zero = 0;
+const Int One = 1;
+const Int slimb = One << 32;
+
 /// @brief NextPow2 - Trouve la prochaine puissance de 2 d'un nombre
 ///
 /// @param n: nombre de départ
@@ -139,6 +143,19 @@ Int::Int(const DWORD value) {
 	v[0] = value;
 }
 
+/// @brief Int - Constructeur
+///
+/// @param[in] value: valeur unitaire à affecter
+///
+/// Constructeur d'affectation unitaire sur QWORD de la classe Int.
+Int::Int(const QWORD value) {
+	v.Clear();
+	sign = true;
+
+	v[0] = static_cast<DWORD>(value);
+	v[1] = static_cast<DWORD>(value >> 32);
+}
+
 /// @brief GetTab - Permet de récupérer le tableau de DWORD
 ///
 /// @return Un tableau de DWORD représentant la valeur absolue du nombre stocké.
@@ -162,9 +179,21 @@ QWORD Int::GetL64() const {
 	return ((p1 << 32) | p0);
 }
 
-/// @brief GetStr - Convertit le nombre stocké en chaine de caractères
+/// @brief GetOpposite - Récupère l'opposé du nombre stocké
 ///
-/// @return Une chaîne de caractères décimaux représentant le nombre stocké.
+/// @return L'opposé du nombre stocké.
+Int Int::GetOpposite() const {
+	const DWORD m = v.GetSize();
+	Int ret;
+
+	ret.v.SetCapacity(m, 0);
+	for (QWORD i = 0; i < m; i = i + 1) ret.v[i] = v[i];
+
+	ret.sign = !sign;
+	return ret;
+}
+
+/*
 std::string Int::GetStr() const {
 	const DWORD n = v.GetSize();
 	// ReSharper disable once CppJoinDeclarationAndAssignment
@@ -187,7 +216,50 @@ std::string Int::GetStr() const {
 
 	std::reverse(ret.begin(), ret.end());
 	return ret;
-}
+}*/
+
+/// @brief GetStr - Convertit le nombre stocké en chaine de caractères
+///
+/// @return Une chaîne de caractères décimaux représentant le nombre stocké.
+std::string Int::GetStr() const {
+	if (v.GetSize() == 1 && v[0] == 0) return "0";
+
+	DTable<DWORD> blks; blks.Clear();
+	std::string ret = "";
+	char tbuf[10];
+	QWORD a, r;
+	Int tA;
+
+	tA.v.Clear(); tA.v.SetCapacity(v.GetSize(), 0);
+	for (QWORD i = 0; i < v.GetSize(); i = i + 1) tA.v[i] = v[i];
+
+	while (!tA.IsZero()) {
+		r = 0;
+		for (sQWORD i = tA.v.GetSize() - 1; i >= 0; i = i - 1) {
+			a       = (r << 32) | tA.v[i];
+			tA.v[i] = static_cast<DWORD>(a / bs109);
+			r       = a % bs109;
+		}
+
+		blks[blks.GetSize()] = static_cast<DWORD>(r);
+		tA.Normalize();
+	}
+
+	if (!sign) ret += "-";
+
+	bool fblk = true;
+	for (sQWORD i = blks.GetSize() - 1; i >= 0; i = i - 1) {
+		if (fblk) {
+			ret += toString<DWORD>(blks[i]);
+			fblk = false;
+		} else {
+			snprintf(tbuf, sizeof(tbuf), "%09u", blks[i]);
+			ret += tbuf;
+		}
+	}
+
+	return ret;
+} // OPTIMISATION IA => Calcul avec division 10^9 (pas intuitif en algorithmique)
 
 /// @brief IsZero - Test si le nombre vaut 0 ou pas
 ///
@@ -217,6 +289,51 @@ bool Int::IsNeg() const {
 	return !sign;
 }
 
+/// @brief TrailZero - Compte le nombre de zéros à partir du LSB
+///
+/// @return Le nombre de zéros de poids faible.
+DWORD Int::TrailZero() const {
+	const DWORD n = v.GetSize();
+	DWORD ret = 0, c, i = 0;
+
+	for (QWORD j = 0; j < n; j = j + 1) {
+		// ReSharper disable once CppJoinDeclarationAndAssignment
+		c = v[i];
+
+		if (c != 0) {
+			ret += __builtin_ctz(c);
+			break;
+		}
+
+		ret += 32;
+		i   += 1;
+	}
+
+	return ret;
+}
+
+/// @brief DivMod - Donne le quotient et le reste d'une div euclidienne
+///
+/// @param A: l-value
+/// @param B: r-value
+///
+/// @return Une Pair avec First qui est le quotient (A / B) et Second qui est le reste (A % B)
+///
+/// /!\ Ne fait pas appel aux opérateurs, recréer la logique des op / et %.
+Pair<Int, Int> Int::DivMod(const Int& A, const Int& B) {
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nq = nA - nB + 1, nr = nB;
+	Int Q, R;
+
+	Q.v.SetCapacity(nq, 0);
+	R.v.SetCapacity(nr, 0);
+
+	Pair<Int, Int> tqr = Div(A, B);
+	Q = tqr.First(); R = tqr.Second();
+
+	Q.Normalize(); R.Normalize();
+	return {Q, R};
+}
+
 /// @brief operator= - Opérateur d'affectation entre Int
 ///
 /// @param[in] other: r-value
@@ -240,6 +357,20 @@ Int& Int::operator=(const Int& other) {
 Int& Int::operator=(const DWORD other) {
 	v.Clear(); sign = true;
 	v[0] = other;
+
+	return *this;
+}
+
+/// @brief operator= - Opérateur d'affectation unitaire sur QWORD
+///
+/// @param[in] other: r-value
+///
+/// @return Une référence sur le Int affecté.
+Int& Int::operator=(const QWORD other) {
+	v.Clear(); sign = true;
+
+	v[0] = static_cast<DWORD>(other);
+	v[1] = static_cast<DWORD>(other >> 32);
 
 	return *this;
 }
@@ -327,9 +458,7 @@ Int& Int::operator-=(const Int& B) {
 		ret = Add(tA, tB);
 		ret.sign = A.sign;
 	} else {
-		const sDWORD c = CmpAbs(A, B);
-
-		if (c == 0) {
+		if (const sDWORD c = CmpAbs(A, B); c == 0) {
 			ret = 0;
 			ret.sign = true;
 		} else {
@@ -390,63 +519,22 @@ Int& Int::operator*=(const Int& B) {
 /// @return Une référence sur le Int affecté.
 Int& Int::operator/=(const Int& B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = nA - nB + 1;
-	Int ret, A, tA, tB;
+	Int ret, A;
 
 	A.v.SetCapacity(nA, 0);
 	for (QWORD i = 0; i < v.GetSize(); i = i + 1) A.v[i] = v[i];
 	A.sign = sign;
 
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
-
 	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
 
-	if (tB.IsZero()) throw std::runtime_error("Division by zero");
-	if (tA.IsZero() || tA < tB) {
-		v.Clear(); v[0] = 0;
-		sign = true;
-
-		Normalize();
-		return *this;
-	}
-	if (tB == Int(1)) {
-		v.Clear(); const DWORD nrt = ret.v.GetSize();
-		for (QWORD i = 0; i < nrt; i = i + 1) v[i] = tA.v[i];
-
-		Normalize();
-		return *this;
-	}
-
-	if (tB.v.GetSize() == 1) {
-		Pair<Int, DWORD> qr = SmallDiv(tA, tB.v[0]);
-		ret = qr.First();
-	} else {
-		Pair<Int, Int> qr = BurnikelZiegler(tA, tB);
-		ret = qr.First();
-	}
-
-	ret.sign = (sign == B.sign);
+	Pair<Int, Int> tqr = Div(A, B);
+	ret = tqr.First();
 
 	v.Clear(); const DWORD nrt = ret.v.GetSize();
 	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
 	sign = ret.sign;
 
 	Normalize();
-	return *this;
-}
-
-/// @brief operator- - Opérateur de négativité
-///
-/// @return Une référence sur le Int affecté.
-///
-/// Ne fait qu'inverser le signe, pas de calcul supplémentaire.
-Int& Int::operator-() {
-	sign = !sign;
-
 	return *this;
 }
 
@@ -472,7 +560,7 @@ Int Int::Random(const DWORD bits) { // For test only
 
 	ret.Normalize();
 	return ret;
-}
+} // OPTIMISATION IA => Distribution des Random-limbs, A SUPPRIMER POTENTIELLEMENT
 
 Int Int::Add(const Int &A, const Int &B) {
 	Int ret;
@@ -498,10 +586,10 @@ Int Int::Add(const Int &A, const Int &B) {
 }
 
 Int Int::Sub(const Int &A, const Int &B) {
-	Int ret;
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	sQWORD borrow = 0, a, b, tsub, l132 = (1LL << 32);
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
+	// ReSharper disable three CppJoinDeclarationAndAssignment
+	sQWORD borrow = 0, a, b, tsub;
+	Int ret;
 
 	ret.v.SetCapacity(nA, 0);
 
@@ -511,7 +599,7 @@ Int Int::Sub(const Int &A, const Int &B) {
 		tsub = a - b - borrow;
 
 		if (tsub < 0) {
-			tsub += l132;
+			tsub += b32;
 			borrow = 1;
 		} else borrow = 0;
 
@@ -525,6 +613,57 @@ Int Int::Sub(const Int &A, const Int &B) {
 Int Int::Mul(const Int &A, const Int &B) {
 	if (const DWORD n = (A.v.GetSize() > B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize(); n <= 64) return LongMul(A, B);
 	return Karatsuba(A, B);
+}
+
+Pair<Int, Int> Int::Div(const Int &A, const Int &B) {
+	const DWORD m = A.v.GetSize(), n = B.v.GetSize();
+	Pair<Int, Int> tqr;
+	Int tA, tB, Q, R;
+	bool calcdv = true, calck = true;
+
+	tA.v.SetCapacity(m, 0); tB.v.SetCapacity(n, 0);
+	for (QWORD i = 0; i < m; i = i + 1) tA.v[i] = A.v[i];
+	for (QWORD i = 0; i < n; i = i + 1) tB.v[i] = B.v[i];
+
+	tA.sign = true; tB.sign = true;
+
+	if (B.IsZero()) throw std::runtime_error("Division by zero");
+	if (A.IsZero() || CmpAbs(A, B) == -1) {
+		Q = 0; R = A;
+		calcdv = false;
+	}
+	if (B == Int(1)) {
+		Q = A; R = 0;
+		Q.sign = (A.sign == B.sign);
+		calcdv = false;
+	}
+
+	if (const Int tts = Sub(tA, tB); tts == tB) {
+		Q = 2; R = 0;
+	} else if (tts < tB) {
+		Q = 1; R = tts;
+	} else {
+		if (calcdv) {
+			if (n == 1) {
+				Pair<Int, DWORD> tqrp = SmallDiv(A, B.v[0]);
+				Q = tqrp.First(); R = tqrp.Second();
+
+				calck = false;
+			}
+
+			if (calck) {
+				tqr = KnuthD(tA, tB);
+
+				Q = tqr.First(); R = tqr.Second();
+			}
+		}
+	}
+
+	Q.sign = (A.sign == B.sign);
+	R.sign = A.sign;
+
+	Q.Normalize(); R.Normalize();
+	return {Q, R};
 }
 
 Int Int::Karatsuba(const Int &A, const Int &B) {
@@ -547,7 +686,7 @@ Int Int::Karatsuba(const Int &A, const Int &B) {
 
 	ret.Normalize();
 	return ret;
-}
+} // OPTIMISATION IA => Calcul de z1 et B-Reduc
 
 Int Int::LongMul(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
@@ -578,7 +717,7 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 	QWORD carry, p;
 	Int ret;
 
-	if (B == 0) return {0};
+	if (B == 0) return Zero;
 	if (B == 1) {
 		ret = A;
 		ret.Normalize();
@@ -603,261 +742,75 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 	ret.Normalize();
 	ret.sign = A.sign;
 	return ret;
-}
+} // OPTIMISATION IA => Super algo, je ne connaissais pas :)
 
-Pair<Int, Int> Int::BurnikelZiegler(const Int &A, const Int &B) {
-	const DWORD lz = __builtin_clz(B.v[B.v.GetSize() - 1]), m = A.v.GetSize(), n = B.v.GetSize();
-	if (B == Int(0)) throw std::runtime_error("Division by zero");
-	if (n <= 256) return SchoolDiv(A, B);
+Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B) {
+	const DWORD n = B.v.GetSize(), lz = __builtin_clz(B.v[n - 1]);
+	Int Q, R, Bq, tA(A.BLShift(lz)), tB(B.BLShift(lz));
+	const DWORD m = tA.v.GetSize() - n, m1 = m + 1, nn1 = n - 1, nn2 = n - 2, mn2 = m + n + 2;
+	QWORD num, d, qest, rest;
 
-	const Int sub = Sub(A, B);
-	if (sub < B) return {1, sub};
-	if (sub == B) return {2, 0};
+	Q.v.SetCapacity(m + 1, 0);
+	R.v.SetCapacity(n, 0);
 
-	Int tA(A << lz), tB(B << lz), Q, R, Qpart;
-	DWORD k, t, npA, npB, tp, ablk, si, sw, sstqr;
-	DTable<Int> bA, bB, tbA;
-	Pair<Int, Int> tqr;
-	QWORD rem;
+	for (sQWORD j = m1; j >= 0; j = j - 1) {
+		tA.v.SetCapacity(m + n + 2, 0);
+		for (QWORD i = tA.v.GetSize(); i < mn2; i = i + 1) tA.v[i] = 0;
 
-	Q.v.Clear(); R.v.Clear();
+		if (tA.v.GetSize() < mn2) throw std::runtime_error("Div Size Error: m=" + toString<DWORD>(m) + ", n="
+																					+ toString<DWORD>(n) + ", sA="
+																					+ toString<DWORD>(tA.v.GetSize()) + ".");
 
-	k   = NextPow2((n + 1) / 2);
-	t   = (n + k - 1) / k;
-	npB = t * k;
-	npA = ((m + k - 1) / k) * k;
+		num = (static_cast<QWORD>(tA.v[j + n]) << 32) + tA.v[j + n - 1];
+		d   = tB.v[nn1];
 
-	if (npA < npB) npA = npB; // For precaution only !
-
-	for (QWORD i = m; i < npA; i = i + 1) tA.v[i] = 0;
-	for (QWORD i = n; i < npB; i = i + 1) tB.v[i] = 0;
-
-	bA.Clear(); bB.Clear();
-
-	tp = npA / k;
-	for (QWORD i = 0; i < tp; i = i + 1) {
-		for (QWORD j = 0; j < k; j = j + 1) {
-			bA[i].v[j] = tA.v[(i * k) + j];
-		}
-	}
-
-	for (QWORD i = 0; i < t; i = i + 1) {
-		for (QWORD j = 0; j < k; j = j + 1) {
-			bB[i].v[j] = tB.v[(i * k) + j];
-		}
-	}
-
-	sQWORD i = tp;
-	while (i > 0) {
-		rem = i;
-
-		if (t == 1) ablk = (rem >= 2) ? 2 : rem;
-		else        ablk = (rem >= 3) ? 3 : rem;
-
-		si = i - ablk;
-
-		tbA.Clear();
-		for (QWORD j = 0; j < ablk; j = j + 1) tbA[j] = bA[si + j];
-
-		if (ablk == 1)      tqr = SchoolDiv(tbA[0], bB[0]);
-		else if (ablk == 2) tqr = BZ21(tbA, bB);
-		else                tqr = BZ32(tbA, bB);
-
-		sw = 0;
-		for (DWORD w = 0; w < si; w = w + 1) sw += bA[w].v.GetSize();
-		Qpart = tqr.First().WShift(sw);
-		Q     = Q + Qpart;
-
-		sstqr = tqr.Second().v.GetSize();
-		for (QWORD j = 0; j < sstqr; j = j + 1) bA[si + j] = tqr.Second().v[j];
-
-		i -= ablk;
-	}
-
-	const DWORD tpB = bA.GetSize();
-	for (QWORD j = 0; j < tpB; j = j + 1) {
-		for (QWORD l = 0; l < k; l = l + 1) {
-			R.v[j * k + l] = bA[j].v[l];
-		}
-	}
-
-	R = (R >> lz);
-
-	Q.Normalize(); R.Normalize();
-	return {Q, R};
-}
-
-Pair<Int, Int> Int::BZ32(const DTable<Int> &A, const DTable<Int> &B) {
-	const DWORD lz = __builtin_clz(B[1].v[B[1].v.GetSize() - 1]), n = B[0].v.GetSize();
-	Pair<Int, Int> tqr;
-	DTable<Int> tA, tB, ttA, ttB;
-	Int Q, R, b(1);
-	b = (b << 32);
-
-	if (n <= 128) return SchoolDiv(A[0] + A[1].WShift(n) + A[2].WShift(2 * n), B[0] + B[1].WShift(n));
-
-	tA.Clear(); tB.Clear();
-	const Int ttpA = (A[0] + A[1].WShift(n) + A[2].WShift(2 * n)) << lz;
-	const Int ttpB = (B[0] + B[1].WShift(n)) << lz;
-
-	tA[0] = ttpA.Slice(0, n);
-	tA[1] = ttpA.Slice(n, n);
-	tA[2] = ttpA.Slice(2 * n, n);
-
-	tB[0] = ttpB.Slice(0, n);
-	tB[1] = ttpB.Slice(n, n);
-
-	ttA.Clear(); ttB.Clear();
-	ttB[0] = tB[1];
-	ttA[0] = tA[1];
-	ttA[1] = tA[2];
-
-	if (tA[2] < tB[1]) tqr = BZ21(ttA, ttB);
-	else               tqr.Set(b.WShift(n) - Int(1), (tA[2] - tB[1]).WShift(n) + tA[1] + tB[1]);
-
-	R = tqr.Second().WShift(n) + tA[0] - (tqr.First() * tB[0]);
-	Q = tqr.First();
-
-	const Int cB = tB[1].WShift(n) + tB[0];
-	while (R < Int(0) || R >= cB) {
-		if (R < Int(0)) {
-			R += cB;
-			Q -= Int(1);
-		} else if (R >= cB) {
-			R -= cB;
-			Q += Int(1);
-		}
-	}
-
-	Q.Normalize();
-	R = (R >> lz);
-	R.Normalize();
-
-	return {Q, R};
-}
-
-Pair<Int, Int> Int::BZ21(const DTable<Int> &A, const DTable<Int> &B) {
-	const DWORD lz = __builtin_clz(B[0].v[B[0].v.GetSize() - 1]), nta = A[0].v.GetSize(), ntb = B[0].v.GetSize();
-	Pair<Int, Int> tqr1, tqr2;
-	DTable<Int> tA, tB, ttA, ttB, t21a;
-	Int Q, R, b(1);
-	b = (b << 32);
-
-	if (nta <= 128) return SchoolDiv(A[0] + A[1].WShift(nta), B[0]);
-
-	tA.Clear(); tB.Clear();
-	tB[0] = (B[0] << lz);
-
-	const Int ttpA = (A[0] + A[1].WShift(nta)) << lz;
-	tA[0] = ttpA.Slice(0, nta);
-	tA[1] = ttpA.Slice(nta, nta);
-
-	const DWORD ha = nta / 2;
-	const DWORD la = nta - ha;
-	const DWORD hb = ntb / 2;
-	const DWORD lb = ntb - hb;
-
-	ttA.Clear(); ttB.Clear();
-	ttA[0] = tA[0].Slice(0, ha);
-	ttA[1] = tA[0].Slice(ha, la);
-	ttA[2] = tA[1].Slice(0, ha);
-	ttA[3] = tA[1].Slice(ha, la);
-
-	ttB[0] = tB[0].Slice(0, hb);
-	ttB[1] = tB[0].Slice(hb, lb);
-
-	t21a.Clear();
-	t21a[0] = ttA[1]; t21a[1] = ttA[2]; t21a[2] = ttA[3];
-
-	tqr1 = BZ32(t21a, ttB);
-
-	t21a.Clear();
-	Int rl = tqr1.Second().Slice(0, ttB[0].v.GetSize());
-	Int rh = tqr1.Second().Slice(ttB[0].v.GetSize(), tqr1.Second().v.GetSize() - ttB[0].v.GetSize());
-
-	t21a[0] = ttA[0]; t21a[1] = rl; t21a[2] = rh;
-	tqr2 = BZ32(t21a, ttB);
-
-	Q = tqr1.First().WShift(ntb) + tqr2.First();
-	R = (tqr2.Second() >> lz);
-
-	Q.Normalize(); R.Normalize();
-	return {Q, R};
-}
-
-Pair<Int, Int> Int::SchoolDiv(const Int &A, const Int &B) {
-	const DWORD lz = __builtin_clz(B.v[B.v.GetSize() - 1]), m = A.v.GetSize(), n = B.v.GetSize();
-	Int tA((A << lz)), tB((B << lz)), b(1), Q, R, qB;
-	QWORD qest, rest, ta;
-	b = (b << 32);
-
-	if (m < n) return {Int(0), A};
-	if (m == n) {
-		if (A < B) return {Int(0), A};
-		return {Int(1), A - B};
-	}
-	if (n == 1) {
-		Pair<Int, DWORD> qrt = SmallDiv(A, B.v[0]);
-		Q = qrt.First(); R = qrt.Second();
-
-		Q.Normalize(); R.Normalize();
-		return {Q, R};
-	}
-
-	const QWORD bl64 = b.GetL64();
-	for (sQWORD j = (m - n); j >= 0; j = j - 1) {
-		ta   = (static_cast<QWORD>(tA.v[j + n]) << 32) | tA.v[j + n - 1];
-		qest = ta / tB.v[n - 1];
-		rest = ta % tB.v[n - 1];
-
-		if (qest >= bl64) qest = bl64 - 1;
-
-		while ((qest * tB.v[n - 2]) > (bl64 * rest + tA.v[j + n - 2])) {
+		qest = num / d; rest = num % d;
+		while (qest == b32 || ((qest * static_cast<QWORD>(tB.v[nn2])) > ((rest << 32) + tA.v[j + n - 2]))) {
 			qest -= 1;
-			rest += tB.v[n - 1];
-			if (rest >= bl64) break;
+			rest += d;
+			if (rest >= b32) break;
 		}
 
-		qB = tB * Int(static_cast<DWORD>(qest));
-		qB = qB.WShift(j);
-
-		if (tA >= qB) {
-			tA -= qB;
-			Q.v[j] = static_cast<DWORD>(qest);
-		} else {
-			tA = tA - qB + tB.WShift(j);
-			Q.v[j] = static_cast<DWORD>(qest - 1);
+		Bq = Mul(tB, Int(qest)).WShift(j);
+		if (tA < Bq) {
+			tA += tB.WShift(j);
+			qest -= 1;
 		}
+
+		tA -= Bq;
+		Q.v[j] = static_cast<DWORD>(qest);
 	}
 
-	R = (tA >> lz);
+	R = tA.BRShift(lz);
 
 	Q.Normalize(); R.Normalize();
 	return {Q, R};
-}
+} // OPTIMISATION IA => Subtilités d'un algo que je connais bien (merci Mr Knuth, vous êtes Le Goat)
 
 Pair<Int, DWORD> Int::SmallDiv(const Int &A, const DWORD B) {
-	Int q;
+	bool calcdv = true;
 	QWORD r = 0, c;
+	Int q;
+
+	q.v.SetCapacity(A.v.GetSize(), 0);
 
 	if (B == 0) throw std::runtime_error("Division by zero");
-	if (A < Int(B)) {
+	if (CmpAbs(A, Int(B)) == -1) {
 		q = 0; r = A.v[0];
-
-		q.Normalize();
-		return {q, static_cast<DWORD>(r)};
+		calcdv = false;
 	}
 
-	for (sQWORD i = A.v.GetSize() - 1; i >= 0; i = i - 1) {
-		c = (r << 32) | A.v[i];
-		q.v[i] = static_cast<DWORD>(c / B);
-		r = c % B;
+	if (calcdv) {
+		for (sQWORD i = A.v.GetSize() - 1; i >= 0; i = i - 1) {
+			c = (r << 32) | A.v[i];
+			q.v[i] = static_cast<DWORD>(c / B);
+			r = c % B;
+		}
 	}
 
 	q.Normalize();
-
 	return {q, static_cast<DWORD>(r)};
-}
+} // OPTIMISATION IA => Idem que SmallMul
 
 sDWORD Int::CmpAbs(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
@@ -873,7 +826,7 @@ sDWORD Int::CmpAbs(const Int &A, const Int &B) {
 	return 0;
 }
 
-Int Int::Abs() {
+Int Int::Abs() const {
 	const DWORD n = v.GetSize();
 	Int ret;
 
@@ -892,6 +845,57 @@ Int Int::WShift(const DWORD b) const {
 	ret.v.SetCapacity(fi + 1, 0);
 	for (sQWORD i = fi; i >= 0; i = i - 1) ret.v[i] = ((i - b) >= 0) ? v[i - b] : 0;
 
+	ret.sign = sign;
+	return ret;
+}
+
+Int Int::BLShift(const DWORD b) const {
+	const DWORD nw = b / 32, nb = b % 32, asize = v.GetSize(), fi = asize + nw + (nb ? 1 : 0);
+	DWORD c = 0;
+	QWORD x;
+	Int ret;
+
+	if (IsZero() || b == 0) {
+		for (QWORD i = 0; i < asize; i = i + 1) ret.v[i] = v[i];
+		ret.Normalize();
+		return ret;
+	}
+
+	ret.v.SetCapacity(fi, 0);
+	for (QWORD i = 0; i < asize; i = i + 1) {
+		x = (static_cast<QWORD>(v[i]) << nb) | c;
+		ret.v[i + nw] = static_cast<DWORD>(x);
+
+		c = static_cast<DWORD>(x >> 32);
+	}
+
+	if (nb && c != 0) ret.v[asize + nw] = c;
+
+	ret.Normalize();
+	return ret;
+}
+
+Int Int::BRShift(const DWORD b) const {
+	const DWORD nw = b / 32, nb = b % 32, asize = v.GetSize(), fi = asize - nw, nb32 = 32 - nb;
+	DWORD c = 0, xc;
+	Int ret;
+
+	if (IsZero() || b == 0) {
+		for (QWORD i = 0; i < asize; i = i + 1) ret.v[i] = v[i];
+		ret.Normalize();
+		return ret;
+	}
+
+	if (b >= (asize * 32)) return {0};
+
+	ret.v.SetCapacity(fi, 0);
+	for (sQWORD i = fi - 1; i >= 0; i = i - 1) {
+		xc = static_cast<QWORD>(v[i + nw]);
+		ret.v[i] = static_cast<DWORD>((xc >> nb) | (static_cast<QWORD>(c) << nb32));
+		c = static_cast<DWORD>(xc & ((1ULL << nb) - 1));
+	}
+
+	ret.Normalize();
 	return ret;
 }
 
@@ -926,6 +930,7 @@ void Int::Normalize() {
 	if (v.GetSize() == 0)              v[0] = 0;
 	if (v.GetSize() == 1 && v[0] == 0) sign = true;
 }
+
 
 
 /// @brief operator+ - Opérateur d'addition
@@ -1038,40 +1043,15 @@ Int operator*(const Int &A, const Int &B) {
 /// @param[in] A: l-value
 /// @param[in] B: r-value
 ///
-/// @return Le résultat de la division euclidienne de [A] par [B], uniquement le quotient.
+/// @return Le quotient de la division euclidienne de [A] par [B].
 Int operator/(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = nA - nB + 1;
-	Int ret, tA, tB;
-
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+	Int ret;
 
 	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
 
-	if (tB.IsZero()) throw std::runtime_error("Division by zero");
-	if (tA.IsZero() || tA < tB) {
-		ret = 0;
-		return ret;
-	}
-	if (tB == Int(1)) {
-		ret = tA;
-		ret.sign = A.sign;
-		return ret;
-	}
-
-	if (tB.v.GetSize() == 1) {
-		Pair<Int, DWORD> qr = Int::SmallDiv(tA, tB.v[0]);
-		ret = qr.First();
-	} else {
-		Pair<Int, Int> qr = Int::BurnikelZiegler(tA, tB);
-		ret = qr.First();
-	}
-
-	ret.sign = (A.sign == B.sign);
+	Pair<Int, Int> tqr = Int::Div(A, B);
+	ret = tqr.First();
 
 	ret.Normalize();
 	return ret;
@@ -1084,39 +1064,14 @@ Int operator/(const Int &A, const Int &B) {
 ///
 /// @return Le reste de la division euclidienne de [A] par [B].
 Int operator%(const Int &A, const Int &B) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = nB;
-	Int ret, tA, tB;
-
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+	const DWORD nB = B.v.GetSize(), nr = nB;
+	Int ret;
 
 	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
+	if (B == Int(2)) return {A.v[0] & 1};
 
-	if (tB.IsZero()) throw std::runtime_error("Division by zero");
-	if (tA.IsZero()) {
-		ret = tB;
-		return ret;
-	}
-	if (tA < tB) {
-		ret = tA;
-		return ret;
-	}
-
-	if (B == Int(2)) ret = (tA.v[0] & 1);
-
-	if (tB.v.GetSize() == 1) {
-		Pair<Int, DWORD> qr = Int::SmallDiv(tA, tB.v[0]);
-		ret = qr.Second();
-	} else {
-		Pair<Int, Int> qr = Int::BurnikelZiegler(tA, tB);
-		ret = qr.Second();
-	}
-
-	ret.sign = (A.sign == B.sign);
+	Pair<Int, Int> tqr = Int::Div(A, B);
+	ret = tqr.Second();
 
 	ret.Normalize();
 	return ret;
@@ -1151,9 +1106,11 @@ Int operator<<(const Int &A, const DWORD b) {
 	if (nb) ret.v[asize + nw] = c;
 	for (QWORD i = 0; i < nw; i++) ret.v[i] = 0;
 
+	ret.sign = A.sign;
 	ret.Normalize();
+
 	return ret;
-}
+} // OPTIMISATION IA => Prise en compte des nombres négatifs
 
 /// @brief operator>> - Opérateur de décalage à droite
 ///
@@ -1172,7 +1129,7 @@ Int operator>>(const Int &A, const DWORD b) {
 		return ret;
 	}
 
-	if (b >= (asize * 32)) return {0};
+	if (b >= (asize * 32)) return ((A.sign) ? Int(0) : Int(-1));
 
 	ret.v.SetCapacity(fi, 0);
 	for (QWORD i = fi; i > 0; i = i - 1) {
@@ -1182,9 +1139,15 @@ Int operator>>(const Int &A, const DWORD b) {
 		c = nb ? (xc << nb32) : 0;
 	}
 
+	ret.sign = A.sign;
+	if (!A.sign) {
+		Int ob(1); ob = ob << b;
+		if (!((A % ob).IsZero())) ret -= Int(1);
+	}
+
 	ret.Normalize();
 	return ret;
-}
+} // OPTIMISATION IA => Prise en compte des nombres négatifs
 
 /// @brief operator& - Opérateur ET logique
 ///
@@ -1332,7 +1295,7 @@ bool operator<(const Int &A, const Int &B) {
 	}
 
 	return false;
-}
+} // OPTIMISATION IA => Opti justement, sur les différents if/else
 
 /// @brief operator> - Opérateur de supériorité entre Int
 ///
@@ -1365,7 +1328,7 @@ bool operator>(const Int &A, const Int &B) {
 	}
 
 	return false;
-}
+} // OPTIMISATION IA => Opti justement, sur les différents if/else
 
 /// @brief operator<= - Opérateur d'infériorité ou égalité
 ///

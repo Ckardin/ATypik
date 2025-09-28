@@ -63,8 +63,10 @@ void TestOperators(const Int &A, const Int &B, DivergCount &dc, const DWORD si, 
 }
 
 int main(const int argc, char* argv[]) {
+    std::random_device rd;
     DivergCount tDiverg;
     bool debug = false;
+    DWORD trd;
 
     if (argc > 1) {
         if (std::string(argv[1]) == "debug") debug = true;
@@ -75,12 +77,16 @@ int main(const int argc, char* argv[]) {
     std::cout << "=== Test {Int} sur grandes valeurs ===" <<std::endl;
     std::cout << "" <<std::endl;
 
-    for (DWORD sz : {128, 512, 1024, 2048, 4096, 8192, 16384}) {
+    for (DWORD sz : {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384}) {
         if (debug) std::cout << "--- Test avec taille " << sz << " bits ---" <<std::endl;
 
         Int A = Int::Random(sz);
-        Int B = Int::Random(sz);
-        if (B == Int{0}) B = Int{1};
+        Int B = Int::Random(sz / 2);
+        trd = rd() % 2;
+        A = (trd == 0) ? A : A.GetOpposite();
+        trd = rd() % 2;
+        B = (trd == 0) ? B : B.GetOpposite();
+        if (B.IsZero()) B = Int{1};
 
         TestOperators(A, B, tDiverg, sz, debug);
     }

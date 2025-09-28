@@ -64,12 +64,13 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
-Int NaivePow    (Int const& a, Int const& b);
-Int Pow         (Int const& x, Int const& n);
+Int NaivePow    (const Int &a, DWORD b);
+Int Pow         (const Int &x, const Int &n);
 Int Pow2        (DWORD n);
 Int Pow16       (DWORD n);
-Int PowM        (Int const& a, Int const& b, Int const& m);
-Int ExtEuclide  (Int const& a, Int const& b, Int &u, Int &v);
+Int PowM        (const Int &a, const Int &b, const Int &m);
+Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v);
+Int Stein       (const Int &a, const Int &b);
 DWORD SquareRt(DWORD n);
 
 
@@ -77,33 +78,33 @@ DWORD SquareRt(DWORD n);
 class Complex {
 public:
 	Complex();
-	Complex(Int const& r, Int const& u);
-	Complex(Complex const& oth);
+	Complex(const Int &r, const Int &u);
+	Complex(const Complex &oth);
 
 	[[nodiscard]] bool IsReal() const;
 	[[nodiscard]] bool IsImag() const;
 	[[nodiscard]] Int Real() const;
 	[[nodiscard]] Int Imag() const;
 
-	Complex& operator=(Complex const& oth);
-	Complex& operator+=(Complex const& oth);
-	Complex& operator-=(Complex const& oth);
-	Complex& operator*=(Complex const& oth);
-	Complex& operator/=(Complex const& oth);
+	Complex& operator=(const Complex &oth);
+	Complex& operator+=(const Complex &oth);
+	Complex& operator-=(const Complex &oth);
+	Complex& operator*=(const Complex &oth);
+	Complex& operator/=(const Complex &oth);
 
 private:
 	Int re;
 	Int im;
 
-	friend Complex operator+(Complex const& lhs, Complex const& rhs);
-	friend Complex operator-(Complex const& lhs, Complex const& rhs);
-	friend Complex operator*(Complex const& lhs, Complex const& rhs);
-	friend Complex operator/(Complex const& lhs, Complex const& rhs);
+	friend Complex operator+(const Complex &lhs, const Complex &rhs);
+	friend Complex operator-(const Complex &lhs, const Complex &rhs);
+	friend Complex operator*(const Complex &lhs, const Complex &rhs);
+	friend Complex operator/(const Complex &lhs, const Complex &rhs);
 
-	friend bool operator==(Complex const& lhs, Complex const& rhs);
-	friend bool operator!=(Complex const& lhs, Complex const& rhs);
+	friend bool operator==(const Complex &lhs, const Complex &rhs);
+	friend bool operator!=(const Complex &lhs, const Complex &rhs);
 
-	friend std::ostream& operator<<(std::ostream& os, Complex const& rhs);
+	friend std::ostream& operator<<(std::ostream& os, const Complex &rhs);
 };
 
 }

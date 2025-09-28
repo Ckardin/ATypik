@@ -23,6 +23,15 @@ void BenchAdd(const Types::DWORD bits) {
     std::cout << "Add " << bits << " bits: " << t << " us" <<std::endl;
 }
 
+void BenchSub(const Types::DWORD bits) {
+    const Types::Int a = Types::Int::Random(bits);
+    const Types::Int b = Types::Int::Random(bits);
+
+    const double t = TimeIt([&]() { volatile Types::Int c = a - b; });
+
+    std::cout << "Sub " << bits << " bits: " << t << " us" <<std::endl;
+}
+
 void BenchMul(const Types::DWORD bits) {
     const Types::Int a = Types::Int::Random(bits);
     const Types::Int b = Types::Int::Random(bits);
@@ -58,6 +67,7 @@ int main() {
 
     for (Types::DWORD bits : {128, 512, 1024, 2048, 4096, 8192, 16384}) {
         BenchAdd(bits);
+        BenchSub(bits);
         BenchMul(bits);
         BenchDiv(bits);
         BenchMod(bits);

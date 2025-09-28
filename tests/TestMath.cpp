@@ -55,6 +55,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @version 1.0
 /// @date 14/12/2024
 
+#include <gmpxx.h>
 #include "../src/Math.h"
 #include <iostream>
 
@@ -63,7 +64,7 @@ int test_c();
 int main() {
 	const Fenyx::Types::Int a = 2, b = 16, m = 3;
 
-	if (Fenyx::Types::NaivePow(a, b) != 65536) {
+	if (Fenyx::Types::NaivePow(a, b.GetL64()) != 65536) {
 		std::cout << "Test Math => KO (Naive pow)" <<std::endl;
 		return -1;
 	}
@@ -89,22 +90,20 @@ int main() {
 		return -5;
 	}
 
-	/*
-	if (!Fenyx::Types::MillerRabin(7877)) {
-		std::cout << "Test AlgoMath => KO (Miller-Rabin, prime)" <<std::endl;
-        return -6;
-    }
+	mpz_class gmpa(1457), gmpb(3475), c, gu, gv;
+	mpz_gcdext(c.get_mpz_t(), gu.get_mpz_t(), gv.get_mpz_t(), gmpa.get_mpz_t(), gmpb.get_mpz_t());
 
-    if (Fenyx::Types::MillerRabin(1234)) {
-    	std::cout << "Test AlgoMath => KO (Miller-Rabin, composite)" <<std::endl;
-        return -7;
-    }
-    */
-
-    if (Fenyx::Types::Int u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v) != 1) {
+    if (Fenyx::Types::Int u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v).GetStr() != c.get_str() || u.GetStr() != gu.get_str() || v.GetStr() != gv.get_str()) {
     	std::cout << "Test Math => KO (Extended-Euclide algorithm)" <<std::endl;
         return -8;
     }
+
+	if (Fenyx::Types::Stein(-1457, -3475).GetStr() != c.get_str()) {
+		std::cout << "Test Math => KO (Stein algorithm)" <<std::endl;
+		return -9;
+	}
+
+	std::cout << "Test Math => OK" <<std::endl;
 
     return test_c();
 }
