@@ -86,35 +86,35 @@ class TriBool
 {
 public:
     TriBool() = default;
-    TriBool(TriBool const& b);
+    TriBool(const TriBool &b);
     explicit TriBool(bool u, bool v = false);
 
     void SetValue(bool u = true, bool v = false);
     [[nodiscard]] bool IsUndef() const;
     [[nodiscard]] bool GetValue() const;
 
-    TriBool& operator= (TriBool const& b);
-    TriBool& operator|=(TriBool const& b);
-    TriBool& operator&=(TriBool const& b);
-    TriBool& operator^=(TriBool const& b);
+    TriBool& operator= (const TriBool &b);
+    TriBool& operator|=(const TriBool &b);
+    TriBool& operator&=(const TriBool &b);
+    TriBool& operator^=(const TriBool &b);
     TriBool& operator~ ();
 
 private:
     std::optional<bool> n;
 
-    friend TriBool operator|(const TriBool& b1, const TriBool& b2);
-    friend TriBool operator&(const TriBool& b1, const TriBool& b2);
-    friend TriBool operator^(const TriBool& b1, const TriBool& b2);
+    friend TriBool operator|(const TriBool &b1, const TriBool &b2);
+    friend TriBool operator&(const TriBool &b1, const TriBool &b2);
+    friend TriBool operator^(const TriBool &b1, const TriBool &b2);
 
-    friend bool operator==(const TriBool& b1, const TriBool& b2);
-    friend bool operator!=(const TriBool& b1, const TriBool& b2);
-    friend bool operator==(const TriBool& b1, const bool& b2);
-    friend bool operator!=(const TriBool& b1, const bool& b2);
-    friend bool operator==(const bool& b1, const TriBool& b2);
-    friend bool operator!=(const bool& b1, const TriBool& b2);
+    friend bool operator==(const TriBool &b1, const TriBool &b2);
+    friend bool operator!=(const TriBool &b1, const TriBool &b2);
+    friend bool operator==(const TriBool &b1, bool b2);
+    friend bool operator!=(const TriBool &b1, bool b2);
+    friend bool operator==(bool b1, const TriBool &b2);
+    friend bool operator!=(bool b1, const TriBool &b2);
 
-    friend std::ostream& operator<<(std::ostream& os, TriBool const& b);
-    friend std::istream& operator>>(std::istream& is, TriBool& b);
+    friend std::ostream& operator<<(std::ostream& os, const TriBool &b);
+    friend std::istream& operator>>(std::istream& is, TriBool &b);
 };
 
 }

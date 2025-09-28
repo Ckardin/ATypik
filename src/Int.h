@@ -77,7 +77,7 @@ public:
 	Int();
 
 	Int(int value);
-	Int(const Int& other);
+	Int(const Int &other);
 	Int(const DTable<DWORD> &other, bool sg);
 	Int(DWORD value);
 	Int(QWORD value);
@@ -93,17 +93,17 @@ public:
 	[[nodiscard]] Int Abs() const;
 
 	[[nodiscard]] DWORD TrailZero() const;
-	static Pair<Int, Int> DivMod(const Int& A, const Int& B);
+	static Pair<Int, Int> DivMod(const Int &A, const Int &B);
 
-	Int& operator=(const Int& other);
+	Int& operator=(const Int &other);
 	Int& operator=(DWORD other);
 	Int& operator=(QWORD other);
 	Int& operator=(int other);
 
-	Int& operator+=(const Int& B);
-	Int& operator-=(const Int& B);
-	Int& operator*=(const Int& B);
-	Int& operator/=(const Int& B);
+	Int& operator+=(const Int &B);
+	Int& operator-=(const Int &B);
+	Int& operator*=(const Int &B);
+	Int& operator/=(const Int &B);
 
 	static Int Random(DWORD bits); // For test only
 

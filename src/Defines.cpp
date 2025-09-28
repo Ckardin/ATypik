@@ -66,7 +66,7 @@ namespace Fenyx::Types
 /// @param[in] b: TriBool de copie
 ///
 /// Constructeur de copie de la classe TriBool.
-TriBool::TriBool(TriBool const& b) {
+TriBool::TriBool(const TriBool &b) {
     if(b.n.has_value()) n = b.n.value();
     else                n.reset();
 }
@@ -110,7 +110,7 @@ bool TriBool::GetValue() const {
 /// @param[in] b: TriBool à affecter
 ///
 /// @return Une référence sur le TriBool affecté.
-TriBool& TriBool::operator= (TriBool const& b) {
+TriBool& TriBool::operator= (const TriBool &b) {
     if(!(b.n.has_value())) n.reset();
     else                   n = b.n.value();
 
@@ -122,7 +122,7 @@ TriBool& TriBool::operator= (TriBool const& b) {
 /// @param[in] b: TriBool à affecter
 ///
 /// @return Une référence sur le TriBool affecté.
-TriBool& TriBool::operator|=(TriBool const& b) {
+TriBool& TriBool::operator|=(const TriBool &b) {
     if (b.n.has_value()    && n.has_value()) n = n.value() | b.n.value();
     if (!(b.n.has_value()) && n.has_value()) n = n.value() | false;
     if (b.n.has_value()   && !n.has_value()) n = b.n.value();
@@ -135,7 +135,7 @@ TriBool& TriBool::operator|=(TriBool const& b) {
 /// @param[in] b: TriBool à affecter
 ///
 /// @return Une réference sur le TriBool affecté.
-TriBool& TriBool::operator&=(TriBool const& b) {
+TriBool& TriBool::operator&=(const TriBool &b) {
     if (b.n.has_value()    && n.has_value()) n = n.value() & b.n.value();
     if (!(b.n.has_value()) && n.has_value()) n = n.value() & false;
     if (b.n.has_value()   && !n.has_value()) n = b.n.value();
@@ -148,7 +148,7 @@ TriBool& TriBool::operator&=(TriBool const& b) {
 /// @param[in] b: TriBool à affecter
 ///
 /// @return Une réference sur le TriBool affecté.
-TriBool& TriBool::operator^=(TriBool const& b) {
+TriBool& TriBool::operator^=(const TriBool &b) {
     if (b.n.has_value()    && n.has_value()) n = n.value() ^ b.n.value();
     if (!(b.n.has_value()) && n.has_value()) n = n.value() ^ false;
     if (b.n.has_value()   && !n.has_value()) n = b.n.value();
@@ -173,7 +173,7 @@ TriBool& TriBool::operator~ () {
 /// @param[in] b2: rhs
 ///
 /// @return Un TriBool égal à (b1 OR b2).
-TriBool operator|(TriBool const& b1, TriBool const& b2) {
+TriBool operator|(const TriBool &b1, TriBool const& b2) {
     TriBool ret;
     ret.n.reset();
 
@@ -190,7 +190,7 @@ TriBool operator|(TriBool const& b1, TriBool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return Un TriBool égal à (b1 AND b2).
-TriBool operator&(TriBool const& b1, TriBool const& b2) {
+TriBool operator&(const TriBool &b1, const TriBool &b2) {
     TriBool ret;
     ret.n.reset();
 
@@ -207,7 +207,7 @@ TriBool operator&(TriBool const& b1, TriBool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return Un TriBool égal à (b1 XOR b2).
-TriBool operator^(TriBool const& b1, TriBool const& b2) {
+TriBool operator^(const TriBool &b1, const TriBool &b2) {
     TriBool ret;
     ret.n.reset();
 
@@ -224,7 +224,7 @@ TriBool operator^(TriBool const& b1, TriBool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return true si égaux, false sinon.
-bool operator==(TriBool const& b1, TriBool const& b2) {
+bool operator==(const TriBool &b1, const TriBool &b2) {
     if (b1.n.has_value() && b2.n.has_value()) return (b1.n.value() == b2.n.value());
 
     return false;
@@ -236,7 +236,7 @@ bool operator==(TriBool const& b1, TriBool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return true si différents, false sinon.
-bool operator!=(TriBool const& b1, TriBool const& b2) {
+bool operator!=(const TriBool &b1, const TriBool &b2) {
     return !(b1 == b2);
 }
 
@@ -246,7 +246,7 @@ bool operator!=(TriBool const& b1, TriBool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return true si égaux, false sinon.
-bool operator==(TriBool const& b1, bool const& b2) {
+bool operator==(const TriBool &b1, const bool b2) {
     if (b1.n.has_value()) return b1.n.value() == b2;
 
     return false;
@@ -258,7 +258,7 @@ bool operator==(TriBool const& b1, bool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return true si différents, false sinon.
-bool operator!=(TriBool const& b1, bool const& b2) {
+bool operator!=(const TriBool &b1, const bool b2) {
     return !(b1 == b2);
 }
 
@@ -268,7 +268,7 @@ bool operator!=(TriBool const& b1, bool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return true si égaux, false sinon.
-bool operator==(bool const& b1, TriBool const& b2) {
+bool operator==(const bool b1, const TriBool &b2) {
     if (b2.n.has_value()) return b2.n.value() == b1;
 
     return false;
@@ -280,7 +280,7 @@ bool operator==(bool const& b1, TriBool const& b2) {
 /// @param[in] b2: rhs
 ///
 /// @return true si différents, false sinon.
-bool operator!=(bool const& b1, TriBool const& b2) {
+bool operator!=(const bool b1, const TriBool &b2) {
     return !(b1 == b2);
 }
 
@@ -290,7 +290,7 @@ bool operator!=(bool const& b1, TriBool const& b2) {
 /// @param[in] b: TriBool concerné
 ///
 /// @return Une référence sur le flux de sortie affecté.
-std::ostream& operator<<(std::ostream& os, TriBool const& b) {
+std::ostream& operator<<(std::ostream& os, const TriBool &b) {
     if (!(b.n.has_value())) {
         os << "U";
         return os;
@@ -308,7 +308,7 @@ std::ostream& operator<<(std::ostream& os, TriBool const& b) {
 /// @param[in] b: TriBool concerné
 ///
 /// @return Une référence sur le flux d'entrée affecté.
-std::istream& operator>>(std::istream& is, TriBool& b) {
+std::istream& operator>>(std::istream& is, TriBool &b) {
     std::string t;
 
     is >> t;

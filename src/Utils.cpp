@@ -65,16 +65,14 @@ namespace Fenyx::Types
 /// @return Un DWORD représentant le timestamp en secondes.
 DWORD GetTimestamp() {
 	using namespace std::chrono;
-
 	return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
 }
 
-/// @brief GetTimestampMilli - Réceupères le timestamp en millisecondes
+/// @brief GetTimestampMilli - Récupères le timestamp en millisecondes
 ///
 /// @return Un QWORD représentant le timestamp en millisecondes.
 QWORD GetTimestampMilli() {
 	using namespace std::chrono;
-
 	return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
@@ -83,7 +81,7 @@ QWORD GetTimestampMilli() {
 /// @param[in] a: nombre ASCII à convertir
 ///
 /// @return Le caractère convertit.
-char toChar(BYTE a) {
+char toChar(const BYTE a) {
 	return static_cast<char>(a);
 }
 
@@ -92,7 +90,7 @@ char toChar(BYTE a) {
 /// @param[in] c: caractère à convertir
 ///
 /// @return Le nombre ASCCI convertit.
-BYTE toAscii(char c) {
+BYTE toAscii(const char c) {
 	return static_cast<BYTE>(c);
 }
 

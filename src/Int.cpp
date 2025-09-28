@@ -109,7 +109,7 @@ Int::Int(const int value) {
 /// @param[in] other: valeur à copier
 ///
 /// Constructeur de copie de la classe Int.
-Int::Int(const Int& other) {
+Int::Int(const Int &other) {
 	const DWORD n = other.v.GetSize();
 	v.Clear(); sign = other.sign;
 
@@ -320,7 +320,7 @@ DWORD Int::TrailZero() const {
 /// @return Une Pair avec First qui est le quotient (A / B) et Second qui est le reste (A % B)
 ///
 /// /!\ Ne fait pas appel aux opérateurs, recréer la logique des op / et %.
-Pair<Int, Int> Int::DivMod(const Int& A, const Int& B) {
+Pair<Int, Int> Int::DivMod(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nq = nA - nB + 1, nr = nB;
 	Int Q, R;
 
@@ -339,7 +339,7 @@ Pair<Int, Int> Int::DivMod(const Int& A, const Int& B) {
 /// @param[in] other: r-value
 ///
 /// @return Une référence sur le Int affecté.
-Int& Int::operator=(const Int& other) {
+Int& Int::operator=(const Int &other) {
 	const DWORD n = other.v.GetSize();
 	v.Clear(); sign = other.sign;
 
@@ -394,7 +394,7 @@ Int& Int::operator=(const int other) {
 /// @param[in] B: r-value
 ///
 /// @return Une référence sur le Int affecté.
-Int& Int::operator+=(const Int& B) {
+Int& Int::operator+=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = (nA > nB) ? nA : nB;
 	Int ret, A, tA, tB;
 
@@ -437,7 +437,7 @@ Int& Int::operator+=(const Int& B) {
 /// @param[in] B: r-value
 ///
 /// @return Une référence sur le Int affecté.
-Int& Int::operator-=(const Int& B) {
+Int& Int::operator-=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = (nA > nB) ? nA : nB;
 	Int ret, A, tA, tB;
 
@@ -485,7 +485,7 @@ Int& Int::operator-=(const Int& B) {
 /// @param[in] B: r-value
 ///
 /// @return Une référence sur le Int affecté.
-Int& Int::operator*=(const Int& B) {
+Int& Int::operator*=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize();
 	Int A, tA, tB;
 
@@ -517,7 +517,7 @@ Int& Int::operator*=(const Int& B) {
 /// @param[in] B: r-value
 ///
 /// @return Une référence sur le Int affecté.
-Int& Int::operator/=(const Int& B) {
+Int& Int::operator/=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = nA - nB + 1;
 	Int ret, A;
 
@@ -570,7 +570,7 @@ Int Int::Add(const Int &A, const Int &B) {
 
 	ret.v.SetCapacity(n, 0);
 
-	for (QWORD i = 0; i < n; i = i +1) {
+	for (QWORD i = 0; i < n; i = i + 1) {
 		a = (i < nA) ? A.v[i] : 0;
 		b = (i < nB) ? B.v[i] : 0;
 		sum = a + b + carry;
@@ -1104,7 +1104,7 @@ Int operator<<(const Int &A, const DWORD b) {
 	}
 
 	if (nb) ret.v[asize + nw] = c;
-	for (QWORD i = 0; i < nw; i++) ret.v[i] = 0;
+	for (QWORD i = 0; i < nw; i = i + 1) ret.v[i] = 0;
 
 	ret.sign = A.sign;
 	ret.Normalize();

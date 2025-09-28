@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = ATypik
-PROJECT_NUMBER         = v1.0
+PROJECT_NUMBER         = v4.0
 PROJECT_BRIEF          = "A lib for uniformize c++ types and create others"
 PROJECT_LOGO           = Other/Logo.pdf
 PROJECT_ICON           =

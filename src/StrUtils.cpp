@@ -66,13 +66,13 @@ namespace Fenyx::Types
 /// @param[in] v: SWORD concerné
 /// 
 /// @return Une référence sur le flux de sortie affecté.
-std::ostream& operator<<(std::ostream& os, SWORD const& v) {
+std::ostream& operator<<(std::ostream& os, const SWORD v) {
 	SWORD n = v;
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
 	STable<char, 10> chars;
 
 	if (chars.GetFatal()) return os;
-	for (BYTE i = 0 ; i < 10 ; ++i) chars[i] = toChar(i + 48);
+	for (BYTE i = 0 ; i < 10 ; i = i + 1) chars[i] = toChar(i + 48);
 
 	while (n != 0) {
 		ret += chars[(n % 10)];
@@ -89,13 +89,13 @@ std::ostream& operator<<(std::ostream& os, SWORD const& v) {
 /// @param[in] v: sSWORD concerné
 /// 
 /// @return Une référence sur le flux de sortie affecté.
-std::ostream& operator<<(std::ostream& os, sSWORD const& v) {
+std::ostream& operator<<(std::ostream& os, const sSWORD v) {
 	sSWORD n = v;
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
 	STable<char, 10> chars;
 
 	if (chars.GetFatal()) return os;
-	for (BYTE i = 0 ; i < 10 ; ++i) chars[i] = toChar(i + 48);
+	for (BYTE i = 0 ; i < 10 ; i = i + 1) chars[i] = toChar(i + 48);
 
 	if (n < 0) {
 		ret += "-";
@@ -122,7 +122,7 @@ std::istream& operator>>(std::istream& is, SWORD& v) {
 	is >> t;
 
 	v = 0;
-	for (std::string::size_type i = 0; i < t.length(); ++i) {
+	for (std::string::size_type i = 0; i < t.length(); i = i + 1) {
 		const auto temp_c = static_cast<SWORD>(pow(10, static_cast<double>((t.length() - 1)) - static_cast<double>(i)));
 		v += fromString<BYTE>(std::string{t[i]}) * temp_c;
 	}
@@ -147,7 +147,7 @@ std::istream& operator>>(std::istream& is, sSWORD& v) {
 	}
 
 	v = 0;
-	for (std::string::size_type i = 0; i < t.length(); ++i) {
+	for (std::string::size_type i = 0; i < t.length(); i = i + 1) {
 		const auto temp_c = static_cast<sSWORD>(pow(10, static_cast<double>((t.length() - 1)) - static_cast<double>(i)));
 		v += fromString<BYTE>(std::string{t[i]}) * temp_c;
 	}
@@ -178,10 +178,10 @@ bool IsNum(const char c) {
 	STable<char, 16> HexConv;
 
 	if (HexConv.GetFatal()) return false;
-	for (BYTE i = 0 ; i < 10; ++i) HexConv[i] = toChar(i + 48);
-	for (BYTE i = 10; i < 16; ++i) HexConv[i] = toChar((i - 10) + 65);
+	for (BYTE i = 0 ; i < 10; i = i + 1) HexConv[i] = toChar(i + 48);
+	for (BYTE i = 10; i < 16; i = i + 1) HexConv[i] = toChar((i - 10) + 65);
 
-	for (BYTE i = 0; i < 10; ++i) {
+	for (BYTE i = 0; i < 10; i = i + 1) {
 		if(c == HexConv[i]) return true;
 	}
 
@@ -197,10 +197,10 @@ bool IsHex(const char c) {
 	STable<char, 16> HexConv;
 
 	if (HexConv.GetFatal()) return false;
-	for (BYTE i = 0 ; i < 10; ++i) HexConv[i] = toChar(i + 48);
-	for (BYTE i = 10; i < 16; ++i) HexConv[i] = toChar((i - 10) + 65);
+	for (BYTE i = 0 ; i < 10; i = i + 1) HexConv[i] = toChar(i + 48);
+	for (BYTE i = 10; i < 16; i = i + 1) HexConv[i] = toChar((i - 10) + 65);
 
-	for (BYTE i = 0; i < 16; ++i) {
+	for (BYTE i = 0; i < 16; i = i + 1) {
 		if(c == HexConv[i]) return true;
 	}
 
@@ -212,8 +212,8 @@ bool IsHex(const char c) {
 /// @param[in] str: std::string à tester
 ///
 /// @return true si [s] représente un nombre (suite de caractères de 0-9), false sinon.
-bool IsNumS(std::string const& str) {
-	for (std::string::size_type i = 0; i < str.length(); ++i) {
+bool IsNumS(const std::string &str) {
+	for (std::string::size_type i = 0; i < str.length(); i = i + 1) {
 		if(!IsNum(str[i])) return false;
 	}
 
@@ -225,8 +225,8 @@ bool IsNumS(std::string const& str) {
 /// @param[in] str: std::string à tester
 ///
 /// @return true si [s] représente un nombre hexadécimal (suite de caractères de 0-9 et A-F), false sinon.
-bool IsHexS(std::string const& str) {
-	for (std::string::size_type i = 0; i < str.length(); ++i) {
+bool IsHexS(const std::string &str) {
+	for (std::string::size_type i = 0; i < str.length(); i = i + 1) {
 		if(!IsHex(str[i])) return false;
 	}
 
@@ -245,8 +245,8 @@ BYTE HexN(const char c, bool &err) {
 	if (HexConv.GetFatal()) {
 		err = true; return 0;
 	}
-	for (BYTE i = 0 ; i < 10; ++i) HexConv[i] = toChar(i + 48);
-	for (BYTE i = 10; i < 16; ++i) HexConv[i] = toChar((i - 10) + 65);
+	for (BYTE i = 0 ; i < 10; i = i + 1) HexConv[i] = toChar(i + 48);
+	for (BYTE i = 10; i < 16; i = i + 1) HexConv[i] = toChar((i - 10) + 65);
 
 	if (!IsHex(c)) {
 		err = true; return 0;

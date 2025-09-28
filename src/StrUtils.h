@@ -64,25 +64,25 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
-std::ostream& operator<<(std::ostream& os, SWORD const& v);
-std::ostream& operator<<(std::ostream& os, sSWORD const& v);
+std::ostream& operator<<(std::ostream &os, SWORD v);
+std::ostream& operator<<(std::ostream &os, sSWORD v);
 
 std::istream& operator>>(std::istream& is, SWORD& v);
 std::istream& operator>>(std::istream& is, sSWORD& v);
 
 template<class T>
-std::string toString(T const& t);
+std::string toString(const T &t);
 template<class T>
-std::string toHexString(T const& t);
+std::string toHexString(const T &t);
 template<class T>
-T fromString(std::string const& s);
+T fromString(const std::string &s);
 
 std::string CompleteNbr(allpnum nbr);
 
 bool IsNum(char c);
 bool IsHex(char c);
-bool IsNumS(std::string const& str);
-bool IsHexS(std::string const& str);
+bool IsNumS(const std::string &str);
+bool IsHexS(const std::string &str);
 BYTE HexN(char c, bool &err);
 // std::string DecTHex(std::string str, bool &err);
 // std::string DecFHex(std::string const& str, bool &err);
@@ -95,7 +95,7 @@ template<class T>
 /// @param[in] t: donnée à convertir
 ///
 /// /!\ S'assurer que le type de la donnée à convertir possède une surcharge de l'opérateur [<<].
-std::string toString(T const& t) {
+std::string toString(const T &t) {
 	std::ostringstream oss;
 	oss << t;
 
@@ -108,7 +108,7 @@ template<class T>
 /// @param[in] t: donnée à convertir
 ///
 /// /!\ S'assurer que le type de la donnée à convertir possède une surcharge de l'opérateur [<<].
-std::string toHexString(T const& t) {
+std::string toHexString(const T &t) {
 	std::ostringstream oss;
 	oss << std::hex << t;
 
@@ -121,7 +121,7 @@ template<class T>
 /// @param{in] s: std::string à convertir
 ///
 /// /!\ S'assurer que le type de la donnée à convertir possède une surcharge de l'opérateur [>>].
-T fromString(std::string const& s) {
+T fromString(const std::string &s) {
 	T ret;
 	std::istringstream iss(s);
 

@@ -91,30 +91,30 @@ template<class T, DWORD s>
 class STable;
 
 template<class T, DWORD s>
-bool operator==(const STable<T, s>& t1, const STable<T, s>& t2);
+bool operator==(const STable<T, s> &t1, const STable<T, s> &t2);
 
 template<class T, DWORD s>
-bool operator!=(const STable<T, s>& t1, const STable<T, s>& t2);
+bool operator!=(const STable<T, s> &t1, const STable<T, s> &t2);
 
 
 template<class T>
 class DTable;
 
 template<class T>
-bool operator==(const DTable<T>& t1, const DTable<T>& t2);
+bool operator==(const DTable<T> &t1, const DTable<T> &t2);
 
 template<class T>
-bool operator!=(const DTable<T>& t1, const DTable<T>& t2);
+bool operator!=(const DTable<T> &t1, const DTable<T> &t2);
 
 
 template<class K, class V>
 class MTable;
 
 template<class K, class V>
-bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2);
+bool operator==(const MTable<K, V> &t1, const MTable<K, V> &t2);
 
 template<class K, class V>
-bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2);
+bool operator!=(const MTable<K, V> &t1, const MTable<K, V> &t2);
 
 
 template<class T>
@@ -168,8 +168,8 @@ private:
     bool error;
     bool fatal;
 
-friend bool operator==<T, s>(const STable<T, s>& t1, const STable<T, s>& t2);
-friend bool operator!=<T, s>(const STable<T, s>& t1, const STable<T, s>& t2);
+friend bool operator==<T, s>(const STable<T, s> &t1, const STable<T, s> &t2);
+friend bool operator!=<T, s>(const STable<T, s> &t1, const STable<T, s> &t2);
 };
 
 template<class T>
@@ -206,8 +206,8 @@ private:
     bool error;
     bool fatal;
 
-friend bool operator==<T>(const DTable<T>& t1, const DTable<T>& t2);
-friend bool operator!=<T>(const DTable<T>& t1, const DTable<T>& t2);
+friend bool operator==<T>(const DTable<T> &t1, const DTable<T> &t2);
+friend bool operator!=<T>(const DTable<T> &t1, const DTable<T> &t2);
 };
 
 template<class K, class V>
@@ -245,8 +245,8 @@ private:
     bool error;
     bool fatal;
 
-friend bool operator==<K, V>(const MTable<K, V>& t1, const MTable<K, V>& t2);
-friend bool operator!=<K, V>(const MTable<K, V>& t1, const MTable<K, V>& t2);
+friend bool operator==<K, V>(const MTable<K, V> &t1, const MTable<K, V> &t2);
+friend bool operator!=<K, V>(const MTable<K, V> &t1, const MTable<K, V> &t2);
 };
 
 using barray = STable<BYTE, 17>;
@@ -514,7 +514,7 @@ template<class T, DWORD s>
 /// @param[in] t2: rhs
 ///
 /// @return true si égaux, false sinon.
-bool operator==(const STable<T, s>& t1, const STable<T, s>& t2) {
+bool operator==(const STable<T, s> &t1, const STable<T, s> &t2) {
     if (t1.s_tab != t2.s_tab) return false;
 
     for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
@@ -531,7 +531,7 @@ template<class T, DWORD s>
 /// @param[in] t2: rhs
 ///
 /// @return true si inégaux, false sinon.
-bool operator!=(const STable<T, s>& t1, const STable<T, s>& t2) {
+bool operator!=(const STable<T, s> &t1, const STable<T, s> &t2) {
     return !(t1 == t2);
 }
 
@@ -775,7 +775,7 @@ template<class T>
 /// @param[in] t2: rhs
 ///
 /// @return true si égaux, false sinon.
-bool operator==(const DTable<T>& t1, const DTable<T>& t2) {
+bool operator==(const DTable<T> &t1, const DTable<T> &t2) {
     if (t1.s_tab != t2.s_tab) return false;
 
     for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
@@ -792,7 +792,7 @@ template<class T>
 /// @param[in] t2: rhs
 ///
 /// @return true si inégaux, false sinon.
-bool operator!=(const DTable<T>& t1, const DTable<T>& t2) {
+bool operator!=(const DTable<T> &t1, const DTable<T> &t2) {
     return !(t1 == t2);
 }
 
@@ -1023,7 +1023,7 @@ template<class K, class V>
 /// @param[in] t2: rhs
 ///
 /// @return true si égaux, false sinon.
-bool operator==(const MTable<K, V>& t1, const MTable<K, V>& t2) {
+bool operator==(const MTable<K, V> &t1, const MTable<K, V> &t2) {
     if (t1.s_tab != t2.s_tab) return false;
 
     for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
@@ -1044,7 +1044,7 @@ template<class K, class V>
 /// @param[in] t2: rhs
 ///
 /// @return true si inégaux, false sinon.
-bool operator!=(const MTable<K, V>& t1, const MTable<K, V>& t2) {
+bool operator!=(const MTable<K, V> &t1, const MTable<K, V> &t2) {
     return !(t1 == t2);
 }
 
