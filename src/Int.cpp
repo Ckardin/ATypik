@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Int.cpp
 /// @brief Source de Int
 /// @author F&nµx
-/// @version 1.0
-/// @date 22/08/2025
+/// @version 4.1
+/// @date 03/10/2025
 
 #include "Int.h"
 
