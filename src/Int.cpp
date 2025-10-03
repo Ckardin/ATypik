@@ -131,6 +131,55 @@ Int::Int(const DTable<DWORD> &other, const bool sg) {
 	for (QWORD i = 0; i < n; i = i + 1) v[i] = other[i];
 }
 
+
+/// @brief Int - Constructeur
+///
+/// @param[in] tstr: std::string à affecter
+///
+/// Constructeur d'affectation de chaine de la classe Int.
+Int::Int(const std::string &tstr) {
+	if (tstr.empty()) return;
+
+	DTable<DWORD> dblk;
+	// ReSharper disable two CppJoinDeclarationAndAssignment
+	DWORD strt, len;
+	QWORD carry, c;
+	dblk.Clear();
+
+	size_t p = 0;
+	if (tstr[0] == '-') {
+		sign = false;
+		p = 1;
+	} else if (tstr[0] == '+') {
+		sign = true;
+		p = 1;
+	} else sign = true;
+
+	std::string str = tstr.substr(p);
+
+	const DWORD strs = str.size();
+	for (sDWORD i = strs; i > 0; i -= 9) {
+		strt = ((i - 9) > 0) ? (i - 9) : 0;
+		len  = i - strt;
+
+		dblk[dblk.GetSize()] = std::stoul(str.substr(strt, len));
+	}
+
+	v.Clear();
+	while (!(dblk.GetSize() == 1 && dblk[0] == 0)) {
+		carry = 0;
+
+		for (sDWORD i = dblk.GetSize() - 1; i >= 0; i = i - 1) {
+			c = dblk[i] + carry * bs109;
+			dblk[i] = static_cast<DWORD>(c / b32);
+			carry = c % b32;
+		}
+
+		v[v.GetSize()] = static_cast<DWORD>(carry);
+		while (dblk.GetSize() > 1 && dblk[dblk.GetSize() - 1] == 0) dblk.Erase(dblk.GetSize() - 1);
+	}
+}
+
 /// @brief Int - Constructeur
 ///
 /// @param[in] value: valeur unitaire à affecter
@@ -169,6 +218,15 @@ DTable<DWORD> Int::GetTab() const {
 	return ret;
 }
 
+/// @brief GetL32 - Récupère le mot de poids faible
+///
+/// @return Un DWORD représentant le mot de poids faible du nombre stocké.
+DWORD Int::GetL32() const {
+	if (v.IsEmpty() || (v.GetSize() == 1 && v[0] == 0)) return 0;
+
+	return v[0];
+}
+
 /// @brief GetL64 - Récupère les 64 bits de poids faible
 ///
 /// @return Un QWORD représentant les 64 bits de poids faible du nombre stocké.
@@ -192,31 +250,6 @@ Int Int::GetOpposite() const {
 	ret.sign = !sign;
 	return ret;
 }
-
-/*
-std::string Int::GetStr() const {
-	const DWORD n = v.GetSize();
-	// ReSharper disable once CppJoinDeclarationAndAssignment
-	Int A, r;
-
-	A.v.SetCapacity(n, 0);
-	for (QWORD i = 0; i < n; i = i + 1) A.v[i] = v[i];
-	std::string ret = "";
-
-	if (A.IsZero()) return "0";
-
-	while (!A.IsZero()) {
-		r = A % 10;
-		A /= 10;
-
-		ret.push_back(static_cast<char>('0' + r.v[0]));
-	}
-
-	if (!sign) ret.push_back('-');
-
-	std::reverse(ret.begin(), ret.end());
-	return ret;
-}*/
 
 /// @brief GetStr - Convertit le nombre stocké en chaine de caractères
 ///
@@ -348,6 +381,56 @@ Int& Int::operator=(const Int &other) {
 
 	return *this;
 }
+
+/// @brief operator= - Opérateur d'affectation de chaine
+///
+/// @param[in] tstr: r-value
+///
+/// @return Une référence sur le Int affecté.
+Int& Int::operator=(const std::string &tstr) {
+	if (tstr.empty()) return *this;
+
+	DTable<DWORD> dblk;
+	// ReSharper disable two CppJoinDeclarationAndAssignment
+	DWORD strt, len;
+	QWORD carry, c;
+	dblk.Clear();
+
+	size_t p = 0;
+	if (tstr[0] == '-') {
+		sign = false;
+		p = 1;
+	} else if (tstr[0] == '+') {
+		sign = true;
+		p = 1;
+	} else sign = true;
+
+	std::string str = tstr.substr(p);
+
+	const DWORD strs = str.size();
+	for (sDWORD i = strs; i > 0; i -= 9) {
+		strt = ((i - 9) > 0) ? (i - 9) : 0;
+		len  = i - strt;
+
+		dblk[dblk.GetSize()] = std::stoul(str.substr(strt, len));
+	}
+
+	v.Clear(); carry = 0;
+	while (!(dblk.GetSize() == 1 && dblk[0] == 0)) {
+		carry = 0;
+
+		for (sDWORD i = dblk.GetSize() - 1; i >= 0; i = i - 1) {
+			c = dblk[i] + carry * bs109;
+			dblk[i] = static_cast<DWORD>(c / b32);
+			carry = c % b32;
+		}
+
+		v[v.GetSize()] = static_cast<DWORD>(carry);
+		while (dblk.GetSize() > 1 && dblk[dblk.GetSize() - 1] == 0) dblk.Erase(dblk.GetSize() - 1);
+	}
+
+	return *this;
+} // OPTIMISATION IA => Calcul avec division 10^9 (pas intuitif en algorithmique)
 
 /// @brief operator= - Opérateur d'affectation unitaire
 ///

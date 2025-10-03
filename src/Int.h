@@ -66,7 +66,7 @@ namespace Fenyx::Types
 {
 
 inline constexpr QWORD b32 = (1ULL << 32);
-inline constexpr DWORD bs109 = 1000000000;
+inline constexpr DWORD bs109 = 1000000000ULL;
 
 DWORD NextPow2(DWORD n);
 
@@ -79,13 +79,15 @@ public:
 	Int(int value);
 	Int(const Int &other);
 	Int(const DTable<DWORD> &other, bool sg);
+	Int(const std::string &tstr);
 	Int(DWORD value);
 	Int(QWORD value);
 
 	[[nodiscard]] DTable<DWORD> GetTab() const;
+	[[nodiscard]] DWORD GetL32() const;
 	[[nodiscard]] QWORD GetL64() const;
 	[[nodiscard]] Int GetOpposite() const;
-	[[nodiscard]] std::string GetStr() const; // A OPTIMISER
+	[[nodiscard]] std::string GetStr() const;
 	[[nodiscard]] bool IsZero() const;
 	[[nodiscard]] bool IsEven() const;
 	[[nodiscard]] bool IsOdd() const;
@@ -96,6 +98,7 @@ public:
 	static Pair<Int, Int> DivMod(const Int &A, const Int &B);
 
 	Int& operator=(const Int &other);
+	Int& operator=(const std::string &tstr);
 	Int& operator=(DWORD other);
 	Int& operator=(QWORD other);
 	Int& operator=(int other);
@@ -117,9 +120,9 @@ public:
 
 	///	SUB
 	///
-	///	SI 2 neg => Soustraction avec plus grand, signe (-) si A > B, signe (+) sinon
+	///	SI 2 neg => Soustraction avec plus grand, signe (-) si |A| > |B|, signe (+) sinon
 	///	SI 1 neg => Addition, signe (-) si A neg, signe (+) sinon
-	///	SI 0 neg => Soustraction avec plus grand, signe (-) si A < B, signe (+) sinon
+	///	SI 0 neg => Soustraction avec plus grand, signe (-) si |A| < |B|, signe (+) sinon
 
 private:
 	static Int Add(const Int &A, const Int &B); // A OPTIMISER
