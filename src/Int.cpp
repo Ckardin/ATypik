@@ -367,6 +367,18 @@ Pair<Int, Int> Int::DivMod(const Int &A, const Int &B) {
 	return {Q, R};
 }
 
+
+/// @brief Square - Applique une puissance de 2
+///
+/// @param A: u-value
+///
+/// @return Un Int représentant A^2.
+///
+/// /!\ Ne fait pas appel aux opérateurs, bypass la gestion à une fonction interne.
+Int Int::Square(const Int& A) {
+	return Sqr(A, A.sign, A.sign);
+}
+
 /// @brief operator= - Opérateur d'affectation entre Int
 ///
 /// @param[in] other: r-value
@@ -637,30 +649,6 @@ Int& Int::operator/=(const Int &B) {
 	return *this;
 }
 
-Int Int::Random(const DWORD bits) { // For test only
-	const DWORD words = (bits + 31) / 32;
-	// ReSharper disable once CppJoinDeclarationAndAssignment
-	// ReSharper disable once CppTooWideScope
-	DWORD mask;
-	Int ret;
-
-	thread_local std::mt19937_64 rng(std::random_device{}());
-	std::uniform_int_distribution<DWORD> dist(0, 0xFFFFFFFF);
-
-	for (QWORD i = 0; i < words; i = i + 1) ret.v[i] = dist(rng);
-
-	const DWORD excess = words * 32 - bits;
-	if (excess > 0) {
-		mask = (1u << (32 - excess)) - 1;
-		ret.v[ret.v.GetSize() - 1] &= mask;
-	}
-
-	ret.v[ret.v.GetSize() - 1] |= (1u << (31 - excess));
-
-	ret.Normalize();
-	return ret;
-} // OPTIMISATION IA => Distribution des Random-limbs, A SUPPRIMER POTENTIELLEMENT
-
 Int Int::Add(const Int &A, const Int &B) {
 	Int ret;
 	// ReSharper disable three CppJoinDeclarationAndAssignment
@@ -721,7 +709,7 @@ Int Int::Sqr(const Int &A, const bool sA, const bool sB) {
 	tA.v.SetCapacity(A.v.GetSize(), 0);
 	ret.v.SetCapacity(2 * nA, 0);
 
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] =A.v[i];
+	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
 	tA.sign = true;
 
 	if (nA <= 64) ret = LongSqr(tA);

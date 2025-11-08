@@ -15,8 +15,10 @@ double TimeIt(F&& func) {
 }
 
 void BenchAdd(const Types::DWORD bits) {
-    const Types::Int a = Types::Int::Random(bits);
-    const Types::Int b = Types::Int::Random(bits);
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+    const Types::Int b = Types::Int::Random(bits, rdr);
 
     const double t = TimeIt([&]() { volatile Types::Int c = a + b; });
 
@@ -24,8 +26,10 @@ void BenchAdd(const Types::DWORD bits) {
 }
 
 void BenchSub(const Types::DWORD bits) {
-    const Types::Int a = Types::Int::Random(bits);
-    const Types::Int b = Types::Int::Random(bits);
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+    const Types::Int b = Types::Int::Random(bits, rdr);
 
     const double t = TimeIt([&]() { volatile Types::Int c = a - b; });
 
@@ -33,17 +37,31 @@ void BenchSub(const Types::DWORD bits) {
 }
 
 void BenchMul(const Types::DWORD bits) {
-    const Types::Int a = Types::Int::Random(bits);
-    const Types::Int b = Types::Int::Random(bits);
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+    const Types::Int b = Types::Int::Random(bits, rdr);
 
     const double t = TimeIt([&]() { volatile Types::Int c = a * b; });
 
     std::cout << "Mul " << bits << " bits: " << t << " us" <<std::endl;
 }
 
+void BenchSqr(const Types::DWORD bits) {
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+
+    const double t = TimeIt([&]() { volatile Types::Int c = Types::Int::Square(a); });
+
+    std::cout << "Sqr " << bits << " bits: " << t << " us" <<std::endl;
+}
+
 void BenchDiv(const Types::DWORD bits) {
-    const Types::Int a = Types::Int::Random(bits);
-    const Types::Int b = Types::Int::Random(bits / 2);
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+    const Types::Int b = Types::Int::Random(bits / 2, rdr);
 
     const double t = TimeIt([&]() { volatile Types::Int c = a / b; });
 
@@ -51,8 +69,10 @@ void BenchDiv(const Types::DWORD bits) {
 }
 
 void BenchMod(const Types::DWORD bits) {
-    const Types::Int a = Types::Int::Random(bits);
-    const Types::Int b = Types::Int::Random(bits / 2);
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+    const Types::Int b = Types::Int::Random(bits / 2, rdr);
 
     const double t = TimeIt([&]() { volatile Types::Int c = a % b; });
 
@@ -69,6 +89,7 @@ int main() {
         BenchAdd(bits);
         BenchSub(bits);
         BenchMul(bits);
+        BenchSqr(bits);
         BenchDiv(bits);
         BenchMod(bits);
     }
