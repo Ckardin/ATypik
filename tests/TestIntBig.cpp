@@ -8,6 +8,7 @@ struct DivergCount {
     WORD add = 0;
     WORD sub = 0;
     WORD mul = 0;
+    WORD sqr = 0;
     WORD div = 0;
     WORD mod = 0;
     WORD lsh = 0;
@@ -35,6 +36,12 @@ void TestOperators(const Int &A, const Int &B, DivergCount &dc, const DWORD si, 
     if ((A * B).GetStr() != c.get_str()) {
         if (d) std::cout << "[Erreur] Multiplication diverge" <<std::endl;
         dc.mul++;
+    }
+
+    c = gmpA * gmpA;
+    if (Int::Square(A).GetStr() != c.get_str()) {
+        if (d) std::cout << "[Erreur] Mise au carre diverge" <<std::endl;
+        dc.sqr++;
     }
 
     c = gmpA / gmpB;
@@ -80,8 +87,8 @@ int main(const int argc, char* argv[]) {
     for (DWORD sz : {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384}) {
         if (debug) std::cout << "--- Test avec taille " << sz << " bits ---" <<std::endl;
 
-        Int A = Int::Random(sz);
-        Int B = Int::Random(sz / 2);
+        Int A = Int::Random(sz, rd);
+        Int B = Int::Random(sz / 2, rd);
         trd = rd() % 2;
         A = (trd == 0) ? A : A.GetOpposite();
         trd = rd() % 2;
@@ -96,6 +103,7 @@ int main(const int argc, char* argv[]) {
         std::cout << "Add: " << tDiverg.add << std::endl;
         std::cout << "Sub: " << tDiverg.sub << std::endl;
         std::cout << "Mul: " << tDiverg.mul << std::endl;
+        std::cout << "Sqr: " << tDiverg.sqr << std::endl;
         std::cout << "Div: " << tDiverg.div << std::endl;
         std::cout << "Mod: " << tDiverg.mod << std::endl;
         std::cout << "Lsh: " << tDiverg.lsh << std::endl;
@@ -111,6 +119,10 @@ int main(const int argc, char* argv[]) {
 
         std::cout << "Test Mul => ";
         if (tDiverg.mul > 0) std::cout << "KO --> " << tDiverg.mul << " divergence(s)" <<std::endl;
+        else                 std::cout << "OK" <<std::endl;
+
+        std::cout << "Test Sqr => ";
+        if (tDiverg.sqr > 0) std::cout << "KO --> " << tDiverg.sqr << " divergence(s)" <<std::endl;
         else                 std::cout << "OK" <<std::endl;
 
         std::cout << "Test Div => ";

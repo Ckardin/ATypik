@@ -59,6 +59,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #define INT_H
 
 #include <algorithm>
+#include <functional>
 #include "Tabs.h"
 #include "StrUtils.h"
 
@@ -96,6 +97,7 @@ public:
 
 	[[nodiscard]] DWORD TrailZero() const;
 	static Pair<Int, Int> DivMod(const Int &A, const Int &B);
+	static Int Square(const Int& A);
 
 	Int& operator=(const Int &other);
 	Int& operator=(const std::string &tstr);
@@ -108,7 +110,8 @@ public:
 	Int& operator*=(const Int &B);
 	Int& operator/=(const Int &B);
 
-	static Int Random(DWORD bits); // For test only
+	template<class Rdr>
+	static Int Random(DWORD bits, Rdr&& rdr);
 
 	/// ADD
 	///
@@ -128,11 +131,13 @@ private:
 	static Int Add(const Int &A, const Int &B); // A OPTIMISER
 	static Int Sub(const Int &A, const Int &B); // A OPTIMISER
 	static Int Mul(const Int &A, const Int &B);
+	static Int Sqr(const Int &A, bool sA, bool sB);
 	static Pair<Int, Int> Div(const Int &A, const Int &B);
+	static Int KaratsubaSqr(const Int &A);
+	static Int LongSqr(const Int &A);
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
-	// static Pair<Int, Int> BurnikelZiegler(const Int &A, const Int &B);
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
@@ -170,6 +175,31 @@ friend bool operator>=(const Int &A, const Int &B);
 extern const Int Zero;
 extern const Int One;
 extern const Int slimb;
+
+template<class Rdr>
+Int Int::Random(const DWORD bits, Rdr&& rdr) {
+	static_assert(std::is_invocable_r_v<DWORD, Rdr&>, "Random generator must be invocable as DWORD()");
+
+	const DWORD w = (bits + 31) / 32;
+	// ReSharper disable once CppJoinDeclarationAndAssignment
+	// ReSharper disable once CppTooWideScope
+	DWORD mask;
+	Int ret;
+
+	ret.v.SetCapacity(w, 0);
+	for (QWORD i = 0; i < w; i = i + 1) ret.v[i] = static_cast<DWORD>(std::invoke(rdr));
+
+	const DWORD excess = (w * 32) - bits;
+	if (excess > 0) {
+		mask = (1u << (32 - excess)) - 1;
+		ret.v[ret.v.GetSize() - 1] &= mask;
+	}
+
+	ret.v[ret.v.GetSize() - 1] |= (1u << (31 - excess));
+
+	ret.Normalize();
+	return ret;
+}
 
 }
 
