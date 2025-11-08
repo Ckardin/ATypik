@@ -571,25 +571,41 @@ Int& Int::operator-=(const Int &B) {
 Int& Int::operator*=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize();
 	Int A, tA, tB;
+	bool tie = true;
 
 	A.v.SetCapacity(nA, 0);
 	for (QWORD i = 0; i < nA; i = i + 1) A.v[i] = v[i];
 	A.sign = sign;
 
-	tA.sign = true, tB.sign = true;
+	{
+		if (nA != nB) tie = false;
 
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+		for (QWORD i = 0; i < nA; i = i + 1) {
+			if (A.v[i] != B.v[i]) tie = false;
+		}
+	} // No call to CmpAbs or similar for optimize stack exchange + Constant-time compare
 
-	tA.Normalize(); tB.Normalize();
+	if (tie) {
+		tA = Sqr(A, A.sign, B.sign);
+		const DWORD ntA = tA.v.GetSize();
 
-	Int ret = Mul(tA, tB);
-	ret.sign = (A.sign == B.sign);
+		for (QWORD i = 0; i < ntA; i = i + 1) v[i] = tA.v[i];
+	} else {
+		tA.sign = true, tB.sign = true;
 
-	v.Clear(); const DWORD nrt = ret.v.GetSize();
-	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
-	sign = ret.sign;
+		tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
+		for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
+		for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+
+		tA.Normalize(); tB.Normalize();
+
+		Int ret = Mul(tA, tB);
+		ret.sign = (A.sign == B.sign);
+
+		v.Clear(); const DWORD nrt = ret.v.GetSize();
+		for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
+		sign = ret.sign;
+	}
 
 	Normalize();
 	return *this;
@@ -698,6 +714,25 @@ Int Int::Mul(const Int &A, const Int &B) {
 	return Karatsuba(A, B);
 }
 
+Int Int::Sqr(const Int &A, const bool sA, const bool sB) {
+	const DWORD nA = A.v.GetSize();
+	Int tA, ret;
+
+	tA.v.SetCapacity(A.v.GetSize(), 0);
+	ret.v.SetCapacity(2 * nA, 0);
+
+	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] =A.v[i];
+	tA.sign = true;
+
+	if (nA <= 64) ret = LongSqr(tA);
+	else          ret = KaratsubaSqr(tA);
+
+	ret.sign = (sA == sB);
+
+	ret.Normalize();
+	return ret;
+}
+
 Pair<Int, Int> Int::Div(const Int &A, const Int &B) {
 	const DWORD m = A.v.GetSize(), n = B.v.GetSize();
 	Pair<Int, Int> tqr;
@@ -749,6 +784,65 @@ Pair<Int, Int> Int::Div(const Int &A, const Int &B) {
 	return {Q, R};
 }
 
+Int Int::KaratsubaSqr(const Int &A) {
+	const DWORD n = A.v.GetSize();
+	const DWORD m = (n + 1) / 2;
+
+	if (n <= 64) return LongSqr(A);
+
+	const Int A0 = A.Slice(0, m).ExtByZero(m);
+	const Int A1 = A.Slice(m, A.v.GetSize() - m);
+
+	const Int z0 = KaratsubaSqr(A0);
+	Int z1       = KaratsubaSqr(A0 + A1);
+	const Int z2 = KaratsubaSqr(A1);
+	z1 = z1 - z0 - z2;
+
+	Int ret = z0 + z1.WShift(m) + z2.WShift(2 * m);
+
+	ret.Normalize();
+	return ret;
+}
+
+Int Int::LongSqr(const Int &A) {
+	const DWORD n = A.v.GetSize(), n2 = 2 * n;
+	QWORD p, b, im, i, j;
+	SWORD acc = 0, carry = 0;
+	Int ret;
+
+	ret.v.SetCapacity(n2 + 8, 0);
+
+	const DWORD tnk = n2 - 1;
+	for (DWORD k = 0; k < tnk; k = k + 1) {
+		im  = (k >= (n - 1)) ? (k - (n - 1)) : 0;
+		acc = carry;
+
+		i = im; j = k - i;
+		while (i < j) {
+			acc += ((static_cast<SWORD>(A.v[i]) * static_cast<SWORD>(A.v[j])) << 1);
+			i += 1; j -= 1;
+		}
+
+		if (i == j && i < n) acc += static_cast<SWORD>(A.v[i]) * static_cast<SWORD>(A.v[i]);
+
+		ret.v[k] = static_cast<DWORD>(acc);
+		carry    = (acc >> 32);
+	}
+
+	b = tnk;
+	while (carry) {
+		p = static_cast<QWORD>(ret.v[b])
+		  + static_cast<QWORD>(carry & static_cast<SWORD>(0xFFFFFFFFull));
+		ret.v[b] = static_cast<DWORD>(p);
+		carry = (carry >> 32) + static_cast<SWORD>(p >> 32);
+
+		b += 1;
+	}
+
+	ret.Normalize();
+	return ret;
+}
+
 Int Int::Karatsuba(const Int &A, const Int &B) {
 	const DWORD n = (A.v.GetSize() > B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize();
 	const DWORD m = (n + 1) / 2;
@@ -776,7 +870,7 @@ Int Int::LongMul(const Int &A, const Int &B) {
 	QWORD carry = 0, p, b;
 	Int ret;
 
-	ret.v.SetCapacity(A.v.GetSize() + B.v.GetSize(), 0);
+	ret.v.SetCapacity(nA + nB, 0);
 
 	for (QWORD i = 0; i < nA; i = i + 1) {
 		carry = 0;
@@ -1104,18 +1198,31 @@ Int operator-(const Int &A, const Int &B) {
 Int operator*(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = nA + nB;
 	Int ret, tA, tB;
+	bool tie = true;
 
-	tA.sign = true, tB.sign = true;
+	{
+		if (nA != nB) tie = false;
 
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+		for (QWORD i = 0; i < nA; i = i + 1) {
+			if (A.v[i] != B.v[i]) tie = false;
+		}
+	} // No call to CmpAbs or similar for optimize stack exchange + Constant-time compare
 
-	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
+	if (tie) {
+		ret = Int::Sqr(A, A.sign, B.sign);
+	} else {
+		tA.sign = true, tB.sign = true;
 
-	ret = Int::Mul(tA, tB);
-	ret.sign = (A.sign == B.sign);
+		tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
+		for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
+		for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+
+		ret.v.SetCapacity(nr, 0);
+		tA.Normalize(); tB.Normalize();
+
+		ret = Int::Mul(tA, tB);
+		ret.sign = (A.sign == B.sign);
+	}
 
 	ret.Normalize();
 	return ret;

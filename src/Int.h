@@ -128,11 +128,13 @@ private:
 	static Int Add(const Int &A, const Int &B); // A OPTIMISER
 	static Int Sub(const Int &A, const Int &B); // A OPTIMISER
 	static Int Mul(const Int &A, const Int &B);
+	static Int Sqr(const Int &A, bool sA, bool sB);
 	static Pair<Int, Int> Div(const Int &A, const Int &B);
+	static Int KaratsubaSqr(const Int &A);
+	static Int LongSqr(const Int &A);
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
-	// static Pair<Int, Int> BurnikelZiegler(const Int &A, const Int &B);
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
