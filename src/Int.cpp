@@ -53,7 +53,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @brief Source de Int
 /// @author F&nµx
 /// @version 4.1
-/// @date 03/10/2025
+/// @date 19/12/2025
 
 #include "Int.h"
 
@@ -62,9 +62,10 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
-const Int Zero = 0;
-const Int One = 1;
+const Int Zero  = 0;
+const Int One   = 1;
 const Int slimb = One << 32;
+const Int sl2   = One << 64;
 
 /// @brief NextPow2 - Trouve la prochaine puissance de 2 d'un nombre
 ///
@@ -216,6 +217,13 @@ DTable<DWORD> Int::GetTab() const {
 	for (QWORD i = 0; i < n; i = i + 1) ret[i] = v[i];
 
 	return ret;
+}
+
+/// @brief GetSize - Permets de connaitre la taille en mots
+///
+/// @return La taille (en mots) du nombre stocké.
+DWORD Int::GetSize() const {
+	return v.GetSize();
 }
 
 /// @brief GetL32 - Récupère le mot de poids faible
@@ -795,7 +803,7 @@ Int Int::KaratsubaSqr(const Int &A) {
 Int Int::LongSqr(const Int &A) {
 	const DWORD n = A.v.GetSize(), n2 = 2 * n;
 	QWORD p, b, im, i, j;
-	SWORD acc = 0, carry = 0;
+	SWORD acc = 0, carry = 0, ai, aj;
 	Int ret;
 
 	ret.v.SetCapacity(n2 + 8, 0);
@@ -805,13 +813,15 @@ Int Int::LongSqr(const Int &A) {
 		im  = (k >= (n - 1)) ? (k - (n - 1)) : 0;
 		acc = carry;
 
-		i = im; j = k - i;
+		i = im; j = k - i; ai = A.v[i]; aj = A.v[j];
 		while (i < j) {
-			acc += ((static_cast<SWORD>(A.v[i]) * static_cast<SWORD>(A.v[j])) << 1);
+			acc += (ai * aj << 1);
 			i += 1; j -= 1;
+
+			ai = A.v[i]; aj = A.v[j];
 		}
 
-		if (i == j && i < n) acc += static_cast<SWORD>(A.v[i]) * static_cast<SWORD>(A.v[i]);
+		if (i == j && i < n) acc += (ai * aj);
 
 		ret.v[k] = static_cast<DWORD>(acc);
 		carry    = (acc >> 32);
@@ -820,7 +830,7 @@ Int Int::LongSqr(const Int &A) {
 	b = tnk;
 	while (carry) {
 		p = static_cast<QWORD>(ret.v[b])
-		  + static_cast<QWORD>(carry & static_cast<SWORD>(0xFFFFFFFFull));
+		  + static_cast<QWORD>(carry & 0xFFFFFFFFFFFFFFFFull);
 		ret.v[b] = static_cast<DWORD>(p);
 		carry = (carry >> 32) + static_cast<SWORD>(p >> 32);
 
@@ -1097,6 +1107,83 @@ void Int::Normalize() {
 }
 
 
+
+
+Int Int::BarrettReduce(const Int &T, const Int &N, const Int &Mu) {
+	const DWORD k = N.v.GetSize(), ts = T.v.GetSize(), km1 = k - 1, kp1 = k + 1;
+	Int q1, q2, q3, r1, r2, ret, q3n, bk1;
+
+	bk1.v.SetCapacity(k + 2, 0);
+	bk1.v[k + 1] = 1;
+
+	q1 = T.BRShift(32 * km1);
+	q2 = Mul(q1, Mu);
+	q3 = q2.BRShift(32 * kp1);
+
+	r1.v.SetCapacity(kp1, 0);
+	for (QWORD i = 0; i < kp1; i = i + 1) r1.v[i] = (i < ts) ? T.v[i] : 0;
+
+	r2.v.SetCapacity(kp1, 0);
+	q3n = Mul(q3, N); const DWORD q3ns = q3n.v.GetSize();
+	for (QWORD i = 0; i < kp1; i = i + 1) r2.v[i] = (i < q3ns) ? q3n.v[i] : 0;
+
+	ret = r1 - r2;
+	if (!ret.sign) ret += bk1;
+
+	while (ret >= N) ret -= N;
+
+	ret.Normalize();
+	return ret;
+}
+
+/// @brief GetMu - Calcule la constante Mu d'un module
+///
+/// @param[in] N: module
+///
+/// @return La constante Mu liée à [N].
+Int GetMu(const Int &N) {
+	const DWORD k = N.v.GetSize();
+
+	Int b2k;
+	b2k.v.SetCapacity(2 * k + 1, 0);
+	b2k.v[2 * k] = 1;
+
+	Int Mu = b2k / N;
+
+	Mu.Normalize();
+	return Mu;
+}
+
+/// @brief MMul - Opérateur de multiplication Barrett
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+/// @param[in] N: module
+/// @param[in] Mu: constante liée à [N]
+///
+/// @return Le résultat de ([A] * [B]) % [N].
+///
+/// /!\ [A] et [B] doivent être positifs et avoir une taille < ou = à celle de N.
+Int MMul(const Int &A, const Int &B, const Int &N, const Int &Mu) {
+	const Int T = Int::Mul(A, B);
+
+	return Int::BarrettReduce(T, N, Mu);
+}
+
+/// @brief MSqr - Opérateur de mise au carré Barrett
+///
+/// @param[in] A: u-value
+/// @param[in] N: module
+/// @param[in] Mu: constante liée à [N]
+///
+/// @return Le résultat de [A]^2 % [N].
+///
+/// /!\ [A] doit être positif et avoir une taille < ou = à celle de N.
+Int MSqr(const Int &A, const Int &N, const Int &Mu) {
+	const Int T = Int::Sqr(A, A.sign, A.sign);
+
+	return Int::BarrettReduce(T, N, Mu);
+}
 
 /// @brief operator+ - Opérateur d'addition
 ///

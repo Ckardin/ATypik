@@ -68,7 +68,7 @@ Int NaivePow    (const Int &a, DWORD b);
 Int Pow         (const Int &x, const Int &n);
 Int Pow2        (DWORD n);
 Int Pow16       (DWORD n);
-Int PowM        (const Int &a, const Int &b, const Int &m);
+Int PowM        (const Int &a, const Int &b, const Int &m, const Int &mu);
 Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v);
 Int Stein       (const Int &a, const Int &b);
 DWORD SquareRt(DWORD n);
