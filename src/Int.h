@@ -53,7 +53,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @brief Header de Int
 /// @author F&nµx
 /// @version 4.1
-/// @date 03/10/2025
+/// @date 19/12/2025
 
 #ifndef INT_H
 #define INT_H
@@ -85,6 +85,7 @@ public:
 	Int(QWORD value);
 
 	[[nodiscard]] DTable<DWORD> GetTab() const;
+	[[nodiscard]] DWORD GetSize() const;
 	[[nodiscard]] DWORD GetL32() const;
 	[[nodiscard]] QWORD GetL64() const;
 	[[nodiscard]] Int GetOpposite() const;
@@ -147,10 +148,16 @@ private:
 	[[nodiscard]] Int ExtByZero(DWORD s) const; // POURQUOI C'EST LÀ ???
 	[[nodiscard]] Int Slice(DWORD strt, DWORD len) const;
 
+	static Int BarrettReduce(const Int &T, const Int &N, const Int &Mu);
+
 	void Normalize();
 
 	DTable<DWORD> v;
 	bool sign;
+
+friend Int GetMu(const Int &N);
+friend Int MMul(const Int &A, const Int &B, const Int &N, const Int &Mu);
+friend Int MSqr(const Int &A, const Int &N, const Int &Mu);
 
 friend Int operator+(const Int &A, const Int &B);
 friend Int operator-(const Int &A, const Int &B);
@@ -175,6 +182,7 @@ friend bool operator>=(const Int &A, const Int &B);
 extern const Int Zero;
 extern const Int One;
 extern const Int slimb;
+extern const Int sl2;
 
 template<class Rdr>
 Int Int::Random(const DWORD bits, Rdr&& rdr) {

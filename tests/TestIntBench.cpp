@@ -57,6 +57,22 @@ void BenchSqr(const Types::DWORD bits) {
     std::cout << "Sqr " << bits << " bits: " << t << " us" <<std::endl;
 }
 
+void BenchMgr(const Types::DWORD bits) {
+    std::random_device rdr;
+
+    const Types::Int a = Types::Int::Random(bits, rdr);
+    const Types::Int b = Types::Int::Random(bits, rdr);
+    Types::Int n = Types::Int::Random(bits * 2, rdr);
+    if (n.IsEven()) n = n + Types::One;
+    const Types::Int mu = GetMu(n);
+
+    const double t1 = TimeIt([&]() { volatile Types::Int c = MMul(a, b, n, mu); });
+    std::cout << "Mml " << bits << " bits: " << t1 << " us" <<std::endl;
+
+    const double t2 = TimeIt([&]() { volatile Types::Int c = MSqr(a, n, mu); });
+    std::cout << "Msq " << bits << " bits: " << t2 << " us" <<std::endl;
+}
+
 void BenchDiv(const Types::DWORD bits) {
     std::random_device rdr;
 
@@ -90,6 +106,7 @@ int main() {
         BenchSub(bits);
         BenchMul(bits);
         BenchSqr(bits);
+        BenchMgr(bits);
         BenchDiv(bits);
         BenchMod(bits);
     }

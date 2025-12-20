@@ -62,7 +62,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 int test_c();
 
 int main() {
-	const Fenyx::Types::Int a = 2, b = 16, m = 3;
+	const Fenyx::Types::Int a = 2, b = 16, m = 3, mu = GetMu(m);
 
 	if (Fenyx::Types::NaivePow(a, b.GetL64()) != 65536) {
 		std::cout << "Test Math => KO (Naive pow)" <<std::endl;
@@ -85,8 +85,8 @@ int main() {
 		return -4;
 	}
 
-	if (Fenyx::Types::PowM(a, b, m) != 1) {
-		std::cout << "Test Math => KO (Exponent-Pow with while-loop)" <<std::endl;
+	if (Fenyx::Types::PowM(a, b, m, mu) != 1) {
+		std::cout << "Test Math => KO (Exponent-Pow): " << Fenyx::Types::PowM(a, b, m, mu).GetStr() <<std::endl;
 		return -5;
 	}
 

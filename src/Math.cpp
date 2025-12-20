@@ -94,7 +94,7 @@ Int Pow         (const Int &x, const Int &n) {
 		if (e.IsOdd()) p *= a;
 
 		e = e >> 1;
-		if (!e.IsZero()) a *= a;
+		if (!e.IsZero()) a = Int::Square(a);
 	}
 
 	return p;
@@ -122,15 +122,16 @@ Int Pow16       (const DWORD n) {
 ///
 /// @param[in] a: base
 /// @param[in] b: exposant
-/// @param[in] m: modulo
+/// @param[in] m: module
+/// @param[in] mu: valeur liée au module
 ///
 /// @return Un Int correspondant à ([a] puissance [b]) modulo [m].
-Int PowM        (const Int &a, const Int &b, const Int &m) {
+Int PowM        (const Int &a, const Int &b, const Int &m, const Int &mu) {
 	Int p, x = a, n = b;
 
 	for (p = 1; n > 0; n = n >> 1) {
-		if (n.IsOdd()) p = (p * x) % m;
-		x = (x * x) % m;
+		if (n.IsOdd()) p = MMul(p, x, m, mu);
+		x = MSqr(x, m, mu);
 	}
 
 	return p;
