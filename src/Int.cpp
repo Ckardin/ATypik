@@ -330,6 +330,32 @@ bool Int::IsNeg() const {
 	return !sign;
 }
 
+QWORD Int::BitLength() const {
+	const DWORD ns = v.GetSize();
+
+	return ((32 * ns) - __builtin_clz(v[ns - 1]));
+}
+
+Bit Int::GetBit(const QWORD n) const {
+	const DWORD ns = v.GetSize();
+	const QWORD nbl = n / 32, nbb = n % 32;
+
+	if (const QWORD nb = (32 * ns) - __builtin_clz(v[ns - 1]); n >= nb) return {};
+	const DWORD x = v[nbl];
+
+	return Bit((x >> nbb) & 1u);
+}
+
+void Int::SetBit(const QWORD n, const Bit &b) {
+	const DWORD ns = v.GetSize();
+	const QWORD nbl = n / 32, nbb = n % 32;
+
+	if (const QWORD nb = (32 * ns) - __builtin_clz(v[ns - 1]); n < nb) {
+		const DWORD x = v[nbl];
+		v[nbl] = ((x & ~(1u << nbb)) | (static_cast<DWORD>(b.GetValue()) << nbb));
+	}
+}
+
 /// @brief TrailZero - Compte le nombre de zéros à partir du LSB
 ///
 /// @return Le nombre de zéros de poids faible.
