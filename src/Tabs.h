@@ -60,6 +60,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 
 #include <cassert>
 #include <memory>
+#include <algorithm>
 #include "Defines.h"
 
 namespace Fenyx::Types
@@ -149,9 +150,6 @@ public:
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T const& GetValue(DWORD idx);
-    [[nodiscard]] bool GetFatal() const;
-    [[nodiscard]] bool GetError();
-    void SetDefaultValue(T defv);
 
     T& operator[](DWORD idx);
     T const& operator[](DWORD idx) const;
@@ -163,10 +161,6 @@ private:
     std::unique_ptr<T[]> data;
 
   	DWORD s_tab;
-    DWORD c_tab;
-    T v_def;
-    bool error;
-    bool fatal;
 
 friend bool operator==<T, s>(const STable<T, s> &t1, const STable<T, s> &t2);
 friend bool operator!=<T, s>(const STable<T, s> &t1, const STable<T, s> &t2);
@@ -182,10 +176,7 @@ public:
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T const& GetValue(DWORD idx);
-    [[nodiscard]] bool GetFatal() const;
-    [[nodiscard]] bool GetError();
-    void SetDefaultValue(T defv);
-    void SetCapacity(DWORD cap, T val);
+    bool SetCapacity(DWORD cap, T val);
     void Erase(DWORD idx);
     void Clear();
 
@@ -202,13 +193,12 @@ private:
 
     DWORD s_tab;
     DWORD c_tab;
-    T v_def;
-    bool error;
-    bool fatal;
 
 friend bool operator==<T>(const DTable<T> &t1, const DTable<T> &t2);
 friend bool operator!=<T>(const DTable<T> &t1, const DTable<T> &t2);
 };
+
+
 
 template<class K, class V>
 /// @brief MTable - Classe qui permet de gérer un tableau associatif clé/valeur
@@ -220,9 +210,6 @@ public:
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] V const& GetValue(K key);
-    [[nodiscard]] bool GetFatal() const;
-    [[nodiscard]] bool GetError();
-    void SetDefaultValue(K defv_k, V defv_v);
     void Erase(K const& idx);
     void Clear();
 
@@ -240,10 +227,6 @@ private:
 
     DWORD s_tab;
     DWORD c_tab;
-    K kv_def;
-    V vv_def;
-    bool error;
-    bool fatal;
 
 friend bool operator==<K, V>(const MTable<K, V> &t1, const MTable<K, V> &t2);
 friend bool operator!=<K, V>(const MTable<K, V> &t1, const MTable<K, V> &t2);
@@ -368,17 +351,10 @@ DWORD Stack<T>::GetSize() {
 template<class T, DWORD s>
 /// @brief STable - Constructeur
 ///
-/// Constructeur de la classe STable.
-STable<T, s>::STable() {
-    data = std::make_unique<T[]>(s);
-
-    if (data.get() == nullptr) {
-        error = fatal = true;
-        s_tab = c_tab = 0;
-    } else {
-        error = fatal = false;
-        s_tab = c_tab = s;
-    }
+/// Constructeur par défaut de la classe STable.
+STable<T, s>::STable() : s_tab(s) {
+    data.reset(new (std::nothrow) T[s_tab]);
+    if (!data) s_tab = 0;
 }
 
 template<class T, DWORD s>
@@ -386,16 +362,8 @@ template<class T, DWORD s>
 ///
 /// @param[in] oth: STable à déplacer
 ///
-/// Constructeur de déplacement la classe STable
-STable<T, s>::STable(STable&& oth) noexcept {
-    s_tab = oth.s_tab;
-    c_tab = oth.c_tab;
-    v_def = oth.v_def;
-
-    data = std::move(oth.data);
-    error = oth.error;
-    fatal = oth.fatal;
-}
+/// Constructeur de déplacement de la classe STable
+STable<T, s>::STable(STable&& oth) noexcept : data(std::move(oth.data)), s_tab(oth.s_tab) {}
 
 template<class T, DWORD s>
 /// @brief GetSize - Donne la taille du tableau
@@ -410,47 +378,11 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
+/// @return La valeur contenue à t[idx] si existe ou dummy sinon.
 T const& STable<T, s>::GetValue(DWORD idx) {
-    if (!fatal) {
-        if (idx >= s_tab) {
-            error = true;
-            return data[s - 1];
-        }
+    static const T dummy{};
 
-        return data[idx];
-    }
-
-    return v_def;
-}
-
-template<class T, DWORD s>
-/// @brief GetFatal - Test si une erreur fatale est remontée
-///
-/// @return true si erreur fatale, false sinon.
-bool STable<T, s>::GetFatal() const {
-    return fatal;
-}
-
-template<class T, DWORD s>
-/// @brief GetError - Test si une erreur (fatale ou non) est remontée
-///
-/// @return true si erreur, false sinon.
-bool STable<T, s>::GetError() {
-    if (error) {
-        if (!fatal) error = false;
-        return true;
-    }
-
-    return false;
-}
-
-template<class T, DWORD s>
-/// @brief SetDefaultValue - Définit la valeur par défaut d'une case du tableau
-///
-/// @param[in] defv: valeur par défaut
-void STable<T, s>::SetDefaultValue(T defv) {
-    v_def = std::move(defv);
+    return (idx < s_tab) ? data[idx] : dummy;
 }
 
 template<class T, DWORD s>
@@ -458,18 +390,11 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+/// @return Une référence sur la valeur contenue à t[idx] si existe, dummy sinon.
 T& STable<T, s>::operator[](DWORD idx) {
-    if (!fatal) {
-        if (idx >= s_tab) {
-            if (!error) error = true;
-            return v_def;
-        }
+    static T dummy{};
 
-        return data[idx];
-    }
-
-    return v_def;
+    return (idx < s_tab) ? data[idx] : dummy;
 }
 
 template<class T, DWORD s>
@@ -479,12 +404,9 @@ template<class T, DWORD s>
 ///
 /// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
 T const& STable<T, s>::operator[](DWORD idx) const {
-    if (!fatal) {
-        if (idx >= s_tab) return v_def;
-        return data[idx];
-    }
+    static const T dummy{};
 
-    return v_def;
+    return (idx < s_tab) ? data[idx] : dummy;
 }
 
 template<class T, DWORD s>
@@ -495,13 +417,8 @@ template<class T, DWORD s>
 /// @return Une référence sur le STable affecté.
 STable<T, s>& STable<T, s>::operator=(STable&& oth) noexcept {
     if (this != &oth) {
+        data  = std::move(oth.data);
         s_tab = oth.s_tab;
-        c_tab = oth.c_tab;
-        v_def = oth.v_def;
-
-        data = std::move(oth.data);
-        error = oth.error;
-        fatal = oth.fatal;
     }
 
     return *this;
@@ -532,24 +449,24 @@ template<class T, DWORD s>
 ///
 /// @return true si inégaux, false sinon.
 bool operator!=(const STable<T, s> &t1, const STable<T, s> &t2) {
-    return !(t1 == t2);
+    if (t1.s_tab != t2.s_tab) return true;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.data[i] != t2.data[i]) return true;
+    }
+
+    return false;
 }
+
 
 
 template<class T>
 /// @brief DTable - Constructeur
 ///
-/// Constructeur de la classe DTable.
-DTable<T>::DTable() {
-    data = std::make_unique<T[]>(2);
-
-    if (data.get() == nullptr) {
-        error = fatal = true;
-        s_tab = c_tab = 0;
-    } else {
-        error = fatal = false;
-        s_tab = 0; c_tab = 2;
-    }
+/// Constructeur par défaut de la classe DTable.
+DTable<T>::DTable() : s_tab(0), c_tab(2) {
+    data.reset(new (std::nothrow) T[c_tab]);
+    if (!data) c_tab = 0;
 }
 
 template<class T>
@@ -557,16 +474,8 @@ template<class T>
 ///
 /// @param[in] oth: DTable à déplacer
 ///
-/// Constructeur de déplacement la classe DTable
-DTable<T>::DTable(DTable&& oth) noexcept {
-    s_tab = oth.s_tab;
-    c_tab = oth.c_tab;
-    v_def = oth.v_def;
-
-    data = std::move(oth.data);
-    error = oth.error;
-    fatal = oth.fatal;
-}
+/// Constructeur de déplacement de la classe DTable
+DTable<T>::DTable(DTable&& oth) noexcept : data(std::move(oth.data)), s_tab(oth.s_tab), c_tab(oth.c_tab) {}
 
 template<class T>
 /// @brief GetSize - Donne la taille du tableau
@@ -581,47 +490,11 @@ template<class T>
 ///
 /// @param[in] idx: index
 ///
-/// @return La valeur contenue à t[idx] si existe ou [v_def] sinon.
+/// @return La valeur contenue à t[idx] si existe ou dummy sinon.
 T const& DTable<T>::GetValue(DWORD idx) {
-    if (!fatal) {
-        if (idx >= s_tab) {
-            error = true;
-            return v_def;
-        }
+    static const T dummy{};
 
-        return data[idx];
-    }
-
-    return v_def;
-}
-
-template<class T>
-/// @brief GetFatal - Test si une erreur fatale est remontée
-///
-/// @return true si erreur fatale, false sinon.
-bool DTable<T>::GetFatal() const {
-    return fatal;
-}
-
-template<class T>
-/// @brief GetError - Test si une erreur (fatale ou non) est remontée
-///
-/// @return true si erreur, false sinon.
-bool DTable<T>::GetError() {
-    if (error) {
-        if (!fatal) error = false;
-        return true;
-    }
-
-    return false;
-}
-
-template<class T>
-/// @brief SetDefaultValue - Définit la valeur par défaut d'une case du tableau
-///
-/// @param[in] defv: valeur par défaut
-void DTable<T>::SetDefaultValue(T defv) {
-    v_def = std::move(defv);
+    return (idx < s_tab) ? data[idx] : dummy;
 }
 
 template<class T>
@@ -629,35 +502,19 @@ template<class T>
 ///
 /// @param cap: capacité du tableau à pré-allouer
 /// @param val: valeur à écrire sur la nouvelle taille
-void DTable<T>::SetCapacity(DWORD cap, T val) {
-    if (!fatal) {
-        if (cap > c_tab) {
-            // ReSharper disable once CppJoinDeclarationAndAssignment
-            T* temp_d = data.release();
+bool DTable<T>::SetCapacity(const DWORD cap, T val) {
+    if (cap <= c_tab) return true;
 
-            if (temp_d == nullptr) {
-                error = fatal = true;
-                s_tab = 0; c_tab = 0;
-                return;
-            }
+    T* tmp = new (std::nothrow) T[cap];
+    if (!tmp) return false;
 
-            data = std::make_unique<T[]>(cap);
-            if (data.get() == nullptr) {
-                error = true; fatal = true;
-                s_tab = 0; c_tab = 0;
-                return;
-            }
+    for (QWORD i = 0; i < s_tab; i = i + 1)   tmp[i] = std::move(data[i]);
+    for (DWORD i = s_tab; i < cap; i = i + 1) tmp[i] = val;
 
-            if (s_tab != 0) {
-                for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = std::move(temp_d[i]);
-            }
+    data.reset(tmp);
+    c_tab = cap;
 
-            for (QWORD i = s_tab; i < cap; i = i + 1) data[i] = val;
-
-            c_tab = cap;
-            delete[] temp_d;
-        }
-    }
+    return true;
 }
 
 template<class T>
@@ -667,16 +524,19 @@ template<class T>
 ///
 /// Ne fais rien si l'index demandé est en dehors du tableau.
 void DTable<T>::Erase(const DWORD idx) {
-    for (DWORD i = idx; i < (s_tab - 1); i = i + 1) data[i] = data[i + 1];
-    if (idx < s_tab) s_tab -= 1;
+    const DWORD ns = s_tab - 1;
+    if (idx >= s_tab) return;
+
+    for (QWORD i = idx; i < ns; i = i + 1) data[i] = std::move(data[i + 1]);
+    s_tab -= 1;
 }
 
 template<class T>
 /// @brief Clear - Vide le contenu du tableau
 ///
-/// Pas de réallocation mémoire, seule la taille est remise à 0. Ne fais rien si erreur fatale.
+/// Pas de réallocation mémoire, seule la taille est remise à 0.
 void DTable<T>::Clear() {
-    if (!fatal) s_tab = 0;
+    s_tab = 0;
 }
 
 template<class T>
@@ -694,58 +554,39 @@ template<class T>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+/// @return Une référence sur la valeur contenue à t[idx] si existe, un dummy sinon.
 T& DTable<T>::operator[](DWORD idx) {
-    if (!fatal) {
-        T* temp_d;
+    const DWORD i1 = idx + 1, ns = (s_tab > i1) ? s_tab : i1;
+    static T dummy{};
 
-        if (idx >= c_tab) {
-            // ReSharper disable once CppJoinDeclarationAndAssignment
-            temp_d = data.release();
+    if (idx >= c_tab) {
+        T* tmp = new (std::nothrow) T[ns];
+        if (!tmp) return dummy;
 
-            if (temp_d == nullptr) {
-                error = fatal = true;
-                s_tab = 0; c_tab = 0;
-                return v_def;
-            }
+        for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = std::move(data[i]);
+        for (DWORD i = s_tab; i < ns; i = i + 1) tmp[i] = T{};
 
-            const DWORD ns = (s_tab > (idx + 1)) ? s_tab : (idx + 1);
-            T* nd = new T[ns];
-
-            for (QWORD i = 0; i < s_tab; i = i + 1) nd[i] = std::move(temp_d[i]);
-            delete[] temp_d;
-
-            data.reset(nd);
-            c_tab = ns;
-
-            if (data.get() == nullptr) {
-                error = true; fatal = true;
-                s_tab = 0; c_tab = 0;
-                return v_def;
-            }
-        }
-
-        if (idx >= s_tab) s_tab = idx + 1;
-
-        return data[idx];
+        data.reset(tmp);
+        c_tab = ns;
     }
 
-    return v_def;
+    if (idx >= s_tab) s_tab = i1;
+    return data[idx];
 }
+
+/* Pour info, [ns] sera toujours égal à [i1], mais comme le compilo est aveugle et pense que s_tab peut être supérieur
+ * à c_tab, il génère un warning si je ne mets pas en place la variable [ns] pour tester si s_tab est dépassé... */
 
 template<class T>
 /// @brief operator[] - Opérateur d'indexation du tableau (en lecture)
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, un dummy sinon.
 T const& DTable<T>::operator[](DWORD idx) const {
-    if (!fatal) {
-        if (idx >= s_tab) return v_def;
-        return data[idx];
-    }
+    static const T dummy{};
 
-    return v_def;
+    return (idx < s_tab) ? data[idx] : dummy;
 }
 
 template<class T>
@@ -756,13 +597,9 @@ template<class T>
 /// @return Une référence sur le DTable affecté.
 DTable<T>& DTable<T>::operator=(DTable&& oth) noexcept {
     if (this != &oth) {
+        data  = std::move(oth.data);
         s_tab = oth.s_tab;
         c_tab = oth.c_tab;
-        v_def = oth.v_def;
-
-        data = std::move(oth.data);
-        error = oth.error;
-        fatal = oth.fatal;
     }
 
     return *this;
@@ -793,25 +630,26 @@ template<class T>
 ///
 /// @return true si inégaux, false sinon.
 bool operator!=(const DTable<T> &t1, const DTable<T> &t2) {
-    return !(t1 == t2);
+    if (t1.s_tab != t2.s_tab) return true;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.data[i] != t2.data[i]) return true;
+    }
+
+    return false;
 }
 
 
 template<class K, class V>
 /// @brief MTable - Constructeur
 ///
-/// Constructeur de la classe MTable.
-MTable<K, V>::MTable() {
-    keys   = std::make_unique<K[]>(2);
-    values = std::make_unique<V[]>(2);
+/// Constructeur par défaut de la classe MTable.
+MTable<K, V>::MTable() : s_tab(0), c_tab(2) {
+    keys.reset(new (std::nothrow) K[c_tab]);
+    if (!keys) c_tab = 0;
 
-    if (keys.get() == nullptr || values.get() == nullptr) {
-        error = fatal = true;
-        s_tab = c_tab = 0;
-    } else {
-        error = fatal = false;
-        s_tab = 0; c_tab = 2;
-    }
+    values.reset(new (std::nothrow) V[c_tab]);
+    if (!values) c_tab = 0;
 }
 
 template<class K, class V>
@@ -819,18 +657,8 @@ template<class K, class V>
 ///
 /// @param[in] oth: MTable à déplacer
 ///
-/// Constructeur de déplacement la classe MTable
-MTable<K, V>::MTable(MTable&& oth) noexcept {
-    s_tab  = oth.s_tab;
-    c_tab  = oth.c_tab;
-    kv_def = oth.kv_def;
-    vv_def = oth.vv_def;
-
-    keys   = std::move(oth.keys);
-    values = std::move(oth.values);
-    error  = oth.error;
-    fatal  = oth.fatal;
-}
+/// Constructeur de déplacement de la classe MTable
+MTable<K, V>::MTable(MTable&& oth) noexcept  : keys(std::move(oth.keys)), values(std::move(oth.values)), s_tab(oth.s_tab), c_tab(oth.c_tab) {}
 
 template<class K, class V>
 /// @brief GetSize - Donne la taille du tableau
@@ -845,50 +673,12 @@ template<class K, class V>
 ///
 /// @param[in] key: clé
 ///
-/// @return La valeur contenue à t[key] si existe ou [vv_def] sinon.
+/// @return La valeur contenue à t[key] si existe ou dummy sinon.
 V const& MTable<K, V>::GetValue(K key) {
-    if (!fatal) {
-        const DWORD idx = IsExist(key);
-        if (idx == s_tab) {
-            error = true;
-            return vv_def;
-        }
+    static const V dummy{};
+    const DWORD vi = IsExist(key);
 
-        return values[idx];
-    }
-
-    return vv_def;
-}
-
-template<class K, class V>
-/// @brief GetFatal - Test si une erreur fatale est remontée
-///
-/// @return true si erreur fatale, false sinon.
-bool MTable<K, V>::GetFatal() const {
-    return fatal;
-}
-
-template<class K, class V>
-/// @brief GetError - Test si une erreur (fatale ou non) est remontée
-///
-/// @return true si erreur, false sinon.
-bool MTable<K, V>::GetError() {
-    if (error) {
-        if (!fatal) error = false;
-        return true;
-    }
-
-    return false;
-}
-
-template<class K, class V>
-/// @brief SetDefaultValue - Définit la valeur par défaut d'une case du tableau
-///
-/// @param[in] defv_k: valeur par défaut des clés
-/// @param[in] defv_v: valeur par défaut pour les valeurs associées aux clés
-void MTable<K, V>::SetDefaultValue(K defv_k, V defv_v) {
-    kv_def = std::move(defv_k);
-    vv_def = std::move(defv_v);
+    return (vi < s_tab) ? values[vi] : dummy;
 }
 
 template<class K, class V>
@@ -898,23 +688,24 @@ template<class K, class V>
 ///
 /// Ne fais rien si la clé demandée n'est pas dans le tableau.
 void MTable<K, V>::Erase(K const& idx) {
-    if (!fatal) {
-        const DWORD idx_i = IsExist(idx);
+    const DWORD ns = s_tab - 1, vi = IsExists(idx);
 
-        if  (idx_i == s_tab)                              return;
-        for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) keys[i]   = keys[i + 1];
-        for (DWORD i = idx_i; i < (s_tab - 1); i = i + 1) values[i] = values[i + 1];
+    if (vi == s_tab) return;
 
-        s_tab -= 1;
+    for (QWORD i = vi; i < ns; i = i + 1) {
+        keys[i]   = std::move(keys[i + 1]);
+        values[i] = std::move(keys[i + 1]);
     }
+
+    s_tab -= 1;
 }
 
 template<class K, class V>
 /// @brief Clear - Vide le contenu du tableau
 ///
-/// Pas de réallocation mémoire, seule la taille est remise à 0. Ne fais rien si erreur fatale.
+/// Pas de réallocation mémoire, seule la taille est remise à 0.
 void MTable<K, V>::Clear() {
-    if (!fatal) s_tab = 0;
+    s_tab = 0;
 }
 
 template<class K, class V>
@@ -922,50 +713,42 @@ template<class K, class V>
 ///
 /// @param[in] idx: clé
 ///
-/// @return Une référence sur la valeur associée à idx si existe, [vv_def] sinon.
+/// @return Une référence sur la valeur associée à idx si existe, dummy sinon.
 V& MTable<K, V>::operator[](K idx) {
-    if (!fatal) {
-        K* temp_k; V* temp_v;
+    static K dummyk{};
+    static V dummyv{};
 
-        if (const DWORD idx_i = IsExist(idx); idx_i != s_tab) return values[idx_i];
+    const DWORD vi = IsExist(idx), c1 = c_tab + 1;
 
-        if (s_tab == c_tab) {
-            // ReSharper disable once CppJoinDeclarationAndAssignment
-            temp_k = keys.release();
-            // ReSharper disable once CppJoinDeclarationAndAssignment
-            temp_v = values.release();
+    if (vi >= c_tab) {
+        K* tmpk = new (std::nothrow) K[c1];
+        if (!tmpk) return dummyv;
 
-            if (temp_k == nullptr || temp_v == nullptr) {
-                error = fatal = true;
-                s_tab = 0; c_tab = 0;
-                return vv_def;
-            }
-
-            keys   = std::make_unique<K[]>(c_tab + 1);
-            values = std::make_unique<V[]>(c_tab + 1);
-
-            if (keys == nullptr || values == nullptr) {
-                error = fatal = true;
-                s_tab = 0; c_tab = 0;
-                return vv_def;
-            }
-
-            if (s_tab != 0) {
-                for (QWORD i = 0; i < s_tab; i = i + 1) keys[i]   = std::move(temp_k[i]);
-                for (QWORD i = 0; i < s_tab; i = i + 1) values[i] = std::move(temp_v[i]);
-            }
-
-            c_tab += 1;
-
-            delete[] temp_k;
-            delete[] temp_v;
+        V* tmpv = new (std::nothrow) V[c1];
+        if (!tmpv) {
+            delete[] tmpk;
+            return dummyv;
         }
-        s_tab += 1; keys[s_tab - 1] = idx;
 
-        return values[s_tab - 1];
+        for (QWORD i = 0; i < s_tab; i = i + 1) {
+            tmpk[i] = std::move(keys[i]);
+            tmpv[i] = std::move(values[i]);
+        }
+
+        for (DWORD i = s_tab; i < c1; i = i + 1) {
+            tmpk[i] = K{};
+            tmpv[i] = V{};
+        }
+
+        keys.reset(tmpk);
+        values.reset(tmpv);
+        c_tab = c1;
     }
 
-    return vv_def;
+    if (vi == s_tab) s_tab += 1;
+
+    keys[vi] = idx;
+    return values[vi];
 }
 
 template<class K, class V>
@@ -973,16 +756,12 @@ template<class K, class V>
 ///
 /// @param[in] key: clé
 ///
-/// @return Une référence constante sur la valeur associée à idx si existe, [vv_def] sinon.
+/// @return Une référence constante sur la valeur associée à idx si existe, dummy sinon.
 V const& MTable<K, V>::operator[](K key) const {
-    if (!fatal) {
-        const DWORD idx = IsExist(key);
-        if (idx == s_tab) return vv_def;
+    static const V dummy{};
+    const DWORD vi = IsExist(key);
 
-        return values[idx];
-    }
-
-    return vv_def;
+    return (vi < s_tab) ? values[vi] : dummy;
 }
 
 template<class T, class V>
@@ -993,15 +772,10 @@ template<class T, class V>
 /// @return Une référence sur le MTable affecté.
 MTable<T, V>& MTable<T, V>::operator=(MTable&& oth) noexcept {
     if (this != &oth) {
-        s_tab  = oth.s_tab;
-        c_tab  = oth.c_tab;
-        kv_def = oth.kv_def;
-        vv_def = oth.vv_def;
-
         keys   = std::move(oth.keys);
         values = std::move(oth.values);
-        error  = oth.error;
-        fatal  = oth.fatal;
+        s_tab  = oth.s_tab;
+        c_tab  = oth.c_tab;
     }
 
     return *this;
@@ -1022,7 +796,7 @@ template<class K, class V>
 /// @param[in] t1: lhs
 /// @param[in] t2: rhs
 ///
-/// @return true si égaux, false sinon.
+/// @return True si égaux, false sinon.
 bool operator==(const MTable<K, V> &t1, const MTable<K, V> &t2) {
     if (t1.s_tab != t2.s_tab) return false;
 
@@ -1043,9 +817,19 @@ template<class K, class V>
 /// @param[in] t1: lhs
 /// @param[in] t2: rhs
 ///
-/// @return true si inégaux, false sinon.
+/// @return True si inégaux, false sinon.
 bool operator!=(const MTable<K, V> &t1, const MTable<K, V> &t2) {
-    return !(t1 == t2);
+    if (t1.s_tab != t2.s_tab) return true;
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.keys[i] != t2.keys[i]) return true;
+    }
+
+    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+        if (t1.values[i] != t2.values[i]) return true;
+    }
+
+    return false;
 }
 
 }

@@ -325,11 +325,6 @@ std::istream& operator>>(std::istream& is, TriBool &b) {
 
 
 
-/// @brief Bit - Constructeur
-///
-/// Constructeur par défaut de la classe Bit.
-constexpr Bit::Bit() : bit(false) {}
-
 /// @brief Bit - Constructeur de copie
 ///
 /// @param[in] b: Bit de copie
@@ -337,25 +332,11 @@ constexpr Bit::Bit() : bit(false) {}
 /// Constructeur de copie de la classe Bit.
 constexpr Bit::Bit(const Bit &b) = default;
 
-/// @brief Bit - Constructeur d'affectation
-///
-/// @param[in] b: bool à affecter
-///
-/// Constructeur d'affectation de la classe Bit.
-constexpr Bit::Bit(const bool b) : bit(b) {}
-
 /// @brief SetValue - Affecte une valeur
 ///
 /// @param[in] b: bool à affecter
 constexpr void Bit::SetValue(const bool b) {
     bit = b;
-}
-
-/// @brief GetValue - Récupère la valeur du bit
-///
-/// @return True si 1, false sinon.
-constexpr bool Bit::GetValue() const {
-    return bit;
 }
 
 /// @brief IsZero - Test si le bit est à 0

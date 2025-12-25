@@ -121,12 +121,26 @@ friend std::istream& operator>>(std::istream& is, TriBool &b);
 class Bit
 {
 public:
-    constexpr Bit();
+    /// @brief Bit - Constructeur
+    ///
+    /// Constructeur par défaut de la classe Bit.
+    constexpr Bit() : bit(false) {}
+
     constexpr Bit(const Bit &b);
-    explicit constexpr Bit(bool b);
+
+    /// @brief Bit - Constructeur d'affectation
+    ///
+    /// @param[in] b: bool à affecter
+    ///
+    /// Constructeur d'affectation de la classe Bit.
+    explicit constexpr Bit(const bool b) : bit(b) {}
+
+    /// @brief GetValue - Récupère la valeur du bit
+    ///
+    /// @return True si 1, false sinon.
+    [[nodiscard]] constexpr bool GetValue() const { return bit; }
 
     constexpr void SetValue(bool b);
-    [[nodiscard]] constexpr bool GetValue() const;
     [[nodiscard]] constexpr bool IsZero() const;
     [[nodiscard]] constexpr bool IsOne() const;
 

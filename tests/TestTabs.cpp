@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file TestTabs.cpp
 /// @brief Source de TestTabs
 /// @author F&nµx
-/// @version 1.0
-/// @date 16/11/2024
+/// @version 2.0
+/// @date 25/12/2025
 
 #include "../src/StrUtils.h"
 #include <iostream>
@@ -63,27 +63,11 @@ int main() {
 	Fenyx::Types::DTable<Fenyx::Types::BYTE> d1;
 	Fenyx::Types::MTable<std::string, Fenyx::Types::BYTE> m1;
 
-	if (s1.GetFatal() || d1.GetFatal() || m1.GetFatal()) {
-		std::cout << "Test Tabs => KO (Memory limit)" <<std::endl;
-		return -1;
-	}
+	for (Fenyx::Types::WORD i = 0; i < 10; i = i + 1) s1[i] = i;
+	for (Fenyx::Types::WORD i = 0; i < 10; i = i + 1) d1[i] = i;
 
-	for (Fenyx::Types::BYTE i = 0; i < 10; ++i) s1[i] = i;
-
-	for (Fenyx::Types::BYTE i = 0; i < 10; ++i) {
-		d1[i] = i;
-		if (d1.GetFatal()) {
-			std::cout << "Test Tabs => KO (Storage loop-num)" <<std::endl;
-			return -2;
-		}
-	}
-
-	for (Fenyx::Types::WORD i = 0; i < 10; ++i) {
-		m1["v" + Fenyx::Types::toString<Fenyx::Types::WORD>(i)] = static_cast<Fenyx::Types::BYTE>(i);
-		if (m1.GetFatal()) {
-			std::cout << "Test Tabs => KO (Map idx-calc)" <<std::endl;
-			return -3;
-		}
+	for (Fenyx::Types::WORD i = 0; i < 10; i = i + 1) {
+		m1["v" + Fenyx::Types::toString<Fenyx::Types::WORD>(i)] = i;
 	}
 
 	if (s1[1] != 1 || d1[1] != 1 || m1["v1"] != 1) {
