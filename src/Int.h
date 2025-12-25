@@ -96,6 +96,10 @@ public:
 	[[nodiscard]] bool IsNeg() const;
 	[[nodiscard]] Int Abs() const;
 
+	[[nodiscard]] QWORD BitLength() const;
+	[[nodiscard]] Bit GetBit(QWORD n) const;
+	void SetBit(QWORD n, const Bit &b);
+
 	[[nodiscard]] DWORD TrailZero() const;
 	static Pair<Int, Int> DivMod(const Int &A, const Int &B);
 	static Int Square(const Int& A);

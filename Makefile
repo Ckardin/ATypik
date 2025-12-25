@@ -28,7 +28,6 @@ install:
 	@install -p -m 755 src/Math.h $(INCDIR)
 	@install -p -m 755 src/Int.h   $(INCDIR)
 
-
 installdox:
 	@MakeInfo $(MILANG) install doc
 	@mv Doc/Latex/refman.pdf Doc/Latex/ATypik.pdf
