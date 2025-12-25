@@ -71,7 +71,6 @@ std::ostream& operator<<(std::ostream& os, const SWORD v) {
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
 	STable<char, 10> chars;
 
-	if (chars.GetFatal()) return os;
 	for (BYTE i = 0 ; i < 10 ; i = i + 1) chars[i] = toChar(i + 48);
 
 	while (n != 0) {
@@ -94,7 +93,6 @@ std::ostream& operator<<(std::ostream& os, const sSWORD v) {
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
 	STable<char, 10> chars;
 
-	if (chars.GetFatal()) return os;
 	for (BYTE i = 0 ; i < 10 ; i = i + 1) chars[i] = toChar(i + 48);
 
 	if (n < 0) {
@@ -177,7 +175,6 @@ std::string CompleteNbr(allpnum nbr) {
 bool IsNum(const char c) {
 	STable<char, 16> HexConv;
 
-	if (HexConv.GetFatal()) return false;
 	for (BYTE i = 0 ; i < 10; i = i + 1) HexConv[i] = toChar(i + 48);
 	for (BYTE i = 10; i < 16; i = i + 1) HexConv[i] = toChar((i - 10) + 65);
 
@@ -196,7 +193,6 @@ bool IsNum(const char c) {
 bool IsHex(const char c) {
 	STable<char, 16> HexConv;
 
-	if (HexConv.GetFatal()) return false;
 	for (BYTE i = 0 ; i < 10; i = i + 1) HexConv[i] = toChar(i + 48);
 	for (BYTE i = 10; i < 16; i = i + 1) HexConv[i] = toChar((i - 10) + 65);
 
@@ -242,9 +238,6 @@ bool IsHexS(const std::string &str) {
 BYTE HexN(const char c, bool &err) {
 	STable<char, 16> HexConv;
 
-	if (HexConv.GetFatal()) {
-		err = true; return 0;
-	}
 	for (BYTE i = 0 ; i < 10; i = i + 1) HexConv[i] = toChar(i + 48);
 	for (BYTE i = 10; i < 16; i = i + 1) HexConv[i] = toChar((i - 10) + 65);
 

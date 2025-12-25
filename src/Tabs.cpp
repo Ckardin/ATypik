@@ -61,40 +61,39 @@ namespace Fenyx::Types
 {
 
 #ifdef LITTLE_ENDIAN
-	void SwapBytes(barray &bytes) {
-		BYTE temp, j;
+void SwapBytes(barray &bytes) {
+	// ReSharper disable two CppJoinDeclarationAndAssignment
+	BYTE temp, j;
 
-		for(BYTE i = 1; i < (bytes[0] / 2); i = i + 1) {
-			j = (bytes[0] - 1) - i;
+	for(BYTE i = 1; i < (bytes[0] / 2); i = i + 1) {
+		j = (bytes[0] - 1) - i;
 
-			temp     = bytes[i];
-			bytes[i] = bytes[j];
-			bytes[j] = temp;
-		}
+		temp     = bytes[i];
+		bytes[i] = bytes[j];
+		bytes[j] = temp;
 	}
+}
 #endif // LITTLE_ENDIAN
 
 /// @brief BytesArray - Convertit un nombre en tableau d'octets
 ///
 /// @param[in] data: nombre à convertir
 ///
-/// @return un STable d'octets représentant le nombre.
+/// @return Un STable d'octets représentant le nombre.
 barray BytesArray(allnum data) {
 	using T = std::decay_t<decltype(data)>;
 	barray bytes;
 
-	if (!bytes.GetFatal()) {
-		bytes[0] = sizeof(T);
-		std::visit([&bytes](auto && v) -> void {
-			for(BYTE i = 1; i < static_cast<BYTE>(sizeof(T)); i = i + 1) bytes[i] = v >> (i * 8);
-		}, data);
+	bytes[0] = sizeof(T);
+	std::visit([&bytes](auto && v) -> void {
+		for(BYTE i = 1; i < static_cast<BYTE>(sizeof(T)); i = i + 1) bytes[i] = v >> (i * 8);
+	}, data);
 
 #ifdef LITTLE_ENDIAN
-		SwapBytes(bytes);
+	SwapBytes(bytes);
 #endif // LITTLE_ENDIAN
-	}
 
-	return bytes;
+		return bytes;
 }
 
 }
