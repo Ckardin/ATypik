@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Defines.h
 /// @brief Header de Defines
 /// @author F&nµx
-/// @version 1.0
-/// @date 02/11/2024
+/// @version 2.0
+/// @date 25/12/2025
 
 #ifndef DEFINES_H
 #define DEFINES_H
@@ -102,22 +102,58 @@ public:
 private:
     std::optional<bool> n;
 
-    friend TriBool operator|(const TriBool &b1, const TriBool &b2);
-    friend TriBool operator&(const TriBool &b1, const TriBool &b2);
-    friend TriBool operator^(const TriBool &b1, const TriBool &b2);
+friend TriBool operator|(const TriBool &b1, const TriBool &b2);
+friend TriBool operator&(const TriBool &b1, const TriBool &b2);
+friend TriBool operator^(const TriBool &b1, const TriBool &b2);
 
-    friend bool operator==(const TriBool &b1, const TriBool &b2);
-    friend bool operator!=(const TriBool &b1, const TriBool &b2);
-    friend bool operator==(const TriBool &b1, bool b2);
-    friend bool operator!=(const TriBool &b1, bool b2);
-    friend bool operator==(bool b1, const TriBool &b2);
-    friend bool operator!=(bool b1, const TriBool &b2);
+friend bool operator==(const TriBool &b1, const TriBool &b2);
+friend bool operator!=(const TriBool &b1, const TriBool &b2);
+friend bool operator==(const TriBool &b1, bool b2);
+friend bool operator!=(const TriBool &b1, bool b2);
+friend bool operator==(bool b1, const TriBool &b2);
+friend bool operator!=(bool b1, const TriBool &b2);
 
-    friend std::ostream& operator<<(std::ostream& os, const TriBool &b);
-    friend std::istream& operator>>(std::istream& is, TriBool &b);
+friend std::ostream& operator<<(std::ostream& os, const TriBool &b);
+friend std::istream& operator>>(std::istream& is, TriBool &b);
+};
+
+/// @brief Bit - Classe qui permet de manipuler des bits
+class Bit
+{
+public:
+    constexpr Bit();
+    constexpr Bit(const Bit &b);
+    explicit constexpr Bit(bool b);
+
+    constexpr void SetValue(bool b);
+    [[nodiscard]] constexpr bool GetValue() const;
+    [[nodiscard]] constexpr bool IsZero() const;
+    [[nodiscard]] constexpr bool IsOne() const;
+
+    constexpr Bit& operator= (const Bit &b);
+    constexpr Bit& operator|=(const Bit &b);
+    constexpr Bit& operator&=(const Bit &b);
+    constexpr Bit& operator^=(const Bit &b);
+    constexpr Bit& operator~ ();
+
+private:
+    bool bit;
+
+friend constexpr Bit operator|(const Bit &b1, const Bit &b2);
+friend constexpr Bit operator&(const Bit &b1, const Bit &b2);
+friend constexpr Bit operator^(const Bit &b1, const Bit &b2);
+
+friend constexpr bool operator==(const Bit &b1, const Bit &b2);
+friend constexpr bool operator!=(const Bit &b1, const Bit &b2);
+friend constexpr bool operator==(const Bit &b1, bool b2);
+friend constexpr bool operator!=(const Bit &b1, bool b2);
+friend constexpr bool operator==(bool b1, const Bit &b2);
+friend constexpr bool operator!=(bool b1, const Bit &b2);
+
+friend std::ostream& operator<<(std::ostream& os, const Bit &b);
+friend std::istream& operator>>(std::istream& is, Bit &b);
 };
 
 }
-
 
 #endif //DEFINES_H

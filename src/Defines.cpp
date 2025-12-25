@@ -322,5 +322,226 @@ std::istream& operator>>(std::istream& is, TriBool &b) {
     return is;
 }
 
+
+
+
+/// @brief Bit - Constructeur
+///
+/// Constructeur par défaut de la classe Bit.
+constexpr Bit::Bit() : bit(false) {}
+
+/// @brief Bit - Constructeur de copie
+///
+/// @param[in] b: Bit de copie
+///
+/// Constructeur de copie de la classe Bit.
+constexpr Bit::Bit(const Bit &b) = default;
+
+/// @brief Bit - Constructeur d'affectation
+///
+/// @param[in] b: bool à affecter
+///
+/// Constructeur d'affectation de la classe Bit.
+constexpr Bit::Bit(const bool b) : bit(b) {}
+
+/// @brief SetValue - Affecte une valeur
+///
+/// @param[in] b: bool à affecter
+constexpr void Bit::SetValue(const bool b) {
+    bit = b;
+}
+
+/// @brief GetValue - Récupère la valeur du bit
+///
+/// @return True si 1, false sinon.
+constexpr bool Bit::GetValue() const {
+    return bit;
+}
+
+/// @brief IsZero - Test si le bit est à 0
+///
+/// @return True si le bit est à 0, false sinon.
+constexpr bool Bit::IsZero() const {
+    return (bit == false);
+}
+
+/// @brief IsOne - Test si le bit est à 1
+///
+/// @return True si le bit est à 1, false sinon.
+constexpr bool Bit::IsOne() const {
+    return bit;
+}
+
+/// @brief operator= - Opérateur d'affectation
+///
+/// @param[in] b: bit à affecter
+///
+/// @return Une référence sur le Bit affecté.
+constexpr Bit& Bit::operator= (const Bit &b) = default;
+
+/// @brief operator|= - Opérateur d'affectation avec OR
+///
+/// @param[in] b: Bit à affecter
+///
+/// @return Une référence sur le Bit affecté.
+constexpr Bit& Bit::operator|=(const Bit &b) {
+    bit = bit | b.bit;
+
+    return *this;
+}
+
+/// @brief operator&= - Opérateur d'affectation avec AND
+///
+/// @param[in] b: Bit à affecter
+///
+/// @return Une référence sur le Bit affecté.
+constexpr Bit& Bit::operator&=(const Bit &b) {
+    bit = bit & b.bit;
+
+    return *this;
+}
+
+/// @brief operator^ - Opérateur d'affectation avec XOR
+///
+/// @param[in] b: Bit à affecter
+///
+/// @return Une référence sur le Bit affecté.
+constexpr Bit& Bit::operator^=(const Bit &b) {
+    bit = bit ^ b.bit;
+
+    return *this;
+}
+
+/// @brief operateur~ - Opérateur NO
+///
+/// @return Une référence sur le Bit affecté.
+constexpr Bit& Bit::operator~ () {
+    bit = (!bit);
+
+    return *this;
+}
+
+
+/// @brief operator| - Opérateur OR
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return Un Bit égal à (b1 OR b2).
+constexpr Bit operator|(const Bit &b1, const Bit &b2) {
+    return Bit(b1.bit | b2.bit);
+}
+
+/// @brief operator| - Opérateur AND
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return Un Bit égal à (b1 AND b2).
+constexpr Bit operator&(const Bit &b1, const Bit &b2) {
+    return Bit(b1.bit & b2.bit);
+}
+
+/// @brief operator| - Opérateur XOR
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return Un Bit égal à (b1 XOR b2).
+constexpr Bit operator^(const Bit &b1, const Bit &b2) {
+    return Bit(b1.bit ^ b2.bit);
+}
+
+/// @brief operator== - Opérateur d'égalité entre Bit
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return True si égaux, false sinon.
+constexpr bool operator==(const Bit &b1, const Bit &b2) {
+    return (b1.bit == b2.bit);
+}
+
+/// @brief operator!= - Opérateur d'inégalité entre Bit
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return True si différents, false sinon.
+constexpr bool operator!=(const Bit &b1, const Bit &b2) {
+    return (b1.bit != b2.bit);
+}
+
+/// @brief operator== - Opérateur d'égalité entre Bit et bool
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return True si égaux, false sinon.
+constexpr bool operator==(const Bit &b1, const bool b2) {
+    return (b1.bit == b2);
+}
+
+/// @brief operator!= - Opérateur d'inégalité entre Bit et bool
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return True si différents, false sinon.
+constexpr bool operator!=(const Bit &b1, const bool b2) {
+    return (b1.bit != b2);
+}
+
+/// @brief operator== - Opérateur d'égalité entre bool et Bit
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return True si égaux, false sinon.
+constexpr bool operator==(const bool b1, const Bit &b2) {
+    return (b1 == b2.bit);
+}
+
+/// @brief operator!= - Opérateur d'inégalité entre bool et Bit
+///
+/// @param[in] b1: lhs
+/// @param[in] b2: rhs
+///
+/// @return True si différents, false sinon.
+constexpr bool operator!=(const bool b1, const Bit &b2) {
+    return (b1 != b2.bit);
+}
+
+
+/// @brief operator<< - Opérateur de flux de sortie pour Bit
+///
+/// @param[in] os: flux de sortie
+/// @param[in] b: Bit concerné
+///
+/// @return Une référence sur le flux de sortie affecté.
+std::ostream& operator<<(std::ostream& os, const Bit &b) {
+    const std::string str = (b.bit) ? "0b1" : "0b0";
+
+    os << str;
+
+    return os;
+}
+
+/// @brief operator>> - Opérateur de flux d'entrée pour Bit
+///
+/// @param[in] is: flux d'entrée
+/// @param[in] b: Bit concerné
+///
+/// @return Une référence sur le flux d'entrée affecté.
+std::istream& operator>>(std::istream& is, Bit &b) {
+    std::string str;
+
+    is >> str;
+    b.bit = (str == "0b1");
+
+    return is;
+}
+
+
 }
 
