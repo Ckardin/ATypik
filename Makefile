@@ -1,7 +1,7 @@
 .PHONY: mrproper, clean, cleand, dox, install, installdox, tests, cleant, all
 # .PHONY: clean, doc, install, Prepare
 
-# Version 5.0
+# Version 5.1
 
 .SUFFIXES:
 
@@ -9,13 +9,6 @@ CC=g++
 AR=ar
 CXXFLAGS=-fPIC -O3 -Wall -Wextra -Werror -std=c++17 -flto -I./src
 SPEFLAGS=-march=native -funroll-loops -fomit-frame-pointer
-A_SHLIB=so
-A_STLIB=a
-A_EXT=
-SHRDIR=$(ASHES_DIR)/share
-LIBDIR=$(ASHES_DIR)/lib
-INCDIR=$(ASHES_DIR)/inc
-MILANG=fr
 
 all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
 	@MakeInfo $(MILANG) dynamic ATypik
