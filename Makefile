@@ -9,12 +9,13 @@ CC=g++
 AR=ar
 CXXFLAGS=-fPIC -O3 -Wall -Wextra -Werror -std=c++17 -flto -I./src
 SPEFLAGS=-march=native -funroll-loops -fomit-frame-pointer
+OBJFILES=build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/ll_Wrp.o build/Int.o build/Math.o
 
-all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+all: $(OBJFILES)
 	@MakeInfo $(MILANG) dynamic ATypik
-	@$(CC) -flto -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+	@$(CC) -flto -o build/libATypik.$(A_SHLIB) -shared $^
 	@MakeInfo $(MILANG) static ATypik
-	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+	@$(AR) rcs build/libATypik.$(A_STLIB) $^
 
 install:
 	@MakeInfo $(MILANG) install libs
@@ -26,6 +27,7 @@ install:
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
 	@install -p -m 755 src/Math.h $(INCDIR)
+	@install -p -m 755 src/ll_Wrp.h $(INCDIR)
 	@install -p -m 755 src/Int.h   $(INCDIR)
 
 installdox:
@@ -52,6 +54,10 @@ build/Utils.o: src/Utils.h src/Utils.cpp
 build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
 	@MakeInfo $(MILANG) module StrUtils
 	@$(CC) $(CXXFLAGS) -c src/StrUtils.cpp -o build/StrUtils.o
+
+build/ll_Wrp.o: src/ll_Wrp.h src/ll_Wrp.cpp
+	@MakeInfo $(MILANG) module ll_Wrp
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/ll_Wrp.cpp -o build/ll_Wrp.o
 
 build/Int.o: src/Int.h src/Int.cpp
 	@MakeInfo $(MILANG) module Int
