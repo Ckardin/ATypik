@@ -60,23 +60,26 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 
 #include <algorithm>
 #include <functional>
-/// #include <immintrin.h>
+#include <immintrin.h>
 #include "Tabs.h"
 #include "StrUtils.h"
 
-#if defined(_MSC_VER)
-  #define ALWAYS_INLINE __forceinline
-#elif defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__)
   #define ALWAYS_INLINE inline __attribute__((always_inline))
 #else
   #define ALWAYS_INLINE inline
 #endif
 
+#define ATTR_BMI1   __attribute__((target("bmi")))
+#define ATTR_BMI2   __attribute__((target("bmi2")))
+#define ATTR_ADX    __attribute__((target("adx")))
+#define ATTR_LZCNT  __attribute__((target("lzcnt")))
+
 namespace Fenyx::Types
 {
 
 BYTE addwc(DWORD a, DWORD b, DWORD ci, DWORD &r);
-BYTE subwc(DWORD a, DWORD b, DWORD ci, DWORD &r);
+BYTE subwb(DWORD a, DWORD b, DWORD bi, DWORD &r);
 
 QWORD mul32(DWORD a, DWORD b);
 

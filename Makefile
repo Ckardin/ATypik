@@ -9,6 +9,7 @@ CC=g++
 AR=ar
 CXXFLAGS=-fPIC -O3 -Wall -Wextra -Werror -std=c++17 -flto -I./src
 SPEFLAGS=-march=native -funroll-loops -fomit-frame-pointer
+INTRFLAGS=-march=x86-64 -mbmi2 -mbmi -madx -mlzcnt
 OBJFILES=build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/ll_Wrp.o build/Int.o build/Math.o
 
 all: $(OBJFILES)
@@ -57,7 +58,7 @@ build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
 
 build/ll_Wrp.o: src/ll_Wrp.h src/ll_Wrp.cpp
 	@MakeInfo $(MILANG) module ll_Wrp
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/ll_Wrp.cpp -o build/ll_Wrp.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c src/ll_Wrp.cpp -o build/ll_Wrp.o
 
 build/Int.o: src/Int.h src/Int.cpp
 	@MakeInfo $(MILANG) module Int
