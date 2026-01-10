@@ -422,14 +422,14 @@ Int Int::Square(const Int& A) {
 /// /!\ Comparaison en temps constant, ne s'arrête pas dès qu'une différence est trouvée.
 bool Int::CTComp(const Int& A, const Int& B) {
 	const DWORD n = A.v.GetSize(), m = B.v.GetSize(), ps = (n <= m) ? m : n;
-	DWORD diff = (n != m) ? 1 : 0, a, b;
+	DWORD diff = 0, a, b;
 
 	for (QWORD i = 0; i < ps; i = i + 1) {
 		a = (i < n) ? A.v[i] : 0; b = (i < m) ? B.v[i] : 0;
 		diff |= (a ^ b);
 	}
 
-	return (diff == 0);
+	return ((diff == 0) && (n == m));
 }
 
 /// @brief operator= - Opérateur d'affectation entre Int
