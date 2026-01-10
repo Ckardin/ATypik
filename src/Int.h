@@ -58,10 +58,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef INT_H
 #define INT_H
 
-#include <algorithm>
-#include <functional>
-#include "Tabs.h"
-#include "StrUtils.h"
+#include "ll_Wrp.h"
 
 namespace Fenyx::Types
 {
@@ -103,6 +100,8 @@ public:
 	[[nodiscard]] DWORD TrailZero() const;
 	static Pair<Int, Int> DivMod(const Int &A, const Int &B);
 	static Int Square(const Int& A);
+
+	[[nodiscard]] static bool CTComp(const Int& A, const Int& B);
 
 	Int& operator=(const Int &other);
 	Int& operator=(const std::string &tstr);
@@ -146,6 +145,10 @@ private:
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
+
+	template<typename BOp, typename FOp>
+	static Int VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop);
+
 	[[nodiscard]] Int WShift(DWORD b) const;
 	[[nodiscard]] Int BLShift(DWORD b) const;
 	[[nodiscard]] Int BRShift(DWORD b) const;
@@ -208,6 +211,63 @@ Int Int::Random(const DWORD bits, Rdr&& rdr) {
 	}
 
 	ret.v[ret.v.GetSize() - 1] |= (1u << (31 - excess));
+
+	ret.Normalize();
+	return ret;
+}
+
+template<typename BOp, typename FOp>
+Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB, nm = (n == nA) ? nB : nA;
+	Int ret;
+
+	ret.v.SetCapacity(n, 0);
+
+#if defined(__AVX2__) || defined(__SSE2__) || defined(__ARM_NEON)
+	DWORD* a = A.v.GetPtr();
+	DWORD* b = B.v.GetPtr();
+	DWORD* r = ret.v.GetPtr();
+#endif
+
+#if defined(__AVX2__)
+	const DWORD fif = (nm & ~7);
+	// ReSharper disable three CppJoinDeclarationAndAssignment
+	__m256i simd_a, simd_b, simd_r;
+
+	for (DWORD i = 0; i < fif; i += 8) {
+		simd_a = _mm256_load_si256(reinterpret_cast<__m256i*>(a + i));
+		simd_b = _mm256_load_si256(reinterpret_cast<__m256i*>(b + i));
+		simd_r = bop(simd_a, simd_b);
+		_mm256_store_si256(reinterpret_cast<__m256i*>(r + i), simd_r);
+	}
+#elif defined(__SSE2__)
+	const DWORD fif = (nm & ~3);
+	// ReSharper disable three CppJoinDeclarationAndAssignment
+	__m128i simd_a, simd_b, simd_r;
+
+	for (DWORD i = 0; i < fif; i += 4) {
+		simd_a = _mm_load_si128(reinterpret_cast<__m128i*>(a + i));
+		simd_b = _mm_load_si128(reinterpret_cast<__m128i*>(b + i));
+		simd_r = bop(simd_a, simd_b);
+		_mm_store_si128(reinterpret_cast<__m128i*>(r + i), simd_r);
+	}
+#elif defined(__ARM_NEON)
+	const DWORD fif = (nm & ~3);
+	// ReSharper disable three CppJoinDeclarationAndAssignment
+	uint32x4_t simd_a, simd_b, simd_r;
+
+	for (DWORD i = 0; i < fif; i = i + 4) {
+		simd_a = vld1q_u32(a + i);
+		simd_b = vld1q_u32(b + i);
+		simd_r = bop(simd_a, simd_b);
+		vst1q_u32(r + i, simd_r);
+	}
+#else
+	const DWORD fif = nm;
+	for (DWORD i = 0; i < fif; i = i + 1) ret.v[i] = bop(A.v[i], B.v[i]);
+#endif
+
+	for (QWORD i = nm; i < n; i = i + 1) ret.v[i] = fop(A, B, i);
 
 	ret.Normalize();
 	return ret;

@@ -56,7 +56,6 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @date 08/01/2025
 
 #include "Math.h"
-#include <iostream>
 
 namespace Fenyx::Types
 {
@@ -84,9 +83,9 @@ Int NaivePow    (const Int &a, const DWORD b) {
 Int Pow         (const Int &x, const Int &n) {
 	Int p = 1, a = x, e = n;
 
-	if (n == 0 || x == 1) return 1;
-	if (n < 0  || x == 0) return 0;
-	if (n == 1)              return x;
+	if (n == Zero || x == One)  return One;
+	if (n < Zero  || x == Zero) return Zero;
+	if (n == One)               return x;
 
 	if (n < 20 && x < 1000) return NaivePow(x, n.GetL64());
 
@@ -106,7 +105,7 @@ Int Pow         (const Int &x, const Int &n) {
 ///
 /// @return Un Int correspondant à 2 puissance [n].
 Int Pow2        (const DWORD n) {
-	return (Int(1) << n);
+	return (One << n);
 }
 
 /// @brief Pow16 - Exponention avec une base 16
@@ -115,7 +114,7 @@ Int Pow2        (const DWORD n) {
 ///
 /// @return Un Int correspondant à 16 puissance [n].
 Int Pow16       (const DWORD n) {
-	return (Int(1) << (4 * n));
+	return (One << (4 * n));
 }
 
 /// @brief PowM - Exponentiation modulaire rapide (avec boucle for)
@@ -129,7 +128,7 @@ Int Pow16       (const DWORD n) {
 Int PowM        (const Int &a, const Int &b, const Int &m, const Int &mu) {
 	Int p, x = a, n = b;
 
-	for (p = 1; n > 0; n = n >> 1) {
+	for (p = 1; n > Zero; n = n >> 1) {
 		if (n.IsOdd()) p = MMul(p, x, m, mu);
 		x = MSqr(x, m, mu);
 	}
@@ -147,19 +146,19 @@ Int PowM        (const Int &a, const Int &b, const Int &m, const Int &mu) {
 /// @return Le PGCD de [a] et [b].
 Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v) {
 	if (a.IsZero() && b.IsZero()) {
-		u = Int(0); v = Int(0);
-		return {0};
+		u = Zero; v = Zero;
+		return Zero;
 	}
 
-	Int signA = (a < Int(0)) ? -1 : 1;
-	Int signB = (b < Int(0)) ? -1 : 1;
+	Int signA = (a < Zero) ? -1 : 1;
+	Int signB = (b < Zero) ? -1 : 1;
 
 	if (a.IsZero()) {
-		u = Int(0); v = signB;
+		u = Zero; v = signB;
 		return b;
 	}
 	if (b.IsZero()) {
-		u = signA; v = Int(0);
+		u = signA; v = Zero;
 		return a;
 	}
 
@@ -170,9 +169,9 @@ Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v) {
 		q = rp / r;
 		rem = rp - q * r;
 
-		if (rem < Int(0)) {
+		if (rem < Zero) {
 			rem += r.Abs();
-			q   -= (r > Int(0)) ? Int(1) : Int(-1);
+			q   -= (r > Zero) ? One : Int(-1);
 		}
 
 		tr = r; r = rem;        rp = tr;
@@ -180,7 +179,7 @@ Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v) {
 		tt = t; t = tp - q * t; tp = tt;
 	}
 
-	if (rp < Int(0)) {
+	if (rp < Zero) {
 		rp = rp.GetOpposite();
 		sp = sp.GetOpposite();
 		tp = tp.GetOpposite();
@@ -265,14 +264,14 @@ Complex::Complex(const Complex &oth) {
 ///
 /// @return true si le nombre est "réel pur", false sinon.
 bool Complex::IsReal() const {
-	return (im == 0);
+	return (im == Zero);
 }
 
 /// @brief IsImag - Test si le nombre complexe est "imaginaire pur"
 ///
 /// @return true si le nombre est "imaginaire pur", false sinon
 bool Complex::IsImag() const {
-	return (re == 0);
+	return (re == Zero);
 }
 
 /// @brief Real - Récupères la partie réelle d'un nombre complexe
@@ -438,8 +437,8 @@ std::ostream& operator<<(std::ostream& os, const Complex &rhs) {
 	const Int i = rhs.im;
 
 	os << "(" << r.GetStr() << " ";
-	if (i < 0) os << "- " << (Int(i).GetOpposite()).GetStr();
-	else         os << "+ " << i.GetStr();
+	if (i < Zero) os << "- " << (Int(i).GetOpposite()).GetStr();
+	else          os << "+ " << i.GetStr();
 	os << "i)";
 
 	return os;

@@ -57,8 +57,6 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 
 #include "Int.h"
 
-#include <iostream>
-
 namespace Fenyx::Types
 {
 
@@ -263,7 +261,8 @@ Int Int::GetOpposite() const {
 ///
 /// @return Une chaîne de caractères décimaux représentant le nombre stocké.
 std::string Int::GetStr() const {
-	if (v.GetSize() == 1 && v[0] == 0) return "0";
+	const DWORD n = v.GetSize();
+	if (n == 1 && v[0] == 0) return "0";
 
 	DTable<DWORD> blks; blks.Clear();
 	std::string ret = "";
@@ -271,8 +270,8 @@ std::string Int::GetStr() const {
 	QWORD a, r;
 	Int tA;
 
-	tA.v.Clear(); tA.v.SetCapacity(v.GetSize(), 0);
-	for (QWORD i = 0; i < v.GetSize(); i = i + 1) tA.v[i] = v[i];
+	tA.v.Clear(); tA.v.SetCapacity(n, 0);
+	for (QWORD i = 0; i < n; i = i + 1) tA.v[i] = v[i];
 
 	while (!tA.IsZero()) {
 		r = 0;
@@ -333,14 +332,14 @@ bool Int::IsNeg() const {
 QWORD Int::BitLength() const {
 	const DWORD ns = v.GetSize();
 
-	return ((32 * ns) - __builtin_clz(v[ns - 1]));
+	return ((32 * ns) - cntlz(v[ns - 1]));
 }
 
 Bit Int::GetBit(const QWORD n) const {
 	const DWORD ns = v.GetSize();
 	const QWORD nbl = n / 32, nbb = n % 32;
 
-	if (const QWORD nb = (32 * ns) - __builtin_clz(v[ns - 1]); n >= nb) return {};
+	if (const QWORD nb = (32 * ns) - cntlz(v[ns - 1]); n >= nb) return {};
 	const DWORD x = v[nbl];
 
 	return Bit((x >> nbb) & 1u);
@@ -350,7 +349,7 @@ void Int::SetBit(const QWORD n, const Bit &b) {
 	const DWORD ns = v.GetSize();
 	const QWORD nbl = n / 32, nbb = n % 32;
 
-	if (const QWORD nb = (32 * ns) - __builtin_clz(v[ns - 1]); n < nb) {
+	if (const QWORD nb = (32 * ns) - cntlz(v[ns - 1]); n < nb) {
 		const DWORD x = v[nbl];
 		v[nbl] = ((x & ~(1u << nbb)) | (static_cast<DWORD>(b.GetValue()) << nbb));
 	}
@@ -368,7 +367,7 @@ DWORD Int::TrailZero() const {
 		c = v[i];
 
 		if (c != 0) {
-			ret += __builtin_ctz(c);
+			ret += cnttz(c);
 			break;
 		}
 
@@ -406,11 +405,31 @@ Pair<Int, Int> Int::DivMod(const Int &A, const Int &B) {
 ///
 /// @param A: u-value
 ///
-/// @return Un Int représentant A^2.
+/// @return Un Int représentant [A]^2.
 ///
 /// /!\ Ne fait pas appel aux opérateurs, bypass la gestion à une fonction interne.
 Int Int::Square(const Int& A) {
 	return Sqr(A, A.sign, A.sign);
+}
+
+/// @brief CTComp - Comparaison de Int en temps constant
+///
+/// @param[in] A: l-value
+/// @param[in] B: r-value
+///
+/// @return True si [A] == [B], false sinon.
+///
+/// /!\ Comparaison en temps constant, ne s'arrête pas dès qu'une différence est trouvée.
+bool Int::CTComp(const Int& A, const Int& B) {
+	const DWORD n = A.v.GetSize(), m = B.v.GetSize(), ps = (n <= m) ? m : n;
+	DWORD diff = (n != m) ? 1 : 0, a, b;
+
+	for (QWORD i = 0; i < ps; i = i + 1) {
+		a = (i < n) ? A.v[i] : 0; b = (i < m) ? B.v[i] : 0;
+		diff |= (a ^ b);
+	}
+
+	return (diff == 0);
 }
 
 /// @brief operator= - Opérateur d'affectation entre Int
@@ -686,21 +705,20 @@ Int& Int::operator/=(const Int &B) {
 Int Int::Add(const Int &A, const Int &B) {
 	Int ret;
 	// ReSharper disable three CppJoinDeclarationAndAssignment
-	QWORD carry = 0, a, b, sum;
-	const DWORD n = (A.v.GetSize() > B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize(), nA = A.v.GetSize(), nB = B.v.GetSize();
+	BYTE carry = 0;
+	DWORD a, b;
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA > nB) ? nA : nB;
 
-	ret.v.SetCapacity(n, 0);
+	ret.v.SetCapacity(n + 1, 0);
 
 	for (QWORD i = 0; i < n; i = i + 1) {
 		a = (i < nA) ? A.v[i] : 0;
 		b = (i < nB) ? B.v[i] : 0;
-		sum = a + b + carry;
 
-		ret.v[i] = static_cast<uint32_t>(sum);
-		carry = sum >> 32;
+		carry = addwc(a, b, carry, ret.v[i]);
 	}
 
-	if (carry) ret.v[ret.v.GetSize()] = static_cast<uint32_t>(carry);
+	if (carry) ret.v[n] = static_cast<DWORD>(carry);
 
 	ret.Normalize();
 	return ret;
@@ -709,22 +727,15 @@ Int Int::Add(const Int &A, const Int &B) {
 Int Int::Sub(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
 	// ReSharper disable three CppJoinDeclarationAndAssignment
-	sQWORD borrow = 0, a, b, tsub;
+	BYTE borrow = 0;
+	DWORD b;
 	Int ret;
 
 	ret.v.SetCapacity(nA, 0);
 
 	for (QWORD i = 0; i < nA; i = i + 1) {
-		a = A.v[i];
 		b = (i < nB) ? B.v[i] : 0;
-		tsub = a - b - borrow;
-
-		if (tsub < 0) {
-			tsub += b32;
-			borrow = 1;
-		} else borrow = 0;
-
-		ret.v[i] = static_cast<DWORD>(tsub);
+		borrow = subwb(A.v[i], b, borrow, ret.v[i]);
 	}
 
 	ret.Normalize();
@@ -732,7 +743,9 @@ Int Int::Sub(const Int &A, const Int &B) {
 }
 
 Int Int::Mul(const Int &A, const Int &B) {
-	if (const DWORD n = (A.v.GetSize() > B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize(); n <= 64) return LongMul(A, B);
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
+
+	if (const DWORD n = (nA > nB) ? nA : nB; n <= 64) return LongMul(A, B);
 	return Karatsuba(A, B);
 }
 
@@ -902,7 +915,7 @@ Int Int::LongMul(const Int &A, const Int &B) {
 		for (QWORD j = 0; j < nB || carry; j = j + 1) {
 			b = (j < nB) ? B.v[j] : 0;
 			p = static_cast<QWORD>(ret.v[i + j])
-			    + (static_cast<QWORD>(A.v[i]) * b) + carry;
+				+ (static_cast<QWORD>(A.v[i]) * b) + carry;
 
 			ret.v[i + j] = static_cast<DWORD>(p);
 			carry = (p >> 32);
@@ -946,7 +959,7 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 } // OPTIMISATION IA => Super algo, je ne connaissais pas :)
 
 Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B) {
-	const DWORD n = B.v.GetSize(), lz = __builtin_clz(B.v[n - 1]);
+	const DWORD n = B.v.GetSize(), lz = cntlz(B.v[n - 1]);
 	Int Q, R, Bq, tA(A.BLShift(lz)), tB(B.BLShift(lz));
 	const DWORD m = tA.v.GetSize() - n, m1 = m + 1, nn1 = n - 1, nn2 = n - 2, mn2 = m + n + 2;
 	QWORD num, d, qest, rest;
@@ -1104,8 +1117,8 @@ Int Int::ExtByZero(const DWORD s) const {
 	const DWORD n = v.GetSize();
 	Int ret;
 
+	ret.v.SetCapacity(s, 0);
 	for (QWORD i = 0; i < n; i = i + 1) ret.v[i] = v[i];
-	for (QWORD i = n; i < s; i = i + 1) ret.v[i] = 0;
 
 	return ret;
 }
@@ -1168,6 +1181,7 @@ Int Int::BarrettReduce(const Int &T, const Int &N, const Int &Mu) {
 ///
 /// @return La constante Mu liée à [N].
 Int GetMu(const Int &N) {
+	if (N.IsZero()) throw std::runtime_error("Modulo by zero");
 	const DWORD k = N.v.GetSize();
 
 	Int b2k;
@@ -1191,6 +1205,7 @@ Int GetMu(const Int &N) {
 ///
 /// /!\ [A] et [B] doivent être positifs et avoir une taille < ou = à celle de N.
 Int MMul(const Int &A, const Int &B, const Int &N, const Int &Mu) {
+	if (N.IsZero()) throw std::runtime_error("Modulo by zero");
 	const Int T = Int::Mul(A, B);
 
 	return Int::BarrettReduce(T, N, Mu);
@@ -1206,6 +1221,7 @@ Int MMul(const Int &A, const Int &B, const Int &N, const Int &Mu) {
 ///
 /// /!\ [A] doit être positif et avoir une taille < ou = à celle de N.
 Int MSqr(const Int &A, const Int &N, const Int &Mu) {
+	if (N.IsZero()) throw std::runtime_error("Modulo by zero");
 	const Int T = Int::Sqr(A, A.sign, A.sign);
 
 	return Int::BarrettReduce(T, N, Mu);
@@ -1420,7 +1436,7 @@ Int operator>>(const Int &A, const DWORD b) {
 		return ret;
 	}
 
-	if (b >= (asize * 32)) return ((A.sign) ? Int(0) : Int(-1));
+	if (b >= (asize * 32)) return ((A.sign) ? Zero : Int(-1));
 
 	ret.v.SetCapacity(fi, 0);
 	for (QWORD i = fi; i > 0; i = i - 1) {
@@ -1432,8 +1448,8 @@ Int operator>>(const Int &A, const DWORD b) {
 
 	ret.sign = A.sign;
 	if (!A.sign) {
-		Int ob(1); ob = ob << b;
-		if (!((A % ob).IsZero())) ret -= Int(1);
+		Int ob = One; ob = ob << b;
+		if (!((A % ob).IsZero())) ret -= One;
 	}
 
 	ret.Normalize();
@@ -1447,22 +1463,19 @@ Int operator>>(const Int &A, const DWORD b) {
 ///
 /// @return Le résultat de l'opération binaire [A] & [B].
 Int operator&(const Int &A, const Int &B) {
-	const DWORD n = (A.v.GetSize() >= B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize(), nA = A.v.GetSize(), nB = B.v.GetSize();
-	Int ret;
-	DWORD t0, t1;
-
-	ret.v.SetCapacity(n, 0);
-	for (QWORD i = 0; i < n; i = i + 1) {
-		// ReSharper disable once CppJoinDeclarationAndAssignment
-		t0 = (i < nA) ? A.v[i] : 0;
-		// ReSharper disable once CppJoinDeclarationAndAssignment
-		t1 = (i < nB) ? B.v[i] : 0;
-
-		ret.v[i] = t0 & t1;
-	}
-
-	ret.Normalize();
-	return ret;
+	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
+#if defined(__AVX2__)
+		return _mm256_and_si256(x, y);
+#elif defined(__SSE2__)
+		return _mm_and_si128(x, y);
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+		return vandq_u32(x, y);
+#else
+		return x & y;
+#endif
+	}, [](const Int &, const Int &, const DWORD) -> DWORD {
+		return 0;
+	});
 }
 
 /// @brief operator| - Opérateur OU logique
@@ -1472,22 +1485,19 @@ Int operator&(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de l'opération binaire [A] | [B].
 Int operator|(const Int &A, const Int &B) {
-	const DWORD n = (A.v.GetSize() >= B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize(), nA = A.v.GetSize(), nB = B.v.GetSize();
-	Int ret;
-	DWORD t0, t1;
-
-	ret.v.SetCapacity(n, 0);
-	for (QWORD i = 0; i < n; i = i + 1) {
-		// ReSharper disable once CppJoinDeclarationAndAssignment
-		t0 = (i < nA) ? A.v[i] : 0;
-		// ReSharper disable once CppJoinDeclarationAndAssignment
-		t1 = (i < nB) ? B.v[i] : 0;
-
-		ret.v[i] = t0 | t1;
-	}
-
-	ret.Normalize();
-	return ret;
+	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
+#if defined(__AVX2__)
+		return _mm256_or_si256(x, y);
+#elif defined(__SSE2__)
+		return _mm_or_si128(x, y);
+#elif defined(__ARM_NEON)
+		return vorrq_u32(x, y);
+#else
+		return x | y;
+#endif
+	}, [](const Int &tA, const Int &tB, const DWORD idx) -> DWORD {
+		return ((idx < tA.v.GetSize()) ? tA.v[idx] : tB.v[idx]);
+	});
 }
 
 /// @brief operator^ - Opérateur XOR logique
@@ -1497,22 +1507,19 @@ Int operator|(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de l'opération binaire [A] ^ [B].
 Int operator^(const Int &A, const Int &B) {
-	const DWORD n = (A.v.GetSize() >= B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize(), nA = A.v.GetSize(), nB = B.v.GetSize();
-	Int ret;
-	DWORD t0, t1;
-
-	ret.v.SetCapacity(n, 0);
-	for (QWORD i = 0; i < n; i = i + 1) {
-		// ReSharper disable once CppJoinDeclarationAndAssignment
-		t0 = (i < nA) ? A.v[i] : 0;
-		// ReSharper disable once CppJoinDeclarationAndAssignment
-		t1 = (i < nB) ? B.v[i] : 0;
-
-		ret.v[i] = t0 ^ t1;
-	}
-
-	ret.Normalize();
-	return ret;
+	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
+#if defined(__AVX2__)
+		return _mm256_xor_si256(x, y);
+#elif defined(__SSE2__)
+		return _mm_xor_si128(x, y);
+#elif defined(__ARM_NEON)
+		return veorq_u32(x, y);
+#else
+		return x ^ y;
+#endif
+	}, [](const Int &tA, const Int &tB, const DWORD idx) -> DWORD {
+		return ((idx < tA.v.GetSize()) ? tA.v[idx] : tB.v[idx]);
+	});
 }
 
 /// @brief operator== - Opérateur d'égalité entre Int

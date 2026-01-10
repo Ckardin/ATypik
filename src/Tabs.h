@@ -142,6 +142,8 @@ private:
 
 template<class T, DWORD s>
 /// @brief STable - Classe qui permet de gérer un tableau de taille fixe
+///
+/// /!\ Le tableau est aligné sur 32 octets (pour les intrinsics AVX2)
 class STable
 {
 public:
@@ -150,6 +152,7 @@ public:
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T const& GetValue(DWORD idx);
+    [[nodiscard]] T* GetPtr() const;
 
     T& operator[](DWORD idx);
     T const& operator[](DWORD idx) const;
@@ -158,7 +161,7 @@ public:
     ~STable() = default;
 
 private:
-    std::unique_ptr<T[]> data;
+    std::unique_ptr<T[], decltype(&std::free)> data;
 
   	DWORD s_tab;
 
@@ -168,6 +171,8 @@ friend bool operator!=<T, s>(const STable<T, s> &t1, const STable<T, s> &t2);
 
 template<class T>
 /// @brief DTable - Classe qui permet de gérer un tableau de taille dynamique
+///
+/// /!\ Le tableau est aligné sur 32 octets (pour les intrinsics AVX2)
 class DTable
 {
 public:
@@ -176,6 +181,7 @@ public:
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T const& GetValue(DWORD idx);
+    [[nodiscard]] T* GetPtr() const;
     bool SetCapacity(DWORD cap, T val);
     void Erase(DWORD idx);
     void Clear();
@@ -189,7 +195,7 @@ public:
     ~DTable() = default;
 
 private:
-    std::unique_ptr<T[]> data;
+    std::unique_ptr<T[], decltype(&std::free)> data;
 
     DWORD s_tab;
     DWORD c_tab;
@@ -352,8 +358,12 @@ template<class T, DWORD s>
 /// @brief STable - Constructeur
 ///
 /// Constructeur par défaut de la classe STable.
-STable<T, s>::STable() : s_tab(s) {
-    data.reset(new (std::nothrow) T[s_tab]);
+STable<T, s>::STable() : data(nullptr, &std::free), s_tab(s) {
+    static const std::size_t s_byt = s * sizeof(T);
+    static const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+
+    data.reset(static_cast<T*>(std::aligned_alloc(32, s_arr)));
+
     if (!data) s_tab = 0;
 }
 
@@ -386,6 +396,16 @@ T const& STable<T, s>::GetValue(DWORD idx) {
 }
 
 template<class T, DWORD s>
+/// @brief GetPtr - Récupères le pointeur brut
+///
+/// @return Le pointeur brut du tableau si réussi, nullptr sinon.
+T* STable<T, s>::GetPtr() const {
+    if (s_tab == 0) return nullptr;
+
+    return data.get();
+}
+
+template<class T, DWORD s>
 /// @brief operator[] - Opérateur d'indexation du tableau (en écriture)
 ///
 /// @param[in] idx: index
@@ -402,7 +422,7 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence constante sur la valeur contenue à t[idx] si existe, [v_def] sinon.
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, dummy sinon.
 T const& STable<T, s>::operator[](DWORD idx) const {
     static const T dummy{};
 
@@ -464,8 +484,12 @@ template<class T>
 /// @brief DTable - Constructeur
 ///
 /// Constructeur par défaut de la classe DTable.
-DTable<T>::DTable() : s_tab(0), c_tab(2) {
-    data.reset(new (std::nothrow) T[c_tab]);
+DTable<T>::DTable() : data(nullptr, &std::free), s_tab(0), c_tab(2) {
+    const std::size_t s_byt = 2 * sizeof(T);
+    const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+
+    data.reset(static_cast<T*>(std::aligned_alloc(32, s_arr)));
+
     if (!data) c_tab = 0;
 }
 
@@ -498,21 +522,37 @@ T const& DTable<T>::GetValue(DWORD idx) {
 }
 
 template<class T>
+/// @brief GetPtr - Récupères le pointeur brut
+///
+/// @return Le pointeur brut du tableau si réussi, nullptr sinon.
+T* DTable<T>::GetPtr() const {
+    if (c_tab == 0) return nullptr;
+
+    return data.get();
+}
+
+template<class T>
 /// @brief SetCapacity - Pré-alloue une certaine taille
 ///
 /// @param cap: capacité du tableau à pré-allouer
 /// @param val: valeur à écrire sur la nouvelle taille
+///
+/// @return True si réussi, false sinon.
 bool DTable<T>::SetCapacity(const DWORD cap, T val) {
     if (cap <= c_tab) return true;
 
-    T* tmp = new (std::nothrow) T[cap];
+    const std::size_t s_byt = cap * sizeof(T);
+    const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+    const DWORD ne = s_arr / sizeof(T);
+
+    T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
     if (!tmp) return false;
 
     for (QWORD i = 0; i < s_tab; i = i + 1)   tmp[i] = std::move(data[i]);
     for (DWORD i = s_tab; i < cap; i = i + 1) tmp[i] = val;
 
     data.reset(tmp);
-    c_tab = cap;
+    c_tab = ne;
 
     return true;
 }
@@ -560,14 +600,18 @@ T& DTable<T>::operator[](DWORD idx) {
     static T dummy{};
 
     if (idx >= c_tab) {
-        T* tmp = new (std::nothrow) T[ns];
+        const std::size_t s_byt = ns * sizeof(T);
+        const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+        const DWORD ne = s_arr / sizeof(T);
+
+        T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
         if (!tmp) return dummy;
 
         for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = std::move(data[i]);
         for (DWORD i = s_tab; i < ns; i = i + 1) tmp[i] = T{};
 
         data.reset(tmp);
-        c_tab = ns;
+        c_tab = ne;
     }
 
     if (idx >= s_tab) s_tab = i1;

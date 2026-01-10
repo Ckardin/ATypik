@@ -60,8 +60,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <immintrin.h>
-#include "Tabs.h"
 #include "StrUtils.h"
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -78,13 +78,65 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
-BYTE addwc(DWORD a, DWORD b, DWORD ci, DWORD &r);
-BYTE subwb(DWORD a, DWORD b, DWORD bi, DWORD &r);
+ALWAYS_INLINE ATTR_ADX BYTE addwc(const DWORD a, const DWORD b, const DWORD ci, DWORD &r) {
+#if defined(__x86_64__) && defined(__ADX__)
+	return _addcarry_u32(ci, a, b, &r);
+#elif defined(__aarch64__)
+	return __builtin_addc(a, b, ci, &r);
+#else
+	QWORD t = static_cast<QWORD>(a) + static_cast<QWORD>(b) + static_cast<QWORD>(ci);
+	r = static_cast<DWORD>(t);
+	return (t >> 32) & 1;
+#endif
+}
 
-QWORD mul32(DWORD a, DWORD b);
+ALWAYS_INLINE ATTR_ADX BYTE subwb(const DWORD a, const DWORD b, const DWORD bi, DWORD &r) {
+#if defined(__x86_64__) && defined(__ADX__)
+	return _subborrow_u32(bi, a, b, &r);
+#elif defined(__aarch64__)
+	return __builtin_subc(a, b, bi, &r);
+#else
+	QWORD t = static_cast<QWORD>(a) - static_cast<QWORD>(b) - static_cast<QWORD>(bi);
+	r = static_cast<DWORD>(t);
+	return (t >> 63) & 1;
+#endif
+}
 
-BYTE cntlz(DWORD a);
-BYTE cnttz(DWORD a);
+ALWAYS_INLINE ATTR_LZCNT BYTE cntlz(const DWORD a) {
+#if defined(__x86_64__) && defined(__LZCNT__)
+	return a ? _lzcnt_u32(a) : 32;
+#elif defined(__aarch64__)
+	return a ? __builtin_clz(a) : 32;
+#else
+	if (a == 0) return 32;
+	DWORD n = 0, mask = 0x80000000u;
+
+	while ((a & mask) == 0) {
+		mask >>= 1;
+		n += 1;
+	}
+
+	return n;
+#endif
+}
+
+ALWAYS_INLINE ATTR_BMI1 BYTE cnttz(DWORD a) {
+#if defined(__x86_64__) && defined(__BMI__)
+	return a ? _tzcnt_u32(a) : 32;
+#elif defined(__aarch64__)
+	return a ? __builtin_ctz(a) : 32;
+#else
+	if (a == 0) return 32;
+	DWORD n = 0;
+
+	while ((a & 1) == 0) {
+		a >>= 1;
+		n += 1;
+	}
+
+	return n;
+#endif
+}
 
 }
 
