@@ -1,7 +1,7 @@
 .PHONY: mrproper, clean, cleand, dox, install, installdox, tests, cleant, all
 # .PHONY: clean, doc, install, Prepare
 
-# Version 5.1
+# Version 5.5
 
 .SUFFIXES:
 
