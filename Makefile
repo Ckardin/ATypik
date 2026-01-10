@@ -8,13 +8,18 @@
 CC=g++
 AR=ar
 CXXFLAGS=-fPIC -O3 -Wall -Wextra -Werror -std=c++17 -flto -I./src
-SPEFLAGS=-march=native -funroll-loops -fomit-frame-pointer
+SPEFLAGS=-funroll-loops -fomit-frame-pointer
+LDFLAGS=-flto
+#CXXFLAGS=-fPIC -O1 -Wall -Wextra -Werror -std=c++17 -g -fsanitize=address -fno-omit-frame-pointer -I./src // For debug only
+#LDFLAGS=-fsanitize=address
+INTRFLAGS=-march=x86-64 -madx -mlzcnt -mbmi
+OBJFILES=build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
 
-all: build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+all: $(OBJFILES)
 	@MakeInfo $(MILANG) dynamic ATypik
-	@$(CC) -flto -o build/libATypik.$(A_SHLIB) -shared build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+	@$(CC) $(LDFLAGS) -o build/libATypik.$(A_SHLIB) -shared $^
 	@MakeInfo $(MILANG) static ATypik
-	@$(AR) rcs build/libATypik.$(A_STLIB) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+	@$(AR) rcs build/libATypik.$(A_STLIB) $^
 
 install:
 	@MakeInfo $(MILANG) install libs
@@ -26,6 +31,7 @@ install:
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
 	@install -p -m 755 src/Math.h $(INCDIR)
+	@install -p -m 755 src/ll_Wrp.h $(INCDIR)
 	@install -p -m 755 src/Int.h   $(INCDIR)
 
 installdox:
@@ -55,11 +61,11 @@ build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
 
 build/Int.o: src/Int.h src/Int.cpp
 	@MakeInfo $(MILANG) module Int
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/Int.cpp -o build/Int.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c src/Int.cpp -o build/Int.o
 
 build/Math.o: src/Math.h src/Math.cpp
 	@MakeInfo $(MILANG) module Math
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c src/Math.cpp -o build/Math.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c src/Math.cpp -o build/Math.o
 
 
 # Others
@@ -117,46 +123,46 @@ build/tests/TestStrUtils.o: tests/TestStrUtils.cpp
 
 build/tests/TestInt.o: tests/TestInt.cpp
 	@MakeInfo $(MILANG) module TestInt
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestInt.cpp -o build/tests/TestInt.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestInt.cpp -o build/tests/TestInt.o
 
 build/tests/TestIntBig.o: tests/TestIntBig.cpp
 	@MakeInfo $(MILANG) module TestIntBig
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestIntBig.cpp -o build/tests/TestIntBig.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestIntBig.cpp -o build/tests/TestIntBig.o
 
 build/tests/TestIntBench.o: tests/TestIntBench.cpp
 	@MakeInfo $(MILANG) module TestIntBench
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestIntBench.cpp -o build/tests/TestIntBench.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestIntBench.cpp -o build/tests/TestIntBench.o
 
 build/tests/TestMath.o: tests/TestMath.cpp
 	@MakeInfo $(MILANG) module TestMath
-	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestMath.cpp -o build/tests/TestMath.o
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestMath.cpp -o build/tests/TestMath.o
 
 
 build/tests/TestDefines$(A_EXT): build/tests/TestDefines.o build/Defines.o
 	@MakeInfo $(MILANG) program_s TestDefines
-	@$(CC) build/Defines.o build/tests/TestDefines.o -flto -o build/tests/TestDefines$(A_EXT)
+	@$(CC) build/Defines.o build/tests/TestDefines.o $(LDFLAGS) -o build/tests/TestDefines$(A_EXT)
 
 build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o
 	@MakeInfo $(MILANG) program_s TestTabs
-	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o -flto -o build/tests/TestTabs$(A_EXT)
+	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o $(LDFLAGS) -o build/tests/TestTabs$(A_EXT)
 
 build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Tabs.o build/Defines.o build/Utils.o build/StrUtils.o
 	@MakeInfo $(MILANG) program_s TestStrUtils
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o -flto -o build/tests/TestStrUtils$(A_EXT)
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o $(LDFLAGS) -o build/tests/TestStrUtils$(A_EXT)
 
 build/tests/TestInt$(A_EXT): build/tests/TestInt.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
 	@MakeInfo $(MILANG) program_s TestInt
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestInt.o -flto -o build/tests/TestInt$(A_EXT)
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestInt.o $(LDFLAGS) -o build/tests/TestInt$(A_EXT)
 
 build/tests/TestIntBig$(A_EXT): build/tests/TestIntBig.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
 	@MakeInfo $(MILANG) program_s TestIntBig
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestIntBig.o -flto -o build/tests/TestIntBig$(A_EXT) -lgmp -lgmpxx
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestIntBig.o $(LDFLAGS) -o build/tests/TestIntBig$(A_EXT) -lgmp -lgmpxx
 
 build/tests/TestIntBench$(A_EXT): build/tests/TestIntBench.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
 	@MakeInfo $(MILANG) program_s TestIntBench
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestIntBench.o -flto -o build/tests/TestIntBench$(A_EXT)
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestIntBench.o $(LDFLAGS) -o build/tests/TestIntBench$(A_EXT)
 
 build/tests/TestMath$(A_EXT): build/tests/TestMath.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
 	@MakeInfo $(MILANG) program_s TestMath
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o build/tests/TestMath.o -flto -o build/tests/TestMath$(A_EXT) -lgmp -lgmpxx
+	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o build/tests/TestMath.o $(LDFLAGS) -o build/tests/TestMath$(A_EXT) -lgmp -lgmpxx
 
