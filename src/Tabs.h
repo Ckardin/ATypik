@@ -123,7 +123,7 @@ template<class T>
 class Stack
 {
 public:
-    Stack();
+    Stack() = default;
     Stack(const Stack &s);
 
     T const& Top();
@@ -307,23 +307,16 @@ void Pair<U, V>::SetSecond(const V &s) {
 
 
 template<class T>
-/// @brief Stack - Constructeur
-///
-/// Constructeur de la classe Stack.
-Stack<T>::Stack() {
-    stack.Clear();
-}
-
-template<class T>
 /// @brief Stack - Constructeur de copie
 ///
 /// @param[in] s: Stack à copier
 ///
 /// Constructeur de copie de la classe Stack.
 Stack<T>::Stack(const Stack &s) {
-    stack.Clear();
+    const DWORD ns = s.stack.GetSize();
 
-    for (QWORD i = 0; i < s.stack.GetSize(); i = i + 1) stack[i] = s.stack[i];
+    stack.SetCapacity(ns, T{});
+    for (QWORD i = 0; i < ns; i = i + 1) stack[i] = s.stack[i];
 }
 
 template<class T>
@@ -337,7 +330,7 @@ T const& Stack<T>::Top() {
 template<class T>
 /// @brief Pop - Retire la valeur haute de la pile
 void Stack<T>::Pop() {
-    stack.Erase(stack.GetSize() - 1);
+    stack.PopBack();
 }
 
 template<class T>
@@ -345,7 +338,7 @@ template<class T>
 ///
 /// @param[in] v: valeur à ajouter
 void Stack<T>::Push(const T &v) {
-    stack[stack.GetSize()] = v;
+    stack.PushBack(v);
 }
 
 template<class T>
@@ -393,9 +386,9 @@ template<class T, DWORD s>
 ///
 /// @return La valeur contenue à t[idx] si existe ou dummy sinon.
 T const& STable<T, s>::GetValue(DWORD idx) {
-    static const T dummy{};
+    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
 
-    return (idx < s_tab) ? data[idx] : dummy;
+    return data[idx];
 }
 
 template<class T, DWORD s>
@@ -415,9 +408,9 @@ template<class T, DWORD s>
 ///
 /// @return Une référence sur la valeur contenue à t[idx] si existe, dummy sinon.
 T& STable<T, s>::operator[](DWORD idx) {
-    static T dummy{};
+    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
 
-    return (idx < s_tab) ? data[idx] : dummy;
+    return data[idx];
 }
 
 template<class T, DWORD s>
@@ -427,9 +420,9 @@ template<class T, DWORD s>
 ///
 /// @return Une référence constante sur la valeur contenue à t[idx] si existe, dummy sinon.
 T const& STable<T, s>::operator[](DWORD idx) const {
-    static const T dummy{};
+    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
 
-    return (idx < s_tab) ? data[idx] : dummy;
+    return data[idx];
 }
 
 template<class T, DWORD s>
@@ -519,9 +512,9 @@ template<class T>
 ///
 /// @return La valeur contenue à t[idx] si existe ou dummy sinon.
 T const& DTable<T>::GetValue(DWORD idx) {
-    static const T dummy{};
+    if (idx >= s_tab) throw std::out_of_range("DTable/GetValue(): [idx] is out of range");
 
-    return (idx < s_tab) ? data[idx] : dummy;
+    return data[idx];
 }
 
 template<class T>
@@ -583,6 +576,11 @@ void DTable<T>::Clear() {
 }
 
 template<class T>
+/// @brief PushBack - Ajoute un élément à la fin du tableau
+///
+/// @param[in] val: valeur à ajouter
+///
+/// @return True si réussi, false sinon.
 bool DTable<T>::PushBack(const T &val) {
     const DWORD ns = s_tab + 1;
 
@@ -608,6 +606,9 @@ bool DTable<T>::PushBack(const T &val) {
 }
 
 template<class T>
+/// @brief PopBack - Retourne et supprime le dernier élément
+///
+/// @return Le dernier élément du tableau.
 T DTable<T>::PopBack() {
     const T ret = data[s_tab - 1];
     s_tab -= 1;
@@ -633,7 +634,6 @@ template<class T>
 /// @return Une référence sur la valeur contenue à t[idx] si existe, un dummy sinon.
 T& DTable<T>::operator[](DWORD idx) {
     const DWORD i1 = idx + 1, ns = (s_tab > i1) ? s_tab : i1;
-    static T dummy{};
 
     if (idx >= c_tab) {
         const std::size_t s_byt = ns * sizeof(T);
@@ -641,7 +641,10 @@ T& DTable<T>::operator[](DWORD idx) {
         const DWORD ne = s_arr / sizeof(T);
 
         T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
-        if (!tmp) return dummy;
+        if (!tmp) {
+            c_tab = 0;
+            throw std::bad_alloc();
+        }
 
         for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = std::move(data[i]);
         for (DWORD i = s_tab; i < ns; i = i + 1) tmp[i] = T{};
@@ -664,9 +667,9 @@ template<class T>
 ///
 /// @return Une référence constante sur la valeur contenue à t[idx] si existe, un dummy sinon.
 T const& DTable<T>::operator[](DWORD idx) const {
-    static const T dummy{};
+    if (idx >= s_tab) throw std::out_of_range("DTable/operator[]: [idx] is out of range");
 
-    return (idx < s_tab) ? data[idx] : dummy;
+    return data[idx];
 }
 
 template<class T>
@@ -755,10 +758,10 @@ template<class K, class V>
 ///
 /// @return La valeur contenue à t[key] si existe ou dummy sinon.
 V const& MTable<K, V>::GetValue(K key) {
-    static const V dummy{};
     const DWORD vi = IsExist(key);
+    if (vi >= s_tab) throw std::out_of_range("MTable: [key] not exists");
 
-    return (vi < s_tab) ? values[vi] : dummy;
+    return values[vi];
 }
 
 template<class K, class V>
@@ -795,19 +798,19 @@ template<class K, class V>
 ///
 /// @return Une référence sur la valeur associée à idx si existe, dummy sinon.
 V& MTable<K, V>::operator[](K idx) {
-    static K dummyk{};
-    static V dummyv{};
-
     const DWORD vi = IsExist(idx), c1 = c_tab + 1;
 
     if (vi >= c_tab) {
         K* tmpk = new (std::nothrow) K[c1];
-        if (!tmpk) return dummyv;
+        if (!tmpk) {
+            c_tab = 0;
+            throw std::bad_alloc();
+        }
 
         V* tmpv = new (std::nothrow) V[c1];
         if (!tmpv) {
-            delete[] tmpk;
-            return dummyv;
+            delete[] tmpk; c_tab = 0;
+            throw std::bad_alloc();
         }
 
         for (QWORD i = 0; i < s_tab; i = i + 1) {
@@ -838,10 +841,10 @@ template<class K, class V>
 ///
 /// @return Une référence constante sur la valeur associée à idx si existe, dummy sinon.
 V const& MTable<K, V>::operator[](K key) const {
-    static const V dummy{};
     const DWORD vi = IsExist(key);
+    if (vi >= s_tab) throw std::out_of_range("MTable: [key] not exists");
 
-    return (vi < s_tab) ? values[vi] : dummy;
+    return values[vi];
 }
 
 template<class T, class V>

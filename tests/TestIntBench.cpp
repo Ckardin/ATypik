@@ -1,8 +1,9 @@
 #include <chrono>
 #include <iostream>
+#include <iomanip>
 #include "../src/Int.h"
 
-using Clock = std::chrono::high_resolution_clock;
+using Clock = std::chrono::steady_clock;
 using namespace Fenyx;
 
 template <typename F>
@@ -14,101 +15,205 @@ double TimeIt(F&& func) {
     return std::chrono::duration<double, std::micro>(end - start).count();
 }
 
-void BenchAdd(const Types::DWORD bits) {
+void BenchAdd(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
-    const Types::Int b = Types::Int::Random(bits, rdr);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits, rdr);
 
-    const double t = TimeIt([&]() { volatile Types::Int c = a + b; });
+        std::cout << "\rTest Add "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = a + b; });
+    }
 
-    std::cout << "Add " << bits << " bits: " << t << " us" <<std::endl;
+    mbt = mbt / ncnt;
+    std::cout << "\rAdd " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+              << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
 }
 
-void BenchSub(const Types::DWORD bits) {
+void BenchSub(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
-    const Types::Int b = Types::Int::Random(bits, rdr);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits, rdr);
 
-    const double t = TimeIt([&]() { volatile Types::Int c = a - b; });
+        std::cout << "\rTest Sub "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = a - b; });
+    }
 
-    std::cout << "Sub " << bits << " bits: " << t << " us" <<std::endl;
+    mbt = mbt / ncnt;
+    std::cout << "\rSub " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
 }
 
-void BenchMul(const Types::DWORD bits) {
+void BenchMul(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
-    const Types::Int b = Types::Int::Random(bits, rdr);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits, rdr);
 
-    const double t = TimeIt([&]() { volatile Types::Int c = a * b; });
+        std::cout << "\rTest Mul "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = a * b; });
+    }
 
-    std::cout << "Mul " << bits << " bits: " << t << " us" <<std::endl;
+    mbt = mbt / ncnt;
+    std::cout << "\rMul " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
 }
 
-void BenchSqr(const Types::DWORD bits) {
+void BenchSqr(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
 
-    const double t = TimeIt([&]() { volatile Types::Int c = Types::Int::Square(a); });
+        std::cout << "\rTest Sqr "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = Types::Int::Square(a); });
+    }
 
-    std::cout << "Sqr " << bits << " bits: " << t << " us" <<std::endl;
+    mbt = mbt / ncnt;
+    std::cout << "\rSqr " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
 }
 
-void BenchMgr(const Types::DWORD bits) {
+void BenchMgr(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00, mbt2 = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
-    const Types::Int b = Types::Int::Random(bits, rdr);
-    Types::Int n = Types::Int::Random(bits * 2, rdr);
-    if (n.IsEven()) n = n + Types::One;
-    const Types::Int mu = GetMu(n);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits, rdr);
+        Types::Int n = Types::Int::Random(bits * 2, rdr);
+        if (n.IsEven()) n = n + Types::One;
+        const Types::Int mu = GetMu(n);
 
-    const double t1 = TimeIt([&]() { volatile Types::Int c = MMul(a, b, n, mu); });
-    std::cout << "Mml " << bits << " bits: " << t1 << " us" <<std::endl;
+        std::cout << "\rTest Mml/Msq "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt  += TimeIt([&]() { volatile Types::Int c = MMul(a, b, n, mu); });
+        mbt2 += TimeIt([&]() { volatile Types::Int c = MSqr(a, n, mu); });
+    }
 
-    const double t2 = TimeIt([&]() { volatile Types::Int c = MSqr(a, n, mu); });
-    std::cout << "Msq " << bits << " bits: " << t2 << " us" <<std::endl;
+    mbt = mbt / ncnt; mbt2 = mbt2 / ncnt;
+    std::cout << "\rMml " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
+    std::cout << "Msq " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                        << std::setprecision(2) << mbt2 << " us" << std::string(25, ' ') <<std::endl;
 }
 
-void BenchDiv(const Types::DWORD bits) {
+void BenchDiv(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
-    const Types::Int b = Types::Int::Random(bits / 2, rdr);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits / 2, rdr);
 
-    const double t = TimeIt([&]() { volatile Types::Int c = a / b; });
+        std::cout << "\rTest Div "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = a / b; });
+    }
 
-    std::cout << "Div " << bits << " bits: " << t << " us" <<std::endl;
+    mbt = mbt / ncnt;
+    std::cout << "\rDiv " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
 }
 
-void BenchMod(const Types::DWORD bits) {
+void BenchMod(const Types::DWORD bits, const Types::WORD ncnt) {
     std::random_device rdr;
+    double mbt = 0.00;
 
-    const Types::Int a = Types::Int::Random(bits, rdr);
-    const Types::Int b = Types::Int::Random(bits / 2, rdr);
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits / 2, rdr);
 
-    const double t = TimeIt([&]() { volatile Types::Int c = a % b; });
+        std::cout << "\rTest Mod "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = a % b; });
+    }
 
-    std::cout << "Mod " << bits << " bits: " << t << " us" <<std::endl;
+    mbt = mbt / ncnt;
+    std::cout << "\rMod " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
+}
+
+void BenchLop(const Types::DWORD bits, const Types::WORD ncnt) {
+    std::random_device rdr;
+    double mbta = 0.00, mbto = 0.00, mbtx = 0.00;
+
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+        const Types::Int b = Types::Int::Random(bits / 2, rdr);
+
+        std::cout << "\rTest And/Or/Xor "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbta += TimeIt([&]() { volatile Types::Int c = a & b; });
+        mbto += TimeIt([&]() { volatile Types::Int c = a | b; });
+        mbtx += TimeIt([&]() { volatile Types::Int c = a ^ b; });
+    }
+
+    mbta = mbta / ncnt; mbto = mbto / ncnt; mbtx = mbtx / ncnt;
+    std::cout << "\rAnd " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbta << " us" << std::string(25, ' ') <<std::endl;
+    std::cout << "Ior " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                        << std::setprecision(2) << mbto << " us" << std::string(25, ' ') <<std::endl;
+    std::cout << "Xor " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                        << std::setprecision(2) << mbtx << " us" << std::string(25, ' ') <<std::endl;
 }
 
 int main() {
+    std::cout.setf(std::ios::unitbuf);
+    const Types::WORD cntb = 128;
+
     std::cout << "" <<std::endl;
     std::cout << "" <<std::endl;
     std::cout << "=== Benchmark pour Int ===" <<std::endl;
     std::cout << "" <<std::endl;
 
-    for (Types::DWORD bits : {128, 512, 1024, 2048, 4096, 8192, 16384}) {
-        BenchAdd(bits);
-        BenchSub(bits);
-        BenchMul(bits);
-        BenchSqr(bits);
-        BenchMgr(bits);
-        BenchDiv(bits);
-        BenchMod(bits);
+    for (Types::DWORD bits : {128, 256, 512, 1024, 2048, 4096, 8192, 16384}) {
+        BenchAdd(bits, cntb);
+        BenchSub(bits, cntb);
+        BenchLop(bits, cntb);
+        BenchMul(bits, cntb);
+        BenchSqr(bits, cntb);
+        BenchMgr(bits, cntb);
+        BenchDiv(bits, cntb);
+        BenchMod(bits, cntb);
+
+        std::cout << "" <<std::endl;
     }
 
     return 0;

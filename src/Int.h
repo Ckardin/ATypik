@@ -68,7 +68,7 @@ inline constexpr DWORD bs109 = 1000000000ULL;
 
 DWORD NextPow2(DWORD n);
 
-/// @brief Int - Classe qui permets la prise en charge de grands nombres entiers relatifs
+/// @brief Int - Classe qui permet la prise en charge de grands nombres entiers relatifs
 class Int
 {
 public:
@@ -132,8 +132,8 @@ public:
 	///	SI 0 neg => Soustraction avec plus grand, signe (-) si |A| < |B|, signe (+) sinon
 
 private:
-	static Int Add(const Int &A, const Int &B); // A OPTIMISER
-	static Int Sub(const Int &A, const Int &B); // A OPTIMISER
+	static Int Add(const Int &A, const Int &B);
+	static Int Sub(const Int &A, const Int &B);
 	static Int Mul(const Int &A, const Int &B);
 	static Int Sqr(const Int &A, bool sA, bool sB);
 	static Pair<Int, Int> Div(const Int &A, const Int &B);
@@ -184,6 +184,8 @@ friend bool operator<(const Int &A, const Int &B);
 friend bool operator>(const Int &A, const Int &B);
 friend bool operator<=(const Int &A, const Int &B);
 friend bool operator>=(const Int &A, const Int &B);
+
+friend std::ostream& operator<<(std::ostream &os, const Int &A);
 };
 
 extern const Int Zero;
