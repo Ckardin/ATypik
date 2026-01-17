@@ -186,6 +186,9 @@ public:
     void Erase(DWORD idx);
     void Clear();
 
+    bool PushBack(const T &val);
+    T PopBack();
+
     [[nodiscard]] bool IsEmpty() const;
 
     T& operator[](DWORD idx);
@@ -577,6 +580,39 @@ template<class T>
 /// Pas de réallocation mémoire, seule la taille est remise à 0.
 void DTable<T>::Clear() {
     s_tab = 0;
+}
+
+template<class T>
+bool DTable<T>::PushBack(const T &val) {
+    const DWORD ns = s_tab + 1;
+
+    if (c_tab <= ns) {
+        const std::size_t s_byt = ns * sizeof(T);
+        const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+        const DWORD ne = s_arr / sizeof(T);
+
+        T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
+        if (!tmp) return false;
+
+        for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = std::move(data[i]);
+        tmp[ns - 1] = T{};
+
+        data.reset(tmp);
+        c_tab = ne;
+    }
+
+    data[ns] = val;
+    s_tab = ns;
+
+    return true;
+}
+
+template<class T>
+T DTable<T>::PopBack() {
+    const T ret = data[s_tab - 1];
+    s_tab -= 1;
+
+    return ret;
 }
 
 template<class T>
