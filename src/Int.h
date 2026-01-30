@@ -143,6 +143,7 @@ private:
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
+	static Pair<Int, Int> LongDiv(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
 
@@ -184,8 +185,6 @@ friend bool operator<(const Int &A, const Int &B);
 friend bool operator>(const Int &A, const Int &B);
 friend bool operator<=(const Int &A, const Int &B);
 friend bool operator>=(const Int &A, const Int &B);
-
-friend std::ostream& operator<<(std::ostream &os, const Int &A);
 };
 
 extern const Int Zero;
@@ -203,7 +202,7 @@ Int Int::Random(const DWORD bits, Rdr&& rdr) {
 	DWORD mask;
 	Int ret;
 
-	ret.v.SetCapacity(w, 0);
+	ret.v.SetSize(w, 0);
 	for (QWORD i = 0; i < w; i = i + 1) ret.v[i] = static_cast<DWORD>(std::invoke(rdr));
 
 	const DWORD excess = (w * 32) - bits;
@@ -220,56 +219,60 @@ Int Int::Random(const DWORD bits, Rdr&& rdr) {
 
 template<typename BOp, typename FOp>
 Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB, nm = (n == nA) ? nB : nA;
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB;
 	Int ret;
 
-	ret.v.SetCapacity(n, 0);
+#if defined(__AVX2__)
+	constexpr DWORD s = 8;
+	__m256i simd_a, simd_b;
+#elif defined(__SSE2__) || defined(__ARM_NEON)
+	constexpr DWORD s = 4;
+
+	#if defined(__SSE2__)
+		__m128i simd_a, simd_b;
+	#else
+		uint32x4_t simd_a, simd_b;
+	#endif
+#else
+	constexpr DWORD s = 1;
+#endif
+
+	constexpr DWORD s1 = s - 1;
+	ret.v.SetSize(n, 0);
+	DWORD va, vb;
+
+	DWORD *r = ret.v.GetPtr(), i = 0;
+	alignas(s * 4) DWORD a[s], b[s];
 
 #if defined(__AVX2__) || defined(__SSE2__) || defined(__ARM_NEON)
-	DWORD* a = A.v.GetPtr();
-	DWORD* b = B.v.GetPtr();
-	DWORD* r = ret.v.GetPtr();
-#endif
+	for(; (i + s1) < n; i = i + s) {
+		for (QWORD j = 0; j < s; j = j + 1) {
+			a[j] = ((i + j) < nA) ? A.v[i + j] : 0;
+			b[j] = ((i + j) < nB) ? B.v[i + j] : 0;
+		}
 
 #if defined(__AVX2__)
-	const DWORD fif = (nm & ~7);
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	__m256i simd_a, simd_b, simd_r;
-
-	for (DWORD i = 0; i < fif; i += 8) {
-		simd_a = _mm256_load_si256(reinterpret_cast<__m256i*>(a + i));
-		simd_b = _mm256_load_si256(reinterpret_cast<__m256i*>(b + i));
-		simd_r = bop(simd_a, simd_b);
-		_mm256_store_si256(reinterpret_cast<__m256i*>(r + i), simd_r);
-	}
+		simd_a = _mm256_load_si256(reinterpret_cast<__m256i*>(a));
+		simd_b = _mm256_load_si256(reinterpret_cast<__m256i*>(b));
+		_mm256_store_si256(reinterpret_cast<__m256i*>(r + i), bop(simd_a, simd_b));
 #elif defined(__SSE2__)
-	const DWORD fif = (nm & ~3);
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	__m128i simd_a, simd_b, simd_r;
-
-	for (DWORD i = 0; i < fif; i += 4) {
-		simd_a = _mm_load_si128(reinterpret_cast<__m128i*>(a + i));
-		simd_b = _mm_load_si128(reinterpret_cast<__m128i*>(b + i));
-		simd_r = bop(simd_a, simd_b);
-		_mm_store_si128(reinterpret_cast<__m128i*>(r + i), simd_r);
-	}
+		simd_a = _mm_load_si128(reinterpret_cast<__m128i*>(a));
+		simd_b = _mm_load_si128(reinterpret_cast<__m128i*>(b));
+		_mm_store_si128(reinterpret_cast<__m128i*>(r + i), bop(simd_a, simd_b));
 #elif defined(__ARM_NEON)
-	const DWORD fif = (nm & ~3);
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	uint32x4_t simd_a, simd_b, simd_r;
-
-	for (DWORD i = 0; i < fif; i = i + 4) {
-		simd_a = vld1q_u32(a + i);
-		simd_b = vld1q_u32(b + i);
-		simd_r = bop(simd_a, simd_b);
-		vst1q_u32(r + i, simd_r);
+		simd_a = vld1q_u32(a);
+		simd_b = vld1q_u32(b);
+		vst1q_u32(r + i, bop(simd_a, simd_b));
+#endif
 	}
-#else
-	const DWORD fif = nm;
-	for (DWORD i = 0; i < fif; i = i + 1) ret.v[i] = bop(A.v[i], B.v[i]);
 #endif
 
-	for (QWORD i = nm; i < n; i = i + 1) ret.v[i] = fop(A, B, i);
+	for (; i < n; i = i + 1) {
+		va = (i < nA) ? A.v[i] : 0;
+		vb = (i < nB) ? B.v[i] : 0;
+
+		r[i] = fop(va, vb);
+	}
 
 	ret.Normalize();
 	return ret;

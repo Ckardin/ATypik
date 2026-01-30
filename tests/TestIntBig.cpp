@@ -23,24 +23,51 @@ struct DivergCount {
 
 const WORD sz[] = { 128, 256, 512, 1024, 2048, 4096, 8192, 16384 };
 
+void PrintRawVar(const mpz_class &gv, const Int &mv) {
+    DWORD tgv[1024];
+    size_t cgv;
+
+    mpz_export(tgv, &cgv, -1, sizeof(DWORD), 0, 0, gv.get_mpz_t());
+    DTable<DWORD> tmv = mv.GetTab();
+
+    const size_t cgv1 = cgv - 1;
+    const DWORD smv   = tmv.GetSize(), smv1 = smv - 1;
+
+    std::cout << "" <<std::endl;
+    std::cout << "Tab GMP: [ ";
+    for (size_t i = 0; i < cgv; i = i + 1) {
+        std::cout << tgv[i];
+        if (i != cgv1) std::cout << ", ";
+    }
+    std::cout << " ]" << std::endl;
+
+    std::cout << "" <<std::endl;
+    std::cout << "Tab Moi: [ ";
+    for (size_t i = 0; i < smv; i = i + 1) {
+        std::cout << tmv[i];
+        if (i != smv1) std::cout << ", ";
+    }
+    std::cout << " ]" << std::endl;
+}
+
 std::string GetDivergSizes(const std::string &op, const STable<DivergCount, 8> &tdg) {
     std::string ret = "(";
     WORD count = 0;
 
     for (WORD i = 0; i < 8; i = i + 1) {
-        if (op == "add")      count = tdg[i].add;
-        else if (op == "sub") count = tdg[i].sub;
-        else if (op == "mul") count = tdg[i].mul;
-        else if (op == "sqr") count = tdg[i].sqr;
-        else if (op == "mgr") count = tdg[i].mgr;
-        else if (op == "sgr") count = tdg[i].sgr;
-        else if (op == "div") count = tdg[i].div;
-        else if (op == "mod") count = tdg[i].mod;
-        else if (op == "lsh") count = tdg[i].lsh;
-        else if (op == "rsh") count = tdg[i].rsh;
-        else if (op == "aop") count = tdg[i].aop;
-        else if (op == "oop") count = tdg[i].oop;
-        else if (op == "xop") count = tdg[i].xop;
+        if (op == "Add")      count = tdg[i].add;
+        else if (op == "Sub") count = tdg[i].sub;
+        else if (op == "Mul") count = tdg[i].mul;
+        else if (op == "Sqr") count = tdg[i].sqr;
+        else if (op == "Mgr") count = tdg[i].mgr;
+        else if (op == "Sgr") count = tdg[i].sgr;
+        else if (op == "Div") count = tdg[i].div;
+        else if (op == "Mod") count = tdg[i].mod;
+        else if (op == "Lsh") count = tdg[i].lsh;
+        else if (op == "Rsh") count = tdg[i].rsh;
+        else if (op == "And") count = tdg[i].aop;
+        else if (op == "Ior") count = tdg[i].oop;
+        else if (op == "Xor") count = tdg[i].xop;
 
         if (count != 0) ret += toString(sz[i]);
         if (i != 7 && count != 0) ret += ", ";
@@ -92,13 +119,13 @@ void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, co
     mpz_fdiv_q_2exp(c.get_mpz_t(), gmpA.get_mpz_t(), tB.GetL64()); diff = c - mpz_class((A >> tB.GetL64()).GetStr());
     if (diff != 0) dc.rsh++;
 
-    mpz_and(c.get_mpz_t(), gmpA.get_mpz_t(), gmpB.get_mpz_t()); diff = c - mpz_class((A & B).GetStr());
+    mpz_and(c.get_mpz_t(), gmp2A.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class((A2 & B2).GetStr());
     if (diff != 0) dc.aop++;
 
-    mpz_ior(c.get_mpz_t(), gmpA.get_mpz_t(), gmpB.get_mpz_t()); diff = c - mpz_class((A | B).GetStr());
+    mpz_ior(c.get_mpz_t(), gmp2A.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class((A2 | B2).GetStr());
     if (diff != 0) dc.oop++;
 
-    mpz_xor(c.get_mpz_t(), gmpA.get_mpz_t(), gmpB.get_mpz_t()); diff = c - mpz_class((A ^ B).GetStr());
+    mpz_xor(c.get_mpz_t(), gmp2A.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class((A2 ^ B2).GetStr());
     if (diff != 0) dc.xop++;
 }
 
@@ -112,6 +139,7 @@ void PrintResult(const std::string &op, const WORD count, const STable<DivergCou
 }
 
 int main() {
+    const DWORD cntt = 128;
     STable<DivergCount, 8> tDiverg;
     std::random_device rd;
 
@@ -121,7 +149,7 @@ int main() {
     std::cout << "" <<std::endl;
 
     for (WORD i = 0; i < 8; i = i + 1) {
-        for (WORD j = 0; j < 256; j = j + 1) {
+        for (WORD j = 0; j < cntt; j = j + 1) {
             Int A = Int::Random(sz[i], rd);
             Int B = Int::Random(sz[i] / 2, rd);
             Int N = Int::Random(sz[i] * 2, rd);
@@ -129,12 +157,12 @@ int main() {
 
             A = (rd() % 2) ? A : A.GetOpposite();
             B = (rd() % 2) ? B : B.GetOpposite();
-            if (B.IsZero()) B = Int{1};
+            if (B.IsZero()) B = One;
 
             std::cout << "\rTest "
-                      << std::setw(3) << j + 1 << " / 256 ("
+                      << std::setw(3) << j + 1 << " / " << cntt << " ("
                       << std::setw(5) << sz[i] << " bits)"
-                      << std::string(20, ' ') // Espaces supplémentaires pour effacer les résidus
+                      << std::string(20, ' ')
                       << std::flush;
             TestOperators(A, B, N, tDiverg[i], sz[i]);
         }
@@ -168,9 +196,9 @@ int main() {
     PrintResult("Mod", fcnt.mod, tDiverg);
     PrintResult("Lsh", fcnt.lsh, tDiverg);
     PrintResult("Rsh", fcnt.rsh, tDiverg);
-    PrintResult("And", fcnt.rsh, tDiverg);
-    PrintResult("Ior", fcnt.rsh, tDiverg);
-    PrintResult("Xor", fcnt.rsh, tDiverg);
+    PrintResult("And", fcnt.aop, tDiverg);
+    PrintResult("Ior", fcnt.oop, tDiverg);
+    PrintResult("Xor", fcnt.xop, tDiverg);
 
     return 0;
 }

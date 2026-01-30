@@ -71,7 +71,6 @@ int main() {
 
 	if (Fenyx::Types::Pow(a, b) != 65536) {
 		std::cout << "Test Math => KO (Pow)" <<std::endl;
-		std::cout << Fenyx::Types::Pow(a, b) <<std::endl;
 		return -2;
 	}
 
@@ -86,7 +85,7 @@ int main() {
 	}
 
 	if (Fenyx::Types::PowM(a, b, m, mu) != 1) {
-		std::cout << "Test Math => KO (Exponent-Pow): " << Fenyx::Types::PowM(a, b, m, mu) <<std::endl;
+		std::cout << "Test Math => KO (Exponent-Pow)" <<std::endl;
 		return -5;
 	}
 

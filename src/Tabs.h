@@ -178,15 +178,16 @@ class DTable
 public:
     explicit DTable();
     DTable(DTable&& oth) noexcept;
+    DTable(const DTable &oth);
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] T const& GetValue(DWORD idx);
     [[nodiscard]] T* GetPtr() const;
-    bool SetCapacity(DWORD cap, T val);
+    void SetSize(DWORD siz, T val);
     void Erase(DWORD idx);
     void Clear();
 
-    bool PushBack(const T &val);
+    void PushBack(const T &val);
     T PopBack();
 
     [[nodiscard]] bool IsEmpty() const;
@@ -194,6 +195,7 @@ public:
     T& operator[](DWORD idx);
     T const& operator[](DWORD idx) const;
     DTable& operator=(DTable&& oth) noexcept;
+    DTable& operator=(const DTable& oth);
 
     ~DTable() = default;
 
@@ -201,7 +203,7 @@ private:
     std::unique_ptr<T[], decltype(&std::free)> data;
 
     DWORD s_tab;
-    DWORD c_tab;
+    DWORD ne;
 
 friend bool operator==<T>(const DTable<T> &t1, const DTable<T> &t2);
 friend bool operator!=<T>(const DTable<T> &t1, const DTable<T> &t2);
@@ -480,13 +482,16 @@ template<class T>
 /// @brief DTable - Constructeur
 ///
 /// Constructeur par défaut de la classe DTable.
-DTable<T>::DTable() : data(nullptr, &std::free), s_tab(0), c_tab(2) {
+DTable<T>::DTable() : data(nullptr, &std::free), s_tab(0), ne(0) {
     const std::size_t s_byt = 2 * sizeof(T);
     const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+    ne                      = s_arr / sizeof(T);
 
-    data.reset(static_cast<T*>(std::aligned_alloc(32, s_arr)));
+    T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
+    if (!tmp) throw std::bad_alloc();
 
-    if (!data) c_tab = 0;
+    data.reset(tmp);
+    s_tab = 0;
 }
 
 template<class T>
@@ -495,7 +500,33 @@ template<class T>
 /// @param[in] oth: DTable à déplacer
 ///
 /// Constructeur de déplacement de la classe DTable
-DTable<T>::DTable(DTable&& oth) noexcept : data(std::move(oth.data)), s_tab(oth.s_tab), c_tab(oth.c_tab) {}
+DTable<T>::DTable(DTable&& oth) noexcept : data(std::move(oth.data)), s_tab(oth.s_tab), ne(oth.ne) {
+    oth.data.reset();
+    oth.s_tab = 0;
+    oth.ne    = 0;
+}
+
+template<class T>
+/// @brief DTable - Constructeur de copie
+///
+/// @param[in] oth: DTable à copier
+///
+/// Constructeur de copie de la classe DTable
+DTable<T>::DTable(const DTable& oth) : data(nullptr, &std::free), s_tab(0), ne(0) {
+    const DWORD ns = (oth.s_tab > 0) ? oth.s_tab : 2;
+
+    const std::size_t s_byt = ns * sizeof(T);
+    const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+    ne                      = s_arr / sizeof(T);
+
+    T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
+    if (!tmp) throw std::bad_alloc();
+    data.reset(tmp);
+
+    for (QWORD i = 0; i < oth.s_tab; i = i + 1) data[i] = oth.data[i];
+
+    s_tab = oth.s_tab;
+}
 
 template<class T>
 /// @brief GetSize - Donne la taille du tableau
@@ -522,35 +553,37 @@ template<class T>
 ///
 /// @return Le pointeur brut du tableau si réussi, nullptr sinon.
 T* DTable<T>::GetPtr() const {
-    if (c_tab == 0) return nullptr;
-
     return data.get();
 }
 
 template<class T>
-/// @brief SetCapacity - Pré-alloue une certaine taille
+/// @brief SetSize - Pré-alloue au minimum une certaine taille
 ///
-/// @param cap: capacité du tableau à pré-allouer
+/// @param siz: nouvelle taille du tableau
 /// @param val: valeur à écrire sur la nouvelle taille
-///
-/// @return True si réussi, false sinon.
-bool DTable<T>::SetCapacity(const DWORD cap, T val) {
-    if (cap <= c_tab) return true;
+void DTable<T>::SetSize(const DWORD siz, T val) {
+    bool ral = true;
 
-    const std::size_t s_byt = cap * sizeof(T);
-    const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
-    const DWORD ne = s_arr / sizeof(T);
+    if (siz <= ne) {
+        for (QWORD i = s_tab; i < siz; i = i + 1) data[i] = val;
+        ral = false;
+    }
 
-    T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
-    if (!tmp) return false;
+    if (ral) {
+        const std::size_t s_byt = siz * sizeof(T);
+        const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+        ne                      = s_arr / sizeof(T);
 
-    for (QWORD i = 0; i < s_tab; i = i + 1)   tmp[i] = std::move(data[i]);
-    for (DWORD i = s_tab; i < cap; i = i + 1) tmp[i] = val;
+        T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
+        if (!tmp) throw std::bad_alloc();
 
-    data.reset(tmp);
-    c_tab = ne;
+        for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = data[i];
+        for (DWORD i = s_tab; i < ne; i = i + 1) tmp[i] = val;
 
-    return true;
+        data.reset(tmp);
+    }
+
+    s_tab = siz;
 }
 
 template<class T>
@@ -563,7 +596,7 @@ void DTable<T>::Erase(const DWORD idx) {
     const DWORD ns = s_tab - 1;
     if (idx >= s_tab) return;
 
-    for (QWORD i = idx; i < ns; i = i + 1) data[i] = std::move(data[i + 1]);
+    for (QWORD i = idx; i < ns; i = i + 1) data[i] = data[i + 1];
     s_tab -= 1;
 }
 
@@ -579,30 +612,24 @@ template<class T>
 /// @brief PushBack - Ajoute un élément à la fin du tableau
 ///
 /// @param[in] val: valeur à ajouter
-///
-/// @return True si réussi, false sinon.
-bool DTable<T>::PushBack(const T &val) {
+void DTable<T>::PushBack(const T &val) {
     const DWORD ns = s_tab + 1;
 
-    if (c_tab <= ns) {
+    if (ns > ne) {
         const std::size_t s_byt = ns * sizeof(T);
         const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
-        const DWORD ne = s_arr / sizeof(T);
+        ne                      = s_arr / sizeof(T);
 
         T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
-        if (!tmp) return false;
+        if (!tmp) throw std::bad_alloc();
 
-        for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = std::move(data[i]);
-        tmp[ns - 1] = T{};
+        for (QWORD i = 0; i < s_tab; i = i + 1) tmp[i] = data[i];
 
         data.reset(tmp);
-        c_tab = ne;
     }
 
-    data[ns] = val;
+    data[ns - 1] = val;
     s_tab = ns;
-
-    return true;
 }
 
 template<class T>
@@ -610,6 +637,8 @@ template<class T>
 ///
 /// @return Le dernier élément du tableau.
 T DTable<T>::PopBack() {
+    if (s_tab == 0) throw std::runtime_error("PopBack when empty");
+
     const T ret = data[s_tab - 1];
     s_tab -= 1;
 
@@ -631,26 +660,21 @@ template<class T>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence sur la valeur contenue à t[idx] si existe, un dummy sinon.
+/// @return Une référence sur t[idx].
 T& DTable<T>::operator[](DWORD idx) {
-    const DWORD i1 = idx + 1, ns = (s_tab > i1) ? s_tab : i1;
+    const DWORD i1 = idx + 1;
 
-    if (idx >= c_tab) {
-        const std::size_t s_byt = ns * sizeof(T);
+    if (i1 > ne) {
+        const std::size_t s_byt = i1 * sizeof(T);
         const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
-        const DWORD ne = s_arr / sizeof(T);
+        ne                      = s_arr / sizeof(T);
 
         T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
-        if (!tmp) {
-            c_tab = 0;
-            throw std::bad_alloc();
-        }
+        if (!tmp) throw std::bad_alloc();
 
-        for (QWORD i = 0; i < s_tab; i = i + 1)  tmp[i] = std::move(data[i]);
-        for (DWORD i = s_tab; i < ns; i = i + 1) tmp[i] = T{};
+        for (QWORD i = 0; i < s_tab; i = i + 1) tmp[i] = data[i];
 
         data.reset(tmp);
-        c_tab = ne;
     }
 
     if (idx >= s_tab) s_tab = i1;
@@ -665,7 +689,7 @@ template<class T>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence constante sur la valeur contenue à t[idx] si existe, un dummy sinon.
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& DTable<T>::operator[](DWORD idx) const {
     if (idx >= s_tab) throw std::out_of_range("DTable/operator[]: [idx] is out of range");
 
@@ -682,7 +706,31 @@ DTable<T>& DTable<T>::operator=(DTable&& oth) noexcept {
     if (this != &oth) {
         data  = std::move(oth.data);
         s_tab = oth.s_tab;
-        c_tab = oth.c_tab;
+        ne    = oth.ne;
+
+        oth.data.reset();
+        oth.s_tab = 0;
+        oth.ne    = 0;
+    }
+
+    return *this;
+}
+
+template<class T>
+DTable<T>& DTable<T>::operator=(const DTable& oth) {
+    if (this != &oth) {
+        const DWORD ns = (oth.s_tab > 0) ? oth.s_tab : 2;
+
+        const std::size_t s_byt = ns * sizeof(T);
+        const std::size_t s_arr = ((s_byt + 31) / 32) * 32;
+        ne                      = s_arr / sizeof(T);
+
+        T* tmp = static_cast<T*>(std::aligned_alloc(32, s_arr));
+        if (!tmp) throw std::bad_alloc();
+        data.reset(tmp);
+
+        for (QWORD i = 0; i < oth.s_tab; i = i + 1) data[i] = oth.data[i];
+        s_tab = oth.s_tab;
     }
 
     return *this;
