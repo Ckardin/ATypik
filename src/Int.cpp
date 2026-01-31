@@ -56,6 +56,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @date 19/12/2025
 
 #include "Int.h"
+#include <iostream>
+#include <cassert>
 
 namespace Fenyx::Types
 {
@@ -69,7 +71,7 @@ const Int sl2   = One << 64;
 ///
 /// @param n: nombre de départ
 ///
-/// @return La prochaine puissance de supérieure ou égale à n.
+/// @return La prochaine puissance de 2 supérieure ou égale à n.
 DWORD NextPow2(DWORD n) {
 	if (n == 0) return 1;
 
@@ -419,7 +421,7 @@ Int Int::Square(const Int& A) {
 ///
 /// @return True si [A] == [B], false sinon.
 ///
-/// /!\ Comparaison en temps constant, ne s'arrête pas dès qu'une différence est trouvée.
+/// /!\ Comparaison en temps constant, ne s'arrête pas quand une différence est trouvée.
 bool Int::CTComp(const Int& A, const Int& B) {
 	const DWORD n = A.v.GetSize(), m = B.v.GetSize(), ps = (n <= m) ? m : n;
 	DWORD diff = 0, a, b;
@@ -749,22 +751,21 @@ Int Int::Sub(const Int &A, const Int &B) {
 Int Int::Mul(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
 
-	if (const DWORD n = (nA > nB) ? nA : nB; n <= 64) return LongMul(A, B);
+	if (nA == 1) return SmallMul(B, A.v[0]);
+	if (nB == 1) return SmallMul(A, B.v[0]);
+
+	if (const DWORD n = (nA > nB) ? nA : nB; n <= MULLIMIT) return LongMul(A, B);
 	return Karatsuba(A, B);
 }
 
 Int Int::Sqr(const Int &A, const bool sA, const bool sB) {
 	const DWORD nA = A.v.GetSize();
-	Int tA, ret;
+	Int ret;
 
-	tA.v.SetSize(A.v.GetSize(), 0);
 	ret.v.SetSize(2 * nA, 0);
 
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	tA.sign = true;
-
-	if (nA <= 64) ret = LongSqr(tA);
-	else          ret = KaratsubaSqr(tA);
+	if (nA <= MULLIMIT) ret = LongSqr(A);
+	else                ret = KaratsubaSqr(A);
 
 	ret.sign = (sA == sB);
 
@@ -827,7 +828,7 @@ Int Int::KaratsubaSqr(const Int &A) {
 	const DWORD n = A.v.GetSize();
 	const DWORD m = (n + 1) / 2;
 
-	if (n <= 64) return LongSqr(A);
+	if (n <= MULLIMIT) return LongSqr(A);
 
 	const Int A0 = A.Slice(0, m).ExtByZero(m);
 	const Int A1 = A.Slice(m, A.v.GetSize() - m);
@@ -888,7 +889,7 @@ Int Int::Karatsuba(const Int &A, const Int &B) {
 	const DWORD n = (A.v.GetSize() > B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize();
 	const DWORD m = (n + 1) / 2;
 
-	if (n <= 64) return LongMul(A, B);
+	if (n <= MULLIMIT) return LongMul(A, B);
 
 	Int A0 = A.Slice(0, m).ExtByZero(m);
 	Int A1 = A.Slice(m, A.v.GetSize() - m);
@@ -1479,24 +1480,6 @@ Int operator&(const Int &A, const Int &B) {
 		return (a & b);
 	});
 }
-
-/*
-Int operator&(const Int &A, const Int &B) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB;
-	DWORD a, b;
-	Int ret;
-
-	ret.v.SetSize(n, 0);
-	for (QWORD i = 0; i < n; i = i + 1) {
-		a = (i < nA) ? A.v[i] : 0; b = (i < nB) ? B.v[i] : 0;
-		ret.v[i] = a & b;
-	}
-
-	ret.Normalize();
-	return ret;
-}
-*/
-
 
 /// @brief operator| - Opérateur OU logique
 ///

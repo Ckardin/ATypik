@@ -61,6 +61,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #include <functional>
 #include "StrUtils.h"
 
+#define MULLIMIT 64
+
 namespace Fenyx::Types
 {
 
@@ -144,7 +146,6 @@ private:
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
-	static Pair<Int, Int> LongDiv(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
 
@@ -220,32 +221,17 @@ Int Int::Random(const DWORD bits, Rdr&& rdr) {
 
 template<typename BOp, typename FOp>
 Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB;
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), m = (nA < nB) ? nA : nB, n = (nA >= nB) ? nA : nB;
 	Int ret;
-
-	void *p1 = nullptr, *p2 = nullptr;
-	p1 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
-	p2 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
-
-	if (p1 == nullptr || p2 == nullptr) throw std::bad_alloc();
-
-	auto *a = static_cast<DWORD*>(p1);
-	auto *b = static_cast<DWORD*>(p2);
 
 	const DWORD s1 = CPU::CPU_ALIGN - 1;
 	ret.v.SetSize(n, 0);
 
 	// ReSharper disable two CppJoinDeclarationAndAssignment
 	DWORD *r = ret.v.GetPtr(), i = 0, va, vb;
+	DWORD *a = A.v.GetPtr(), *b = B.v.GetPtr();
 
-	for(; (i + s1) < n; i = i + CPU::CPU_ALIGN) {
-		for (QWORD j = 0; j < CPU::CPU_ALIGN; j = j + 1) {
-			a[j] = ((i + j) < nA) ? A.v[i + j] : 0;
-			b[j] = ((i + j) < nB) ? B.v[i + j] : 0;
-		}
-
-		bop(a, b, r, i);
-	}
+	for(; (i + s1) < m; i = i + CPU::CPU_ALIGN) bop(&a[i], &b[i], r, i);
 
 	for (; i < n; i = i + 1) {
 		va = (i < nA) ? A.v[i] : 0;
@@ -253,8 +239,6 @@ Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
 
 		r[i] = fop(va, vb);
 	}
-
-	std::free(p1); std::free(p2);
 
 	ret.Normalize();
 	return ret;
