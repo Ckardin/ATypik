@@ -52,7 +52,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Int.cpp
 /// @brief Source de Int
 /// @author F&nµx
-/// @version 4.1
+/// @version 6.0
 /// @date 19/12/2025
 
 #include "Int.h"
@@ -332,14 +332,14 @@ QWORD Int::BitLength() const {
 	if (ns == 0)              return 0;
 	if (ns == 1 && v[0] == 0) return 0;
 
-	return (32 * (ns - 1)) + (32 - cntlz(v[ns - 1]));
+	return (32 * (ns - 1)) + (32 - CPU::cntlz(v[ns - 1]));
 }
 
 Bit Int::GetBit(const QWORD n) const {
 	const DWORD ns = v.GetSize();
 	const QWORD nbl = n / 32, nbb = n % 32;
 
-	if (const QWORD nb = (32 * (ns - 1)) - cntlz(v[ns - 1]); n >= nb) return {};
+	if (const QWORD nb = (32 * (ns - 1)) - CPU::cntlz(v[ns - 1]); n >= nb) return {};
 	const DWORD x = v[nbl];
 
 	return Bit((x >> nbb) & 1u);
@@ -349,7 +349,7 @@ void Int::SetBit(const QWORD n, const Bit &b) {
 	const DWORD ns = v.GetSize();
 	const QWORD nbl = n / 32, nbb = n % 32;
 
-	if (const QWORD nb = (32 * (ns - 1)) - cntlz(v[ns - 1]); n < nb) {
+	if (const QWORD nb = (32 * (ns - 1)) - CPU::cntlz(v[ns - 1]); n < nb) {
 		const DWORD x = v[nbl];
 		v[nbl] = ((x & ~(1u << nbb)) | (static_cast<DWORD>(b.GetValue()) << nbb));
 	}
@@ -367,7 +367,7 @@ DWORD Int::TrailZero() const {
 		c = v[i];
 
 		if (c != 0) {
-			ret += cnttz(c);
+			ret += CPU::cnttz(c);
 			break;
 		}
 
@@ -719,7 +719,7 @@ Int Int::Add(const Int &A, const Int &B) {
 		a = (i < nA) ? A.v[i] : 0;
 		b = (i < nB) ? B.v[i] : 0;
 
-		carry = addwc(a, b, carry, ret.v[i]);
+		carry = CPU::addwc(a, b, carry, ret.v[i]);
 	}
 
 	if (carry) ret.v[n] = static_cast<DWORD>(carry);
@@ -739,7 +739,7 @@ Int Int::Sub(const Int &A, const Int &B) {
 
 	for (QWORD i = 0; i < nA; i = i + 1) {
 		b = (i < nB) ? B.v[i] : 0;
-		borrow = subwb(A.v[i], b, borrow, ret.v[i]);
+		borrow = CPU::subwb(A.v[i], b, borrow, ret.v[i]);
 	}
 
 	ret.Normalize();
@@ -963,7 +963,7 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 } // OPTIMISATION IA => Super algo, je ne connaissais pas :)
 
 Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B) {
-	const DWORD n = B.v.GetSize(), lz = cntlz(B.v[n - 1]);
+	const DWORD n = B.v.GetSize(), lz = CPU::cntlz(B.v[n - 1]);
 	Int Q, R, Bq, tA(A.BLShift(lz)), tB(B.BLShift(lz));
 	const DWORD m = tA.v.GetSize() - n, m1 = m + 1, nn1 = n - 1, nn2 = n - 2, mn2 = m + n + 2;
 	QWORD num, d, qest, rest;
@@ -1473,20 +1473,14 @@ Int operator>>(const Int &A, const DWORD b) {
 ///
 /// @return Le résultat de l'opération binaire [A] & [B].
 Int operator&(const Int &A, const Int &B) {
-	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
-#if defined(__AVX2__)
-		return _mm256_and_si256(x, y);
-#elif defined(__SSE2__)
-		return _mm_and_si128(x, y);
-#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
-		return vandq_u32(x, y);
-#endif
+	return Int::VectBinOp(A, B, [](DWORD *x, DWORD *y, DWORD *r, const DWORD idx) -> void {
+		CPU::and_op(x, y, r, idx);
 	}, [](const DWORD a, const DWORD b) -> DWORD {
 		return (a & b);
 	});
 }
 
-	/*
+/*
 Int operator&(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB;
 	DWORD a, b;
@@ -1511,14 +1505,8 @@ Int operator&(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de l'opération binaire [A] | [B].
 Int operator|(const Int &A, const Int &B) {
-	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
-#if defined(__AVX2__)
-		return _mm256_or_si256(x, y);
-#elif defined(__SSE2__)
-		return _mm_or_si128(x, y);
-#elif defined(__ARM_NEON)
-		return vorrq_u32(x, y);
-#endif
+	return Int::VectBinOp(A, B, [](DWORD *x, DWORD *y, DWORD *r, const DWORD idx) -> void {
+		CPU::ior_op(x, y, r, idx);
 	}, [](const DWORD a, const DWORD b) -> DWORD {
 		return (a | b);
 	});
@@ -1531,14 +1519,8 @@ Int operator|(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de l'opération binaire [A] ^ [B].
 Int operator^(const Int &A, const Int &B) {
-	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
-#if defined(__AVX2__)
-		return _mm256_xor_si256(x, y);
-#elif defined(__SSE2__)
-		return _mm_xor_si128(x, y);
-#elif defined(__ARM_NEON)
-		return veorq_u32(x, y);
-#endif
+	return Int::VectBinOp(A, B, [](DWORD *x, DWORD *y, DWORD *r, const DWORD idx) -> void {
+		CPU::xor_op(x, y, r, idx);
 	}, [](const DWORD a, const DWORD b) -> DWORD {
 		return (a ^ b);
 	});

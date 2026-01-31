@@ -52,7 +52,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Int.h
 /// @brief Header de Int
 /// @author F&nµx
-/// @version 4.1
+/// @version 6.0
 /// @date 19/12/2025
 
 #ifndef INT_H
@@ -222,50 +222,34 @@ Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB;
 	Int ret;
 
-#if defined(__AVX2__)
-	constexpr DWORD s = 8;
-	__m256i simd_a, simd_b;
-#elif defined(__SSE2__) || defined(__ARM_NEON)
-	constexpr DWORD s = 4;
+	void *p1 = nullptr, *p2 = nullptr;
 
-	#if defined(__SSE2__)
-		__m128i simd_a, simd_b;
-	#else
-		uint32x4_t simd_a, simd_b;
-	#endif
-#else
-	constexpr DWORD s = 1;
-#endif
+	if (CPU::CPU_ALIGN != 1) {
+		p1 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
+		p2 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
+	} else {
+		p1 = new DWORD; p2 = new DWORD;
+	}
 
-	constexpr DWORD s1 = s - 1;
+	if (p1 == nullptr || p2 == nullptr) throw std::bad_alloc();
+
+	auto *a = static_cast<DWORD*>(p1);
+	auto *b = static_cast<DWORD*>(p2);
+
+	const DWORD s1 = CPU::CPU_ALIGN - 1;
 	ret.v.SetSize(n, 0);
-	DWORD va, vb;
 
-	DWORD *r = ret.v.GetPtr(), i = 0;
-	alignas(s * 4) DWORD a[s], b[s];
+	// ReSharper disable two CppJoinDeclarationAndAssignment
+	DWORD *r = ret.v.GetPtr(), i = 0, va, vb;
 
-#if defined(__AVX2__) || defined(__SSE2__) || defined(__ARM_NEON)
-	for(; (i + s1) < n; i = i + s) {
-		for (QWORD j = 0; j < s; j = j + 1) {
+	for(; (i + s1) < n; i = i + CPU::CPU_ALIGN) {
+		for (QWORD j = 0; j < CPU::CPU_ALIGN; j = j + 1) {
 			a[j] = ((i + j) < nA) ? A.v[i + j] : 0;
 			b[j] = ((i + j) < nB) ? B.v[i + j] : 0;
 		}
 
-#if defined(__AVX2__)
-		simd_a = _mm256_load_si256(reinterpret_cast<__m256i*>(a));
-		simd_b = _mm256_load_si256(reinterpret_cast<__m256i*>(b));
-		_mm256_store_si256(reinterpret_cast<__m256i*>(r + i), bop(simd_a, simd_b));
-#elif defined(__SSE2__)
-		simd_a = _mm_load_si128(reinterpret_cast<__m128i*>(a));
-		simd_b = _mm_load_si128(reinterpret_cast<__m128i*>(b));
-		_mm_store_si128(reinterpret_cast<__m128i*>(r + i), bop(simd_a, simd_b));
-#elif defined(__ARM_NEON)
-		simd_a = vld1q_u32(a);
-		simd_b = vld1q_u32(b);
-		vst1q_u32(r + i, bop(simd_a, simd_b));
-#endif
+		bop(a, b, r, i);
 	}
-#endif
 
 	for (; i < n; i = i + 1) {
 		va = (i < nA) ? A.v[i] : 0;
@@ -273,6 +257,8 @@ Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
 
 		r[i] = fop(va, vb);
 	}
+
+	std::free(p1); std::free(p2);
 
 	ret.Normalize();
 	return ret;

@@ -55,19 +55,19 @@ if [ ! -f $ASHES_DIR/bin/MakeInfo ]; then
     return 1
 fi
 
-sed -i '16a A_SHLIB=so' Makefile
-sed -i '17a A_STLIB=a' Makefile
-sed -i '18a A_EXT=' Makefile
-sed -i '19a SHRDIR=$(ASHES_DIR)/share' Makefile
-sed -i '20a LIBDIR=$(ASHES_DIR)/lib' Makefile
-sed -i '21a INCDIR=$(ASHES_DIR)/inc' Makefile
+sed -i '25a A_SHLIB=so' Makefile
+sed -i '26a A_STLIB=a' Makefile
+sed -i '27a A_EXT=' Makefile
+sed -i '28a SHRDIR=$(ASHES_DIR)/share' Makefile
+sed -i '29a LIBDIR=$(ASHES_DIR)/lib' Makefile
+sed -i '30a INCDIR=$(ASHES_DIR)/inc' Makefile
 
 if [ -z "$LANG" ]; then
-    sed -i '22a MILANG=en' Makefile
+    sed -i '31a MILANG=en' Makefile
 elif [ "$LANG" = "fr_FR.UTF-8" ]; then
-    sed -i '22a MILANG=fr' Makefile
+    sed -i '31a MILANG=fr' Makefile
 else
-    sed -i '22a MILANG=en' Makefile
+    sed -i '31a MILANG=en' Makefile
 fi
 
 mkdir -p build/tests
