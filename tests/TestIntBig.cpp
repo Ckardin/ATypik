@@ -1,6 +1,7 @@
 #include <iostream>
 #include <gmpxx.h> // GMP C++ wrapper
 #include <iomanip>
+#include <random>
 #include "../src/Int.h"
 
 using namespace Fenyx::Types;

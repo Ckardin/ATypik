@@ -58,8 +58,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef STRUTILS_H
 #define STRUTILS_H
 
-#include <sstream>
-#include "Utils.h"
+#include <cmath>
+#include "Tabs.h"
 
 namespace Fenyx::Types
 {
@@ -69,6 +69,9 @@ std::ostream& operator<<(std::ostream &os, sSWORD v);
 
 std::istream& operator>>(std::istream& is, SWORD& v);
 std::istream& operator>>(std::istream& is, sSWORD& v);
+
+char toChar(BYTE a);
+BYTE toAscii(char c);
 
 template<class T>
 std::string toString(const T &t);

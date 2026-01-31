@@ -58,17 +58,13 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef LL_WRP_H
 #define LL_WRP_H
 
-#include <algorithm>
-#include <functional>
-#include <iostream>
-
 #if defined(__x86_64__)
 #include <immintrin.h>
 #elif defined(__aarch64__)
 #include <arm_neon.h>
 #endif
 
-#include "StrUtils.h"
+#include "Defines.h"
 
 #if defined(__GNUC__) || defined(__clang__)
   #define ALWAYS_INLINE inline __attribute__((always_inline))

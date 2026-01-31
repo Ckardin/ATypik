@@ -68,9 +68,6 @@ namespace Fenyx::Types
 DWORD GetTimestamp();
 QWORD GetTimestampMilli();
 
-char toChar(BYTE a);
-BYTE toAscii(char c);
-
 DWORD MicroChaoCrypt(DWORD orand);
 
 }

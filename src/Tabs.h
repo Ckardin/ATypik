@@ -58,10 +58,9 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef TABS_H
 #define TABS_H
 
-#include <cassert>
 #include <memory>
 #include <algorithm>
-#include "Defines.h"
+#include "ll_Wrp.h"
 
 namespace Fenyx::Types
 {
@@ -172,7 +171,7 @@ friend bool operator!=<T, s>(const STable<T, s> &t1, const STable<T, s> &t2);
 template<class T>
 /// @brief DTable - Classe qui permet de gérer un tableau de taille dynamique
 ///
-/// /!\ Le tableau est aligné sur 32 octets (pour les intrinsics AVX2)
+/// /!\ Le tableau est aligné sur la valeur maximale possible en fonction du CPU (pour les intrinsics)
 class DTable
 {
 public:
@@ -317,7 +316,7 @@ template<class T>
 Stack<T>::Stack(const Stack &s) {
     const DWORD ns = s.stack.GetSize();
 
-    stack.SetCapacity(ns, T{});
+    stack.SetSize(ns, T{});
     for (QWORD i = 0; i < ns; i = i + 1) stack[i] = s.stack[i];
 }
 

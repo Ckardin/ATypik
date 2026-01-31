@@ -121,7 +121,7 @@ std::istream& operator>>(std::istream& is, SWORD& v) {
 
 	v = 0;
 	for (std::string::size_type i = 0; i < t.length(); i = i + 1) {
-		const auto temp_c = static_cast<SWORD>(pow(10, static_cast<double>((t.length() - 1)) - static_cast<double>(i)));
+		const auto temp_c = static_cast<SWORD>(pow(10.0, static_cast<double>((t.length() - 1)) - static_cast<double>(i)));
 		v += fromString<BYTE>(std::string{t[i]}) * temp_c;
 	}
 
@@ -146,7 +146,7 @@ std::istream& operator>>(std::istream& is, sSWORD& v) {
 
 	v = 0;
 	for (std::string::size_type i = 0; i < t.length(); i = i + 1) {
-		const auto temp_c = static_cast<sSWORD>(pow(10, static_cast<double>((t.length() - 1)) - static_cast<double>(i)));
+		const auto temp_c = static_cast<sSWORD>(pow(10.0, static_cast<double>((t.length() - 1)) - static_cast<double>(i)));
 		v += fromString<BYTE>(std::string{t[i]}) * temp_c;
 	}
 
@@ -154,6 +154,23 @@ std::istream& operator>>(std::istream& is, sSWORD& v) {
 	return is;
 }
 
+/// @brief toChar - Convertit un nombre ASCII en son caractère correspondant
+///
+/// @param[in] a: nombre ASCII à convertir
+///
+/// @return Le caractère convertit.
+char toChar(const BYTE a) {
+	return static_cast<char>(a);
+}
+
+/// @brief toASCII - Convertit un caractère en son équivalent ASCII
+///
+/// @param[in] c: caractère à convertir
+///
+/// @return Le nombre ASCCI convertit.
+BYTE toAscii(const char c) {
+	return static_cast<BYTE>(c);
+}
 
 /// @brief CompleteNbr - Rajoute un '0' avant un nombre inférieur à 10
 /// 

@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <iomanip>
+#include <random>
 #include "../src/Int.h"
 
 using Clock = std::chrono::steady_clock;

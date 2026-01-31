@@ -58,7 +58,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #ifndef INT_H
 #define INT_H
 
-#include "ll_Wrp.h"
+#include <functional>
+#include "StrUtils.h"
 
 namespace Fenyx::Types
 {
@@ -223,13 +224,8 @@ Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
 	Int ret;
 
 	void *p1 = nullptr, *p2 = nullptr;
-
-	if (CPU::CPU_ALIGN != 1) {
-		p1 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
-		p2 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
-	} else {
-		p1 = new DWORD; p2 = new DWORD;
-	}
+	p1 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
+	p2 = std::aligned_alloc(CPU::CPU_ALIGN * 4, CPU::CPU_ALIGN * 4);
 
 	if (p1 == nullptr || p2 == nullptr) throw std::bad_alloc();
 

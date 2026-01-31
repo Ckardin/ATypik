@@ -61,7 +61,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #include <variant>
 #include <cstdint>
 #include <optional>
-#include <istream>
+#include <sstream>
 
 namespace Fenyx::Types
 {
