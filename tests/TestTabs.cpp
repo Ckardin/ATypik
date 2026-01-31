@@ -80,7 +80,7 @@ int main() {
 		return -5;
 	}
 
-	std::cout << "Test Tabs => OK" <<std::endl;
+	std::cout << "Test Tabs => OK (Align: " << static_cast<Fenyx::Types::WORD>(d1.GetAlign()) << ")" <<std::endl;
 
 	return 0;
 }
