@@ -66,6 +66,9 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 namespace Fenyx::Types
 {
 
+typedef DWORD *plimb;
+typedef const DWORD *cplimb;
+
 inline constexpr QWORD b32 = (1ULL << 32);
 inline constexpr DWORD bs109 = 1000000000ULL;
 
@@ -127,16 +130,40 @@ public:
 	///				--> Si plus petit a signe (-), alors signe (+)
 	///				--> Si plus grand a signe (-), alors signe (-)
 	///	SI 0 neg => Addition, signe (+)
+	///
+	///
+	///	Exemples avec 3 et 4:
+	///
+	///	3 + 4       = 7
+	///	4 + 3       = 7
+	///	(-3) + 4    = 1
+	///	3 + (-4)    = -1
+	///	(-4) + 3    = -1
+	///	4 + (-3)    = 1
+	///	(-3) + (-4) = -7
+	///	(-4) + (-3) = -7
 
 	///	SUB
 	///
 	///	SI 2 neg => Soustraction avec plus grand, signe (-) si |A| > |B|, signe (+) sinon
 	///	SI 1 neg => Addition, signe (-) si A neg, signe (+) sinon
 	///	SI 0 neg => Soustraction avec plus grand, signe (-) si |A| < |B|, signe (+) sinon
+	///
+	///
+	///	Exemples avec 3 et 4:
+	///
+	///	3 - 4       = -1
+	///	4 - 3       = 1
+	///	(-3) - 4    = -7
+	///	3 - (-4)    = 7
+	///	(-4) - 3    = -7
+	///	4 - (-3)    = 7
+	///	(-3) - (-4) = 1
+	///	(-4) - (-3) = -1
 
 private:
-	static Int Add(const Int &A, const Int &B);
-	static Int Sub(const Int &A, const Int &B);
+	static void Add(cplimb A, DWORD nA, cplimb B, DWORD nB, plimb R);
+	static void Sub(cplimb A, DWORD nA, cplimb B, DWORD nB, plimb R);
 	static Int Mul(const Int &A, const Int &B);
 	static Int Sqr(const Int &A, bool sA, bool sB);
 	static Pair<Int, Int> Div(const Int &A, const Int &B);
@@ -148,6 +175,7 @@ private:
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
+	sDWORD CmpAbs(const Int &B);
 
 	template<typename BOp, typename FOp>
 	static Int VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop);
