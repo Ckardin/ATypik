@@ -141,6 +141,7 @@ void PrintResult(const std::string &op, const WORD count, const STable<DivergCou
 
 int main() {
     const DWORD cntt = 128;
+    BYTE tsiz = 0;
     STable<DivergCount, 8> tDiverg;
     std::random_device rd;
 
@@ -151,8 +152,10 @@ int main() {
 
     for (WORD i = 0; i < 8; i = i + 1) {
         for (WORD j = 0; j < cntt; j = j + 1) {
+            tsiz = (rd() % 2) ? 0 : 1;
+
             Int A = Int::Random(sz[i], rd);
-            Int B = Int::Random(sz[i] / 2, rd);
+            Int B = Int::Random(sz[i] - tsiz, rd);
             Int N = Int::Random(sz[i] * 2, rd);
             if (N.IsEven()) N += One;
 

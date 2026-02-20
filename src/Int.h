@@ -172,7 +172,7 @@ private:
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
-	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
+	static Pair<Int, Int> KnuthD(const Int &A, const Int &B, DWORD lz);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
 	sDWORD CmpAbs(const Int &B);

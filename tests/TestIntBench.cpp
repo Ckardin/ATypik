@@ -24,7 +24,7 @@ void BenchAdd(const Types::DWORD bits, const Types::WORD ncnt) {
         const Types::Int a = Types::Int::Random(bits, rdr);
         const Types::Int b = Types::Int::Random(bits, rdr);
 
-        std::cout << "\rTest Add "
+        std::cout << "\rBench Add "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -45,7 +45,7 @@ void BenchSub(const Types::DWORD bits, const Types::WORD ncnt) {
         const Types::Int a = Types::Int::Random(bits, rdr);
         const Types::Int b = Types::Int::Random(bits, rdr);
 
-        std::cout << "\rTest Sub "
+        std::cout << "\rBench Sub "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -66,7 +66,7 @@ void BenchMul(const Types::DWORD bits, const Types::WORD ncnt) {
         const Types::Int a = Types::Int::Random(bits, rdr);
         const Types::Int b = Types::Int::Random(bits, rdr);
 
-        std::cout << "\rTest Mul "
+        std::cout << "\rBench Mul "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -86,7 +86,7 @@ void BenchSqr(const Types::DWORD bits, const Types::WORD ncnt) {
     for (Types::WORD i = 0; i < ncnt; i = i + 1) {
         const Types::Int a = Types::Int::Random(bits, rdr);
 
-        std::cout << "\rTest Sqr "
+        std::cout << "\rBench Sqr "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -110,7 +110,7 @@ void BenchMgr(const Types::DWORD bits, const Types::WORD ncnt) {
         if (n.IsEven()) n = n + Types::One;
         const Types::Int mu = GetMu(n);
 
-        std::cout << "\rTest Mml/Msq "
+        std::cout << "\rBench Mml/Msq "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -134,7 +134,7 @@ void BenchDiv(const Types::DWORD bits, const Types::WORD ncnt) {
         const Types::Int a = Types::Int::Random(bits, rdr);
         const Types::Int b = Types::Int::Random(bits / 2, rdr);
 
-        std::cout << "\rTest Div "
+        std::cout << "\rBench Div "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -155,7 +155,7 @@ void BenchMod(const Types::DWORD bits, const Types::WORD ncnt) {
         const Types::Int a = Types::Int::Random(bits, rdr);
         const Types::Int b = Types::Int::Random(bits / 2, rdr);
 
-        std::cout << "\rTest Mod "
+        std::cout << "\rBench Mod "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
@@ -174,9 +174,9 @@ void BenchLop(const Types::DWORD bits, const Types::WORD ncnt) {
 
     for (Types::WORD i = 0; i < ncnt; i = i + 1) {
         const Types::Int a = Types::Int::Random(bits, rdr);
-        const Types::Int b = Types::Int::Random(bits / 2, rdr);
+        const Types::Int b = Types::Int::Random(bits, rdr);
 
-        std::cout << "\rTest And/Or/Xor "
+        std::cout << "\rBench And/Or/Xor "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
                       << std::setw(5) << bits << " bits)"
                       << std::string(20, ' ')
