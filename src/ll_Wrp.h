@@ -22,7 +22,7 @@ Copyright (C) 2026 BOUCARD NICOLLE Jody
 
 Ce fichier fait partie de ATypik.
 
-ATypik est une bilbiothèque libre; vous pouvez le redistribuer ou le modifier suivant les termes de la GNU General
+ATypik est une bibliothèque libre; vous pouvez le redistribuer ou le modifier suivant les termes de la GNU General
 Public License telle que publiée par la Free Software Foundation, soit la version 3 de la licence, soit (à votre
 gré) toute version ultérieure.
 

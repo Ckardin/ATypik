@@ -1,6 +1,6 @@
 /// English version
 /*
-Copyright (C) 2025 BOUCARD NICOLLE Jody
+Copyright (C) 2026 BOUCARD NICOLLE Jody
 
 This file is part of ATypik.
 
@@ -18,11 +18,11 @@ You should have received a copy of the GNU General Public License along with ATy
 
 /// Version française
 /*
-Copyright (C) 2025 BOUCARD NICOLLE Jody
+Copyright (C) 2026 BOUCARD NICOLLE Jody
 
 Ce fichier fait partie de ATypik.
 
-ATypik est une bilbiothèque libre; vous pouvez le redistribuer ou le modifier suivant les termes de la GNU General
+ATypik est une bibliothèque libre; vous pouvez le redistribuer ou le modifier suivant les termes de la GNU General
 Public License telle que publiée par la Free Software Foundation, soit la version 3 de la licence, soit (à votre
 gré) toute version ultérieure.
 
@@ -99,7 +99,7 @@ Int Pow         (const Int &x, const Int &n) {
 	return p;
 }
 
-/// @brief Pow2 - Exponention avec une base 2
+/// @brief Pow2 - Exponentiation avec une base 2
 ///
 /// @param[in] n: puissance à appliquer
 ///
@@ -108,7 +108,7 @@ Int Pow2        (const DWORD n) {
 	return (One << n);
 }
 
-/// @brief Pow16 - Exponention avec une base 16
+/// @brief Pow16 - Exponentiation avec une base 16
 ///
 /// @param[in] n: puissance à appliquer
 ///
@@ -253,7 +253,7 @@ Complex::Complex(const Int &r, const Int &u) {
 
 /// @brief Complex - Constructeur de copie
 ///
-/// @param[in] oth: nombre complexe de copie
+/// @param[in] oth: nombre complexe à copier
 ///
 /// Constructeur de copie de la classe Complex.
 Complex::Complex(const Complex &oth) {
@@ -305,7 +305,7 @@ Complex& Complex::operator+=(const Complex &oth) {
 	return *this;
 }
 
-/// @brief operator-= - Opérateur d'affectation soustrative
+/// @brief operator-= - Opérateur de soustraction avec affectation
 ///
 /// @param[in] oth: Complex à affecter
 ///
