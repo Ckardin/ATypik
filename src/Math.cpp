@@ -83,9 +83,9 @@ Int NaivePow    (const Int &a, const DWORD b) {
 Int Pow         (const Int &x, const Int &n) {
 	Int p = 1, a = x, e = n;
 
-	if (n == Zero || x == One)  return One;
-	if (n < Zero  || x == Zero) return Zero;
-	if (n == One)               return x;
+	if (n.IsZero() || x == One)   return One;
+	if (n.IsNeg()  || x.IsZero()) return Zero;
+	if (n == One)                 return x;
 
 	if (n < 20 && x < 1000) return NaivePow(x, n.GetL64());
 
@@ -128,7 +128,7 @@ Int Pow16       (const DWORD n) {
 Int PowM        (const Int &a, const Int &b, const Int &m, const Int &mu) {
 	Int p, x = a, n = b;
 
-	for (p = 1; n > Zero; n = n >> 1) {
+	for (p = 1; !n.IsZero() && !n.IsNeg(); n = n >> 1) {
 		if (n.IsOdd()) p = MMul(p, x, m, mu);
 		x = MSqr(x, m, mu);
 	}
@@ -150,8 +150,8 @@ Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v) {
 		return Zero;
 	}
 
-	Int signA = (a < Zero) ? -1 : 1;
-	Int signB = (b < Zero) ? -1 : 1;
+	Int signA = (a.IsNeg()) ? -1 : 1;
+	Int signB = (b.IsNeg()) ? -1 : 1;
 
 	if (a.IsZero()) {
 		u = Zero; v = signB;
@@ -169,9 +169,9 @@ Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v) {
 		q = rp / r;
 		rem = rp - q * r;
 
-		if (rem < Zero) {
+		if (rem.IsNeg()) {
 			rem += r.Abs();
-			q   -= (r > Zero) ? One : Int(-1);
+			q   -= (!r.IsZero() && !r.IsNeg()) ? One : Int(-1);
 		}
 
 		tr = r; r = rem;        rp = tr;
@@ -179,7 +179,7 @@ Int ExtEuclide  (const Int &a, const Int &b, Int &u, Int &v) {
 		tt = t; t = tp - q * t; tp = tt;
 	}
 
-	if (rp < Zero) {
+	if (rp.IsNeg()) {
 		rp = rp.GetOpposite();
 		sp = sp.GetOpposite();
 		tp = tp.GetOpposite();
@@ -437,8 +437,8 @@ std::ostream& operator<<(std::ostream& os, const Complex &rhs) {
 	const Int i = rhs.im;
 
 	os << "(" << r.GetStr() << " ";
-	if (i < Zero) os << "- " << (Int(i).GetOpposite()).GetStr();
-	else          os << "+ " << i.GetStr();
+	if (i.IsNeg()) os << "- " << i.GetOpposite().GetStr();
+	else           os << "+ " << i.GetStr();
 	os << "i)";
 
 	return os;
