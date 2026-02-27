@@ -64,41 +64,44 @@ int test_c();
 int main() {
 	const Fenyx::Types::Int a = 2, b = 16, m = 3, mu = GetMu(m);
 
-	if (Fenyx::Types::NaivePow(a, b.GetL64()) != 65536) {
+	if (Fenyx::Types::NaivePow(a, b.GetL32()) != 65536) {
 		std::cout << "Test Math => KO (Naive pow)" <<std::endl;
 		return -1;
 	}
 
 	if (Fenyx::Types::Pow(a, b) != 65536) {
 		std::cout << "Test Math => KO (Pow)" <<std::endl;
-		std::cout << Fenyx::Types::Pow(a, b).GetStr() <<std::endl;
 		return -2;
 	}
 
-	if (Fenyx::Types::Pow2(b.GetL64()) != 65536) {
+	if (Fenyx::Types::Pow2(b.GetL32()) != 65536) {
 		std::cout << "Test Math => KO (Pow of 2)" <<std::endl;
 		return -3;
 	}
 
-	if (Fenyx::Types::Pow16(a.GetL64()) != 256) {
+	if (Fenyx::Types::Pow16(a.GetL32()) != 256) {
 		std::cout << "Test Math => KO (Pow of 16)" <<std::endl;
 		return -4;
 	}
 
 	if (Fenyx::Types::PowM(a, b, m, mu) != 1) {
-		std::cout << "Test Math => KO (Exponent-Pow): " << Fenyx::Types::PowM(a, b, m, mu).GetStr() <<std::endl;
+		std::cout << "Test Math => KO (Exponent-Pow)" <<std::endl;
 		return -5;
 	}
 
 	mpz_class gmpa(1457), gmpb(3475), c, gu, gv;
-	mpz_gcdext(c.get_mpz_t(), gu.get_mpz_t(), gv.get_mpz_t(), gmpa.get_mpz_t(), gmpb.get_mpz_t());
+	Fenyx::Types::Int u, v;
 
-    if (Fenyx::Types::Int u, v; Fenyx::Types::ExtEuclide(1457, 3475, u, v).GetStr() != c.get_str() || u.GetStr() != gu.get_str() || v.GetStr() != gv.get_str()) {
+	mpz_gcdext(c.get_mpz_t(), gu.get_mpz_t(), gv.get_mpz_t(), gmpa.get_mpz_t(), gmpb.get_mpz_t());
+	mpz_class dc = c - mpz_class(Fenyx::Types::ExtEuclide(1457, 3475, u, v).GetStr());
+
+    if (const mpz_class du = gu - mpz_class(u.GetStr()), dv = gv - mpz_class(v.GetStr()); dc != 0 || du != 0 || dv != 0) {
     	std::cout << "Test Math => KO (Extended-Euclide algorithm)" <<std::endl;
         return -8;
     }
 
-	if (Fenyx::Types::Stein(-1457, -3475).GetStr() != c.get_str()) {
+	dc = c - mpz_class(Fenyx::Types::Stein(-1457, -3475).GetStr());
+	if (dc != 0) {
 		std::cout << "Test Math => KO (Stein algorithm)" <<std::endl;
 		return -9;
 	}

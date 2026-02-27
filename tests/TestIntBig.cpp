@@ -1,5 +1,7 @@
 #include <iostream>
 #include <gmpxx.h> // GMP C++ wrapper
+#include <iomanip>
+#include <random>
 #include "../src/Int.h"
 
 using namespace Fenyx::Types;
@@ -15,9 +17,68 @@ struct DivergCount {
     WORD mod = 0;
     WORD lsh = 0;
     WORD rsh = 0;
+    WORD aop = 0;
+    WORD oop = 0;
+    WORD xop = 0;
 };
 
-void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, const DWORD si, const bool d) {
+const WORD sz[] = { 128, 256, 512, 1024, 2048, 4096, 8192, 16384 };
+
+void PrintRawVar(const mpz_class &gv, const Int &mv) {
+    DWORD tgv[1024];
+    size_t cgv;
+
+    mpz_export(tgv, &cgv, -1, sizeof(DWORD), 0, 0, gv.get_mpz_t());
+    DTable<DWORD> tmv = mv.GetTab();
+
+    const size_t cgv1 = cgv - 1;
+    const DWORD smv   = tmv.GetSize(), smv1 = smv - 1;
+
+    std::cout << "" <<std::endl;
+    std::cout << "Tab GMP: [ ";
+    for (size_t i = 0; i < cgv; i = i + 1) {
+        std::cout << tgv[i];
+        if (i != cgv1) std::cout << ", ";
+    }
+    std::cout << " ]" << std::endl;
+
+    std::cout << "" <<std::endl;
+    std::cout << "Tab Moi: [ ";
+    for (size_t i = 0; i < smv; i = i + 1) {
+        std::cout << tmv[i];
+        if (i != smv1) std::cout << ", ";
+    }
+    std::cout << " ]" << std::endl;
+}
+
+std::string GetDivergSizes(const std::string &op, const STable<DivergCount, 8> &tdg) {
+    std::string ret = "(";
+    WORD count = 0;
+
+    for (WORD i = 0; i < 8; i = i + 1) {
+        if (op == "Add")      count = tdg[i].add;
+        else if (op == "Sub") count = tdg[i].sub;
+        else if (op == "Mul") count = tdg[i].mul;
+        else if (op == "Sqr") count = tdg[i].sqr;
+        else if (op == "Mgr") count = tdg[i].mgr;
+        else if (op == "Sgr") count = tdg[i].sgr;
+        else if (op == "Div") count = tdg[i].div;
+        else if (op == "Mod") count = tdg[i].mod;
+        else if (op == "Lsh") count = tdg[i].lsh;
+        else if (op == "Rsh") count = tdg[i].rsh;
+        else if (op == "And") count = tdg[i].aop;
+        else if (op == "Ior") count = tdg[i].oop;
+        else if (op == "Xor") count = tdg[i].xop;
+
+        if (count != 0) ret += toString(sz[i]);
+        if (i != 7 && count != 0) ret += ", ";
+    }
+
+    ret += ")";
+    return ret;
+}
+
+void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, const DWORD si) {
     const Int Mu = GetMu(N), A2 = (A.IsNeg()) ? A.GetOpposite() : A, B2 = (B.IsNeg()) ? B.GetOpposite() : B;
 
     const mpz_class gmpA(A.GetStr()), gmpB(B.GetStr());
@@ -28,171 +89,120 @@ void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, co
     const Int tB(si / 4);
 
     mpz_class c = gmpA + gmpB; mpz_class diff = c - mpz_class((A + B).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Addition diverge" <<std::endl;
-        dc.add++;
-    }
+    if (diff != 0) dc.add++;
 
     c = gmpA - gmpB; diff = c - mpz_class((A - B).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Soustraction diverge" <<std::endl;
-        dc.sub++;
-    }
+    if (diff != 0) dc.sub++;
 
     c = gmpA * gmpB; diff = c - mpz_class((A * B).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Multiplication diverge" <<std::endl;
-        dc.mul++;
-    }
+    if (diff != 0) dc.mul++;
 
     c = gmpA * gmpA; diff = c - mpz_class(Int::Square(A).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Mise au carre diverge" <<std::endl;
-        dc.sqr++;
-    }
+    if (diff != 0) dc.sqr++;
 
     mpz_class mul = gmp2A * gmp2B;
     mpz_mod(c.get_mpz_t(), mul.get_mpz_t(), gmpN.get_mpz_t()); diff = c - mpz_class(MMul(A2, B2, N, Mu).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Multiplication modulaire diverge" <<std::endl;
-
-        std::cout << "" << std::endl;
-        std::cout << "" << std::endl;
-        std::cout << c.get_str() << std::endl;
-        std::cout << "" << std::endl;
-        std::cout << MMul(A2, B2, N, Mu).GetStr() << std::endl;
-        std::cout << "" << std::endl;
-        std::cout << "" << std::endl;
-
-        dc.mgr++;
-    }
+    if (diff != 0) dc.mgr++;
 
     mul = gmp2A * gmp2A;
     mpz_mod(c.get_mpz_t(), mul.get_mpz_t(), gmpN.get_mpz_t()); diff = c - mpz_class(MSqr(A2, N, Mu).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Mise au carre modulaire diverge" <<std::endl;
-
-        std::cout << "" << std::endl;
-        std::cout << "" << std::endl;
-        std::cout << c.get_str() << std::endl;
-        std::cout << "" << std::endl;
-        std::cout << MSqr(A2, N, Mu).GetStr() << std::endl;
-        std::cout << "" << std::endl;
-        std::cout << "" << std::endl;
-
-        dc.sgr++;
-    }
+    if (diff != 0) dc.sgr++;
 
     c = gmpA / gmpB; diff = c - mpz_class((A / B).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Division diverge" <<std::endl;
-        dc.div++;
-    }
+    if (diff != 0) dc.div++;
 
     c = gmpA % gmpB; diff = c - mpz_class((A % B).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] Modulo diverge" <<std::endl;
-        dc.mod++;
-    }
+    if (diff != 0) dc.mod++;
 
     mpz_mul_2exp(c.get_mpz_t(), gmpA.get_mpz_t(), tB.GetL64()); diff = c - mpz_class((A << tB.GetL64()).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] LeftShift diverge" <<std::endl;
-        dc.lsh++;
-    }
+    if (diff != 0) dc.lsh++;
 
     mpz_fdiv_q_2exp(c.get_mpz_t(), gmpA.get_mpz_t(), tB.GetL64()); diff = c - mpz_class((A >> tB.GetL64()).GetStr());
-    if (diff != 0) {
-        if (d) std::cout << "[Erreur] RightShift diverge" <<std::endl;
-        dc.rsh++;
+    if (diff != 0) dc.rsh++;
+
+    mpz_and(c.get_mpz_t(), gmp2A.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class((A2 & B2).GetStr());
+    if (diff != 0) dc.aop++;
+
+    mpz_ior(c.get_mpz_t(), gmp2A.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class((A2 | B2).GetStr());
+    if (diff != 0) dc.oop++;
+
+    mpz_xor(c.get_mpz_t(), gmp2A.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class((A2 ^ B2).GetStr());
+    if (diff != 0) dc.xop++;
+}
+
+void PrintResult(const std::string &op, const WORD count, const STable<DivergCount, 8> &tdg, const std::string &sad = "") {
+    std::cout << "Test " << op << " => ";
+    if (count > 0) {
+        std::cout << "KO --> " << count << " divergence(s)" << GetDivergSizes(op, tdg) << sad << std::endl;
+    } else {
+        std::cout << "OK" << sad << std::endl;
     }
 }
 
-int main(const int argc, char* argv[]) {
+int main() {
+    const DWORD cntt = 128;
+    sBYTE tsiz = 0;
+    STable<DivergCount, 8> tDiverg;
     std::random_device rd;
-    DivergCount tDiverg;
-    bool debug = false;
-    DWORD trd;
-
-    if (argc > 1) {
-        if (std::string(argv[1]) == "debug") debug = true;
-    }
 
     std::cout << "" <<std::endl;
     std::cout << "" <<std::endl;
     std::cout << "=== Test {Int} sur grandes valeurs ===" <<std::endl;
     std::cout << "" <<std::endl;
 
-    for (DWORD sz : {128, 256, 512, 1024, 2048, 4096, 8192, 16384}) {
-        if (debug) std::cout << "--- Test avec taille " << sz << " bits ---" <<std::endl;
+    for (WORD i = 0; i < 8; i = i + 1) {
+        for (WORD j = 0; j < cntt; j = j + 1) {
+            tsiz = (rd() % 2) ? 0 : (rd() % 6) ? -1 : 1;
 
-        Int A = Int::Random(sz, rd);
-        Int B = Int::Random(sz / 2, rd);
-        Int N = Int::Random(sz * 2, rd);
-        if (N.IsEven()) N += One;
+            Int A = Int::Random(sz[i], rd);
+            Int B = Int::Random(sz[i] - tsiz, rd);
+            Int N = Int::Random(sz[i] * 2, rd);
+            if (N.IsEven()) N += One;
 
-        trd = rd() % 2;
-        A = (trd == 0) ? A : A.GetOpposite();
-        trd = rd() % 2;
-        B = (trd == 0) ? B : B.GetOpposite();
-        if (B.IsZero()) B = Int{1};
+            A = (rd() % 2) ? A : A.GetOpposite();
+            B = (rd() % 2) ? B : B.GetOpposite();
+            if (B.IsZero()) B = One;
 
-        TestOperators(A, B, N, tDiverg, sz, debug);
+            std::cout << "\rTest "
+                      << std::setw(3) << j + 1 << " / " << cntt << " ("
+                      << std::setw(5) << sz[i] << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+            TestOperators(A, B, N, tDiverg[i], sz[i]);
+        }
     }
 
-    if (debug) {
-        std::cout << "--- Synthese des divergences ---" <<std::endl;
-        std::cout << "Add: " << tDiverg.add << std::endl;
-        std::cout << "Sub: " << tDiverg.sub << std::endl;
-        std::cout << "Mul: " << tDiverg.mul << std::endl;
-        std::cout << "Sqr: " << tDiverg.sqr << std::endl;
-        std::cout << "Mml: " << tDiverg.mgr << std::endl;
-        std::cout << "Msq: " << tDiverg.sgr << std::endl;
-        std::cout << "Div: " << tDiverg.div << std::endl;
-        std::cout << "Mod: " << tDiverg.mod << std::endl;
-        std::cout << "Lsh: " << tDiverg.lsh << std::endl;
-        std::cout << "Rsh: " << tDiverg.rsh << std::endl;
-    } else {
-        std::cout << "Test Add => ";
-        if (tDiverg.add > 0) std::cout << "KO --> " << tDiverg.add << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Sub => ";
-        if (tDiverg.sub > 0) std::cout << "KO --> " << tDiverg.sub << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Mul => ";
-        if (tDiverg.mul > 0) std::cout << "KO --> " << tDiverg.mul << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Sqr => ";
-        if (tDiverg.sqr > 0) std::cout << "KO --> " << tDiverg.sqr << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Mgr => ";
-        if (tDiverg.mgr > 0) std::cout << "KO --> " << tDiverg.mgr << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Sgr => ";
-        if (tDiverg.sgr > 0) std::cout << "KO --> " << tDiverg.sgr << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Div => ";
-        if (tDiverg.div > 0) std::cout << "KO --> " << tDiverg.div << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Mod => ";
-        if (tDiverg.mod > 0) std::cout << "KO --> " << tDiverg.mod << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Lsh => ";
-        if (tDiverg.lsh > 0) std::cout << "KO --> " << tDiverg.lsh << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
-
-        std::cout << "Test Rsh => ";
-        if (tDiverg.rsh > 0) std::cout << "KO --> " << tDiverg.rsh << " divergence(s)" <<std::endl;
-        else                 std::cout << "OK" <<std::endl;
+    std::cout << "\r";
+    DivergCount fcnt;
+    for (WORD i = 0; i < 8; i = i + 1) {
+        fcnt.add += tDiverg[i].add;
+        fcnt.sub += tDiverg[i].sub;
+        fcnt.mul += tDiverg[i].mul;
+        fcnt.sqr += tDiverg[i].sqr;
+        fcnt.mgr += tDiverg[i].mgr;
+        fcnt.sgr += tDiverg[i].sgr;
+        fcnt.div += tDiverg[i].div;
+        fcnt.mod += tDiverg[i].mod;
+        fcnt.lsh += tDiverg[i].lsh;
+        fcnt.rsh += tDiverg[i].rsh;
+        fcnt.aop += tDiverg[i].aop;
+        fcnt.oop += tDiverg[i].oop;
+        fcnt.xop += tDiverg[i].xop;
     }
+
+    PrintResult("Add", fcnt.add, tDiverg, std::string(50, ' '));
+    PrintResult("Sub", fcnt.sub, tDiverg);
+    PrintResult("Mul", fcnt.mul, tDiverg);
+    PrintResult("Sqr", fcnt.sqr, tDiverg);
+    PrintResult("Mgr", fcnt.mgr, tDiverg);
+    PrintResult("Sgr", fcnt.sgr, tDiverg);
+    PrintResult("Div", fcnt.div, tDiverg);
+    PrintResult("Mod", fcnt.mod, tDiverg);
+    PrintResult("Lsh", fcnt.lsh, tDiverg);
+    PrintResult("Rsh", fcnt.rsh, tDiverg);
+    PrintResult("And", fcnt.aop, tDiverg);
+    PrintResult("Ior", fcnt.oop, tDiverg);
+    PrintResult("Xor", fcnt.xop, tDiverg);
 
     return 0;
 }

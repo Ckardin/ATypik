@@ -52,23 +52,29 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Int.h
 /// @brief Header de Int
 /// @author F&nµx
-/// @version 4.1
+/// @version 6.0
 /// @date 19/12/2025
 
 #ifndef INT_H
 #define INT_H
 
-#include "ll_Wrp.h"
+#include <functional>
+#include "StrUtils.h"
+
+#define MULLIMIT 64
 
 namespace Fenyx::Types
 {
+
+typedef DWORD *plimb;
+typedef const DWORD *cplimb;
 
 inline constexpr QWORD b32 = (1ULL << 32);
 inline constexpr DWORD bs109 = 1000000000ULL;
 
 DWORD NextPow2(DWORD n);
 
-/// @brief Int - Classe qui permets la prise en charge de grands nombres entiers relatifs
+/// @brief Int - Classe qui permet la prise en charge de grands nombres entiers relatifs
 class Int
 {
 public:
@@ -124,16 +130,40 @@ public:
 	///				--> Si plus petit a signe (-), alors signe (+)
 	///				--> Si plus grand a signe (-), alors signe (-)
 	///	SI 0 neg => Addition, signe (+)
+	///
+	///
+	///	Exemples avec 3 et 4:
+	///
+	///	3 + 4       = 7
+	///	4 + 3       = 7
+	///	(-3) + 4    = 1
+	///	3 + (-4)    = -1
+	///	(-4) + 3    = -1
+	///	4 + (-3)    = 1
+	///	(-3) + (-4) = -7
+	///	(-4) + (-3) = -7
 
 	///	SUB
 	///
 	///	SI 2 neg => Soustraction avec plus grand, signe (-) si |A| > |B|, signe (+) sinon
 	///	SI 1 neg => Addition, signe (-) si A neg, signe (+) sinon
 	///	SI 0 neg => Soustraction avec plus grand, signe (-) si |A| < |B|, signe (+) sinon
+	///
+	///
+	///	Exemples avec 3 et 4:
+	///
+	///	3 - 4       = -1
+	///	4 - 3       = 1
+	///	(-3) - 4    = -7
+	///	3 - (-4)    = 7
+	///	(-4) - 3    = -7
+	///	4 - (-3)    = 7
+	///	(-3) - (-4) = 1
+	///	(-4) - (-3) = -1
 
 private:
-	static Int Add(const Int &A, const Int &B); // A OPTIMISER
-	static Int Sub(const Int &A, const Int &B); // A OPTIMISER
+	static void Add(cplimb A, DWORD nA, cplimb B, DWORD nB, plimb R);
+	static void Sub(cplimb A, DWORD nA, cplimb B, DWORD nB, plimb R);
 	static Int Mul(const Int &A, const Int &B);
 	static Int Sqr(const Int &A, bool sA, bool sB);
 	static Pair<Int, Int> Div(const Int &A, const Int &B);
@@ -142,9 +172,10 @@ private:
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
-	static Pair<Int, Int> KnuthD(const Int &A, const Int &B);
+	static Pair<Int, Int> KnuthD(const Int &A, const Int &B, DWORD lz);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
+	sDWORD CmpAbs(const Int &B);
 
 	template<typename BOp, typename FOp>
 	static Int VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop);
@@ -201,7 +232,7 @@ Int Int::Random(const DWORD bits, Rdr&& rdr) {
 	DWORD mask;
 	Int ret;
 
-	ret.v.SetCapacity(w, 0);
+	ret.v.SetSize(w, 0);
 	for (QWORD i = 0; i < w; i = i + 1) ret.v[i] = static_cast<DWORD>(std::invoke(rdr));
 
 	const DWORD excess = (w * 32) - bits;
@@ -218,56 +249,24 @@ Int Int::Random(const DWORD bits, Rdr&& rdr) {
 
 template<typename BOp, typename FOp>
 Int Int::VectBinOp(const Int& A, const Int &B, BOp bop, FOp fop) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA >= nB) ? nA : nB, nm = (n == nA) ? nB : nA;
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), m = (nA < nB) ? nA : nB, n = (nA >= nB) ? nA : nB;
 	Int ret;
 
-	ret.v.SetCapacity(n, 0);
+	const DWORD s1 = CPU::CPU_ALIGN - 1;
+	ret.v.SetSize(n, 0);
 
-#if defined(__AVX2__) || defined(__SSE2__) || defined(__ARM_NEON)
-	DWORD* a = A.v.GetPtr();
-	DWORD* b = B.v.GetPtr();
-	DWORD* r = ret.v.GetPtr();
-#endif
+	// ReSharper disable two CppJoinDeclarationAndAssignment
+	DWORD *r = ret.v.GetPtr(), i = 0, va, vb;
+	DWORD *a = A.v.GetPtr(), *b = B.v.GetPtr();
 
-#if defined(__AVX2__)
-	const DWORD fif = (nm & ~7);
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	__m256i simd_a, simd_b, simd_r;
+	for(; (i + s1) < m; i = i + CPU::CPU_ALIGN) bop(&a[i], &b[i], r, i);
 
-	for (DWORD i = 0; i < fif; i += 8) {
-		simd_a = _mm256_load_si256(reinterpret_cast<__m256i*>(a + i));
-		simd_b = _mm256_load_si256(reinterpret_cast<__m256i*>(b + i));
-		simd_r = bop(simd_a, simd_b);
-		_mm256_store_si256(reinterpret_cast<__m256i*>(r + i), simd_r);
+	for (; i < n; i = i + 1) {
+		va = (i < nA) ? A.v[i] : 0;
+		vb = (i < nB) ? B.v[i] : 0;
+
+		r[i] = fop(va, vb);
 	}
-#elif defined(__SSE2__)
-	const DWORD fif = (nm & ~3);
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	__m128i simd_a, simd_b, simd_r;
-
-	for (DWORD i = 0; i < fif; i += 4) {
-		simd_a = _mm_load_si128(reinterpret_cast<__m128i*>(a + i));
-		simd_b = _mm_load_si128(reinterpret_cast<__m128i*>(b + i));
-		simd_r = bop(simd_a, simd_b);
-		_mm_store_si128(reinterpret_cast<__m128i*>(r + i), simd_r);
-	}
-#elif defined(__ARM_NEON)
-	const DWORD fif = (nm & ~3);
-	// ReSharper disable three CppJoinDeclarationAndAssignment
-	uint32x4_t simd_a, simd_b, simd_r;
-
-	for (DWORD i = 0; i < fif; i = i + 4) {
-		simd_a = vld1q_u32(a + i);
-		simd_b = vld1q_u32(b + i);
-		simd_r = bop(simd_a, simd_b);
-		vst1q_u32(r + i, simd_r);
-	}
-#else
-	const DWORD fif = nm;
-	for (DWORD i = 0; i < fif; i = i + 1) ret.v[i] = bop(A.v[i], B.v[i]);
-#endif
-
-	for (QWORD i = nm; i < n; i = i + 1) ret.v[i] = fop(A, B, i);
 
 	ret.Normalize();
 	return ret;

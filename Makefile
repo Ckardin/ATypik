@@ -5,19 +5,34 @@
 
 .SUFFIXES:
 
+UNAME := $(shell uname -m)
+ifeq ($(UNAME),x86_64)
+    ARCH := x86_64
+    INTRFLAGS := -march=x86-64 -mavx2 -msse2 -madx -mlzcnt -mbmi
+else ifeq ($(UNAME),aarch64)
+    ARCH := aarch64
+    INTRFLAGS := -march=armv8-a+simd
+else
+    ARCH := generic
+    INTRFLAGS :=
+endif
+
 CC=g++
 AR=ar
 CXXFLAGS=-fPIC -O3 -Wall -Wextra -Werror -std=c++17 -flto -I./src
 SPEFLAGS=-funroll-loops -fomit-frame-pointer
 LDFLAGS=-flto
-#CXXFLAGS=-fPIC -O1 -Wall -Wextra -Werror -std=c++17 -g -fsanitize=address -fno-omit-frame-pointer -I./src // For debug only
-#LDFLAGS=-fsanitize=address
-INTRFLAGS=-march=x86-64 -madx -mlzcnt -mbmi
-OBJFILES=build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+OBJFILES=build/Defines.o build/ll_Wrp.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+INTFILES=build/Defines.o build/ll_Wrp.o build/Tabs.o build/StrUtils.o build/Int.o
+FLTOTEST=if grep -q "lto" linkout.tmp; then MakeInfo $(MILANG) flto
+FFLTOTEST=; fi
+
 
 all: $(OBJFILES)
 	@MakeInfo $(MILANG) dynamic ATypik
-	@$(CC) $(LDFLAGS) -o build/libATypik.$(A_SHLIB) -shared $^
+	@$(CC) $(LDFLAGS) -o build/libATypik.$(A_SHLIB) -shared $^ 2> linkout.tmp
+	@$(FLTOTEST) ATypik $(FFLTOTEST)
+	@rm -f linkout.tmp
 	@MakeInfo $(MILANG) static ATypik
 	@$(AR) rcs build/libATypik.$(A_STLIB) $^
 
@@ -30,14 +45,18 @@ install:
 	@install -p -m 755 src/Tabs.h     $(INCDIR)
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
-	@install -p -m 755 src/Math.h $(INCDIR)
-	@install -p -m 755 src/ll_Wrp.h $(INCDIR)
-	@install -p -m 755 src/Int.h   $(INCDIR)
+	@install -p -m 755 src/Math.h     $(INCDIR)
+	@install -p -m 755 src/ll_Wrp.h   $(INCDIR)
+	@install -p -m 755 src/Int.h      $(INCDIR)
 
 installdox:
 	@MakeInfo $(MILANG) install doc
 	@mv Doc/Latex/refman.pdf Doc/Latex/ATypik.pdf
 	@install -p -m 755 Doc/Latex/ATypik.pdf $(SHRDIR)
+
+info:
+	@echo "Compilation pour l'architecture: $(ARCH)"
+	@echo "Flags: $(INTRFLAGS)"
 
 
 
@@ -58,6 +77,10 @@ build/Utils.o: src/Utils.h src/Utils.cpp
 build/StrUtils.o: src/StrUtils.h src/StrUtils.cpp
 	@MakeInfo $(MILANG) module StrUtils
 	@$(CC) $(CXXFLAGS) -c src/StrUtils.cpp -o build/StrUtils.o
+
+build/ll_Wrp.o: src/ll_Wrp.h src/ll_Wrp.cpp
+	@MakeInfo $(MILANG) module ll_Wrp
+	@$(CC) $(CXXFLAGS) -c src/ll_Wrp.cpp -o build/ll_Wrp.o
 
 build/Int.o: src/Int.h src/Int.cpp
 	@MakeInfo $(MILANG) module Int
@@ -99,7 +122,7 @@ mrproper:
 
 # Testing
 
-tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestMath$(A_EXT) build/tests/TestInt$(A_EXT) build/tests/TestIntBig$(A_EXT) build/tests/TestIntBench$(A_EXT)
+tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestMath$(A_EXT) build/tests/TestInt$(A_EXT) build/tests/TestIntBig$(A_EXT) build/tests/TestIntBench$(A_EXT) build/tests/TestArch$(A_EXT)
 	@./build/tests/TestDefines$(A_EXT)
 	@./build/tests/TestTabs$(A_EXT)
 	@./build/tests/TestStrUtils$(A_EXT)
@@ -107,9 +130,10 @@ tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/
 	@./build/tests/TestInt$(A_EXT)
 	@./build/tests/TestIntBig$(A_EXT)
 	@./build/tests/TestIntBench$(A_EXT)
+	@./build/tests/TestArch$(A_EXT)
+	@rm -f linkout.tmp
 
-
-build/tests/TestDefines.o: tests/TestDefines.cpp build/Defines.o
+build/tests/TestDefines.o: tests/TestDefines.cpp
 	@MakeInfo $(MILANG) module TestDefines
 	@$(CC) $(CXXFLAGS) -c tests/TestDefines.cpp -o build/tests/TestDefines.o
 
@@ -137,32 +161,48 @@ build/tests/TestMath.o: tests/TestMath.cpp
 	@MakeInfo $(MILANG) module TestMath
 	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestMath.cpp -o build/tests/TestMath.o
 
+build/tests/TestArch.o: tests/TestArch.cpp
+	@MakeInfo $(MILANG) module TestArch
+	@$(CC) $(INTRFLAGS) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestArch.cpp -o build/tests/TestArch.o
+
 
 build/tests/TestDefines$(A_EXT): build/tests/TestDefines.o build/Defines.o
 	@MakeInfo $(MILANG) program_s TestDefines
-	@$(CC) build/Defines.o build/tests/TestDefines.o $(LDFLAGS) -o build/tests/TestDefines$(A_EXT)
+	@$(CC) build/Defines.o build/tests/TestDefines.o $(LDFLAGS) -o build/tests/TestDefines$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) TestDefines $(FFLTOTEST)
 
-build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o
+build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/ll_Wrp.o build/Tabs.o
 	@MakeInfo $(MILANG) program_s TestTabs
-	@$(CC) build/Defines.o build/Utils.o build/StrUtils.o build/Tabs.o build/tests/TestTabs.o $(LDFLAGS) -o build/tests/TestTabs$(A_EXT)
+	@$(CC) build/Defines.o build/ll_Wrp.o build/Tabs.o build/tests/TestTabs.o $(LDFLAGS) -o build/tests/TestTabs$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) TestTabs $(FFLTOTEST)
 
-build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Tabs.o build/Defines.o build/Utils.o build/StrUtils.o
+build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Defines.o build/ll_Wrp.o build/Tabs.o build/StrUtils.o
 	@MakeInfo $(MILANG) program_s TestStrUtils
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/tests/TestStrUtils.o $(LDFLAGS) -o build/tests/TestStrUtils$(A_EXT)
+	@$(CC) build/Defines.o build/ll_Wrp.o build/Tabs.o build/StrUtils.o build/tests/TestStrUtils.o $(LDFLAGS) -o build/tests/TestStrUtils$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) TestStrUtils $(FFLTOTEST)
 
-build/tests/TestInt$(A_EXT): build/tests/TestInt.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
+build/tests/TestInt$(A_EXT): build/tests/TestInt.o $(INTFILES)
 	@MakeInfo $(MILANG) program_s TestInt
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestInt.o $(LDFLAGS) -o build/tests/TestInt$(A_EXT)
+	@$(CC) $(INTFILES) build/tests/TestInt.o $(LDFLAGS) -o build/tests/TestInt$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) TestInt $(FFLTOTEST)
 
-build/tests/TestIntBig$(A_EXT): build/tests/TestIntBig.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
+build/tests/TestIntBig$(A_EXT): build/tests/TestIntBig.o $(INTFILES)
 	@MakeInfo $(MILANG) program_s TestIntBig
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestIntBig.o $(LDFLAGS) -o build/tests/TestIntBig$(A_EXT) -lgmp -lgmpxx
+	@$(CC) $(INTFILES) build/tests/TestIntBig.o $(LDFLAGS) -o build/tests/TestIntBig$(A_EXT) -lgmp -lgmpxx 2> linkout.tmp
+	@$(FLTOTEST) TestIntBig $(FFLTOTEST)
 
-build/tests/TestIntBench$(A_EXT): build/tests/TestIntBench.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o
+build/tests/TestIntBench$(A_EXT): build/tests/TestIntBench.o $(INTFILES)
 	@MakeInfo $(MILANG) program_s TestIntBench
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/tests/TestIntBench.o $(LDFLAGS) -o build/tests/TestIntBench$(A_EXT)
+	@$(CC) $(INTFILES) build/tests/TestIntBench.o $(LDFLAGS) -o build/tests/TestIntBench$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) TestIntBench $(FFLTOTEST)
 
-build/tests/TestMath$(A_EXT): build/tests/TestMath.o build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o
+build/tests/TestMath$(A_EXT): build/tests/TestMath.o $(INTFILES) build/Math.o
 	@MakeInfo $(MILANG) program_s TestMath
-	@$(CC) build/Defines.o build/Tabs.o build/Utils.o build/StrUtils.o build/Int.o build/Math.o build/tests/TestMath.o $(LDFLAGS) -o build/tests/TestMath$(A_EXT) -lgmp -lgmpxx
+	@$(CC) $(INTFILES) build/Math.o build/tests/TestMath.o $(LDFLAGS) -o build/tests/TestMath$(A_EXT) -lgmp -lgmpxx 2> linkout.tmp
+	@$(FLTOTEST) TestMath $(FFLTOTEST)
+
+build/tests/TestArch$(A_EXT): build/tests/TestArch.o $(INTFILES)
+	@MakeInfo $(MILANG) program_s TestArch
+	@$(CC) $(INTFILES) build/tests/TestArch.o $(LDFLAGS) -o build/tests/TestArch$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) TestArch $(FFLTOTEST)
 

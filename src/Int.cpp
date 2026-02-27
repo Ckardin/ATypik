@@ -52,10 +52,12 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file Int.cpp
 /// @brief Source de Int
 /// @author F&nµx
-/// @version 4.1
+/// @version 6.0
 /// @date 19/12/2025
 
 #include "Int.h"
+#include <iostream>
+#include <cassert>
 
 namespace Fenyx::Types
 {
@@ -69,7 +71,7 @@ const Int sl2   = One << 64;
 ///
 /// @param n: nombre de départ
 ///
-/// @return La prochaine puissance de supérieure ou égale à n.
+/// @return La prochaine puissance de 2 supérieure ou égale à n.
 DWORD NextPow2(DWORD n) {
 	if (n == 0) return 1;
 
@@ -87,7 +89,7 @@ DWORD NextPow2(DWORD n) {
 ///
 /// Constructeur de la classe Int.
 Int::Int() {
-	v.Clear(); v[0] = 0;
+	v[0] = 0;
 	sign = true;
 }
 
@@ -97,9 +99,7 @@ Int::Int() {
 ///
 /// Constructeur d'affectation de la classe Int.
 Int::Int(const int value) {
-	v.Clear();
 	sign = (value >= 0);
-
 	v[0] = (value >= 0) ? value : -value;
 }
 
@@ -110,9 +110,9 @@ Int::Int(const int value) {
 /// Constructeur de copie de la classe Int.
 Int::Int(const Int &other) {
 	const DWORD n = other.v.GetSize();
-	v.Clear(); sign = other.sign;
+	sign = other.sign;
 
-	v.SetCapacity(n, 0);
+	v.SetSize(n, 0);
 	for (QWORD i = 0; i < n; i = i + 1) v[i] = other.v[i];
 }
 
@@ -124,9 +124,9 @@ Int::Int(const Int &other) {
 /// Constructeur d'affectation brute de la classe Int.
 Int::Int(const DTable<DWORD> &other, const bool sg) {
 	const DWORD n = other.GetSize();
-	v.Clear(); sign = sg;
+	sign = sg;
 
-	v.SetCapacity(n, 0);
+	v.SetSize(n, 0);
 	for (QWORD i = 0; i < n; i = i + 1) v[i] = other[i];
 }
 
@@ -143,7 +143,6 @@ Int::Int(const std::string &tstr) {
 	// ReSharper disable two CppJoinDeclarationAndAssignment
 	DWORD strt, len;
 	QWORD carry, c;
-	dblk.Clear();
 
 	size_t p = 0;
 	if (tstr[0] == '-') {
@@ -154,17 +153,16 @@ Int::Int(const std::string &tstr) {
 		p = 1;
 	} else sign = true;
 
-	std::string str = tstr.substr(p);
+	const std::string str = tstr.substr(p);
 
 	const DWORD strs = str.size();
 	for (sDWORD i = strs; i > 0; i -= 9) {
 		strt = ((i - 9) > 0) ? (i - 9) : 0;
 		len  = i - strt;
 
-		dblk[dblk.GetSize()] = std::stoul(str.substr(strt, len));
+		dblk.PushBack(std::stoul(str.substr(strt, len)));
 	}
 
-	v.Clear();
 	while (!(dblk.GetSize() == 1 && dblk[0] == 0)) {
 		carry = 0;
 
@@ -174,8 +172,8 @@ Int::Int(const std::string &tstr) {
 			carry = c % b32;
 		}
 
-		v[v.GetSize()] = static_cast<DWORD>(carry);
-		while (dblk.GetSize() > 1 && dblk[dblk.GetSize() - 1] == 0) dblk.Erase(dblk.GetSize() - 1);
+		v.PushBack(static_cast<DWORD>(carry));
+		while (dblk.GetSize() > 1 && dblk[dblk.GetSize() - 1] == 0) dblk.PopBack();
 	}
 }
 
@@ -185,9 +183,7 @@ Int::Int(const std::string &tstr) {
 ///
 /// Constructeur d'affectation unitaire de la classe Int.
 Int::Int(const DWORD value) {
-	v.Clear();
 	sign = true;
-
 	v[0] = value;
 }
 
@@ -197,7 +193,6 @@ Int::Int(const DWORD value) {
 ///
 /// Constructeur d'affectation unitaire sur QWORD de la classe Int.
 Int::Int(const QWORD value) {
-	v.Clear();
 	sign = true;
 
 	v[0] = static_cast<DWORD>(value);
@@ -211,7 +206,7 @@ DTable<DWORD> Int::GetTab() const {
 	const DWORD n = v.GetSize();
 	DTable<DWORD> ret;
 
-	ret.Clear(); ret.SetCapacity(n, 0);
+	ret.SetSize(n, 0);
 	for (QWORD i = 0; i < n; i = i + 1) ret[i] = v[i];
 
 	return ret;
@@ -250,7 +245,7 @@ Int Int::GetOpposite() const {
 	const DWORD m = v.GetSize();
 	Int ret;
 
-	ret.v.SetCapacity(m, 0);
+	ret.v.SetSize(m, 0);
 	for (QWORD i = 0; i < m; i = i + 1) ret.v[i] = v[i];
 
 	ret.sign = !sign;
@@ -264,13 +259,13 @@ std::string Int::GetStr() const {
 	const DWORD n = v.GetSize();
 	if (n == 1 && v[0] == 0) return "0";
 
-	DTable<DWORD> blks; blks.Clear();
+	DTable<DWORD> blks;
 	std::string ret = "";
 	char tbuf[10];
 	QWORD a, r;
 	Int tA;
 
-	tA.v.Clear(); tA.v.SetCapacity(n, 0);
+	tA.v.SetSize(n, 0);
 	for (QWORD i = 0; i < n; i = i + 1) tA.v[i] = v[i];
 
 	while (!tA.IsZero()) {
@@ -281,7 +276,7 @@ std::string Int::GetStr() const {
 			r       = a % bs109;
 		}
 
-		blks[blks.GetSize()] = static_cast<DWORD>(r);
+		blks.PushBack(static_cast<DWORD>(r));
 		tA.Normalize();
 	}
 
@@ -332,14 +327,17 @@ bool Int::IsNeg() const {
 QWORD Int::BitLength() const {
 	const DWORD ns = v.GetSize();
 
-	return ((32 * ns) - cntlz(v[ns - 1]));
+	if (ns == 0)              return 0;
+	if (ns == 1 && v[0] == 0) return 0;
+
+	return (32 * (ns - 1)) + (32 - CPU::cntlz(v[ns - 1]));
 }
 
 Bit Int::GetBit(const QWORD n) const {
 	const DWORD ns = v.GetSize();
 	const QWORD nbl = n / 32, nbb = n % 32;
 
-	if (const QWORD nb = (32 * ns) - cntlz(v[ns - 1]); n >= nb) return {};
+	if (const QWORD nb = (32 * (ns - 1)) - CPU::cntlz(v[ns - 1]); n >= nb) return {};
 	const DWORD x = v[nbl];
 
 	return Bit((x >> nbb) & 1u);
@@ -349,7 +347,7 @@ void Int::SetBit(const QWORD n, const Bit &b) {
 	const DWORD ns = v.GetSize();
 	const QWORD nbl = n / 32, nbb = n % 32;
 
-	if (const QWORD nb = (32 * ns) - cntlz(v[ns - 1]); n < nb) {
+	if (const QWORD nb = (32 * (ns - 1)) - CPU::cntlz(v[ns - 1]); n < nb) {
 		const DWORD x = v[nbl];
 		v[nbl] = ((x & ~(1u << nbb)) | (static_cast<DWORD>(b.GetValue()) << nbb));
 	}
@@ -367,7 +365,7 @@ DWORD Int::TrailZero() const {
 		c = v[i];
 
 		if (c != 0) {
-			ret += cnttz(c);
+			ret += CPU::cnttz(c);
 			break;
 		}
 
@@ -387,14 +385,8 @@ DWORD Int::TrailZero() const {
 ///
 /// /!\ Ne fait pas appel aux opérateurs, recréer la logique des op / et %.
 Pair<Int, Int> Int::DivMod(const Int &A, const Int &B) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nq = nA - nB + 1, nr = nB;
-	Int Q, R;
-
-	Q.v.SetCapacity(nq, 0);
-	R.v.SetCapacity(nr, 0);
-
 	Pair<Int, Int> tqr = Div(A, B);
-	Q = tqr.First(); R = tqr.Second();
+	Int Q = tqr.First(), R = tqr.Second();
 
 	Q.Normalize(); R.Normalize();
 	return {Q, R};
@@ -409,7 +401,10 @@ Pair<Int, Int> Int::DivMod(const Int &A, const Int &B) {
 ///
 /// /!\ Ne fait pas appel aux opérateurs, bypass la gestion à une fonction interne.
 Int Int::Square(const Int& A) {
-	return Sqr(A, A.sign, A.sign);
+	Int ret = Sqr(A, A.sign, A.sign);
+
+	ret.Normalize();
+	return ret;
 }
 
 /// @brief CTComp - Comparaison de Int en temps constant
@@ -419,7 +414,7 @@ Int Int::Square(const Int& A) {
 ///
 /// @return True si [A] == [B], false sinon.
 ///
-/// /!\ Comparaison en temps constant, ne s'arrête pas dès qu'une différence est trouvée.
+/// /!\ Comparaison en temps constant, ne s'arrête pas quand une différence est trouvée.
 bool Int::CTComp(const Int& A, const Int& B) {
 	const DWORD n = A.v.GetSize(), m = B.v.GetSize(), ps = (n <= m) ? m : n;
 	DWORD diff = 0, a, b;
@@ -439,9 +434,9 @@ bool Int::CTComp(const Int& A, const Int& B) {
 /// @return Une référence sur le Int affecté.
 Int& Int::operator=(const Int &other) {
 	const DWORD n = other.v.GetSize();
-	v.Clear(); sign = other.sign;
+	sign = other.sign;
 
-	v.SetCapacity(n, 0);
+	v.SetSize(n, 0);
 	for (QWORD i = 0; i < n; i = i + 1) v[i] = other.v[i];
 
 	return *this;
@@ -459,7 +454,6 @@ Int& Int::operator=(const std::string &tstr) {
 	// ReSharper disable two CppJoinDeclarationAndAssignment
 	DWORD strt, len;
 	QWORD carry, c;
-	dblk.Clear();
 
 	size_t p = 0;
 	if (tstr[0] == '-') {
@@ -470,14 +464,14 @@ Int& Int::operator=(const std::string &tstr) {
 		p = 1;
 	} else sign = true;
 
-	std::string str = tstr.substr(p);
+	const std::string str = tstr.substr(p);
 
 	const DWORD strs = str.size();
 	for (sDWORD i = strs; i > 0; i -= 9) {
 		strt = ((i - 9) > 0) ? (i - 9) : 0;
 		len  = i - strt;
 
-		dblk[dblk.GetSize()] = std::stoul(str.substr(strt, len));
+		dblk.PushBack(std::stoul(str.substr(strt, len)));
 	}
 
 	v.Clear(); carry = 0;
@@ -490,8 +484,8 @@ Int& Int::operator=(const std::string &tstr) {
 			carry = c % b32;
 		}
 
-		v[v.GetSize()] = static_cast<DWORD>(carry);
-		while (dblk.GetSize() > 1 && dblk[dblk.GetSize() - 1] == 0) dblk.Erase(dblk.GetSize() - 1);
+		v.PushBack(static_cast<DWORD>(carry));
+		while (dblk.GetSize() > 1 && dblk[dblk.GetSize() - 1] == 0) dblk.PopBack();
 	}
 
 	return *this;
@@ -544,37 +538,26 @@ Int& Int::operator=(const int other) {
 /// @return Une référence sur le Int affecté.
 Int& Int::operator+=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = (nA > nB) ? nA : nB;
-	Int ret, A, tA, tB;
+	DTable<DWORD> ret;
 
-	A.v.SetCapacity(nA, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) A.v[i] = v[i];
-	A.sign = sign;
+	ret.SetSize(nr + 1, 0);
 
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
-
-	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
-
-	if (A.sign == B.sign) {
-		ret = Add(A, B);
-		ret.sign = A.sign;
-	} else {
-		if (CmpAbs(A, B) >= 0) {
-			ret = Sub(tA, tB);
-			ret.sign = A.sign;
+	if (sign == B.sign) Add(v.GetPtr(), nA, B.v.GetPtr(), nB, ret.GetPtr());
+	else {
+		if (const sDWORD c = CmpAbs(B); c == 0) {
+			ret.SetSize(1, 0);
+			sign = true;
 		} else {
-			ret = Sub(tB, tA);
-			ret.sign = B.sign;
+			if (c > 0) Sub(v.GetPtr(), nA, B.v.GetPtr(), nB, ret.GetPtr());
+			else {
+				Sub(B.v.GetPtr(), nB, v.GetPtr(), nA, ret.GetPtr());
+				sign = B.sign;
+			}
 		}
 	}
 
-	v.Clear(); const DWORD nrt = ret.v.GetSize();
-	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
-	sign = ret.sign;
+	v.Clear(); const DWORD nrt = ret.GetSize();
+	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret[i];
 
 	Normalize();
 	return *this;
@@ -587,42 +570,26 @@ Int& Int::operator+=(const Int &B) {
 /// @return Une référence sur le Int affecté.
 Int& Int::operator-=(const Int &B) {
 	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = (nA > nB) ? nA : nB;
-	Int ret, A, tA, tB;
+	DTable<DWORD> ret;
 
-	A.v.SetCapacity(nA, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) A.v[i] = v[i];
-	A.sign = sign;
+	ret.SetSize(nr + 1, 0);
 
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
-
-	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
-
-	if (A.sign != B.sign) {
-		ret = Add(tA, tB);
-		ret.sign = A.sign;
-	} else {
-		if (const sDWORD c = CmpAbs(A, B); c == 0) {
-			ret = 0;
-			ret.sign = true;
+	if (sign != B.sign) Add(v.GetPtr(), nA, B.v.GetPtr(), nB, ret.GetPtr());
+	else {
+		if (const sDWORD c = CmpAbs(B); c == 0) {
+			ret.SetSize(1, 0);
+			sign = true;
 		} else {
-			if (c > 0) {
-				ret = Sub(tA, tB);
-				ret.sign = A.sign;
-			} else {
-				ret = Sub(tB, tA);
-				ret.sign = !A.sign;
+			if (c > 0) Sub(v.GetPtr(), nA, B.v.GetPtr(), nB, ret.GetPtr());
+			else {
+				Sub(B.v.GetPtr(), nB, v.GetPtr(), nA, ret.GetPtr());
+				sign = !sign;
 			}
 		}
 	}
 
-	v.Clear(); const DWORD nrt = ret.v.GetSize();
-	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
-	sign = ret.sign;
+	v.Clear(); const DWORD nrt = ret.GetSize();
+	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret[i];
 
 	Normalize();
 	return *this;
@@ -634,43 +601,62 @@ Int& Int::operator-=(const Int &B) {
 ///
 /// @return Une référence sur le Int affecté.
 Int& Int::operator*=(const Int &B) {
-	const DWORD nA = v.GetSize(), nB = B.v.GetSize();
-	Int A, tA, tB;
-	bool tie = true;
+	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), n = (nA > nB) ? nA : nB;
+	bool tie = true, calc = true;
+	Int A, ret;
 
-	A.v.SetCapacity(nA, 0);
+	A.v.SetSize(nA, 0);
 	for (QWORD i = 0; i < nA; i = i + 1) A.v[i] = v[i];
 	A.sign = sign;
 
-	{
-		if (nA != nB) tie = false;
-
-		for (QWORD i = 0; i < nA; i = i + 1) {
-			if (A.v[i] != B.v[i]) tie = false;
+	if (nA == 1) {
+		if (A.v[0] == 0) ret = Zero;
+		if (A.v[0] == 1) {
+			if (A.sign) ret = B;
+			else {
+				ret = B; ret.sign = !B.sign;
+			}
 		}
-	} // No call to CmpAbs or similar for optimize stack exchange + Constant-time compare
+		if (A.v[0] == 2) ret = (B << 1);
 
-	if (tie) {
-		tA = Sqr(A, A.sign, B.sign);
-		const DWORD ntA = tA.v.GetSize();
-
-		for (QWORD i = 0; i < ntA; i = i + 1) v[i] = tA.v[i];
-	} else {
-		tA.sign = true, tB.sign = true;
-
-		tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-		for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-		for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
-
-		tA.Normalize(); tB.Normalize();
-
-		Int ret = Mul(tA, tB);
-		ret.sign = (A.sign == B.sign);
-
-		v.Clear(); const DWORD nrt = ret.v.GetSize();
-		for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
-		sign = ret.sign;
+		calc = false;
 	}
+
+	if (nB == 1) {
+		if (B.v[0] == 0) ret = Zero;
+		if (B.v[0] == 1) {
+			if (B.sign) ret = A;
+			else {
+				ret = A; ret.sign = !A.sign;
+			}
+		}
+		if (B.v[0] == 2) ret = (A << 1);
+
+		calc = false;
+	}
+
+	if (calc) {
+		{
+			DWORD a, b;
+			if (nA != nB) tie = false;
+
+			for (QWORD i = 0; i < n; i = i + 1) {
+				a = (i < nA) ? A.v[i] : 0; b = (i < nB) ? B.v[i] : 0;
+
+				if (a != b) tie = false;
+			}
+		} // No call to CmpAbs or similar for optimize stack exchange + Constant-time compare (but not completely secure)
+
+		if (tie) ret = Sqr(A, A.sign, B.sign);
+		else {
+			ret = Mul(A, B);
+			ret.sign = (A.sign == B.sign);
+		}
+	}
+
+	v.Clear(); const DWORD nrt = ret.GetSize();
+	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
+	sign = ret.sign;
 
 	Normalize();
 	return *this;
@@ -682,17 +668,15 @@ Int& Int::operator*=(const Int &B) {
 ///
 /// @return Une référence sur le Int affecté.
 Int& Int::operator/=(const Int &B) {
-	const DWORD nA = v.GetSize(), nB = B.v.GetSize(), nr = nA - nB + 1;
-	Int ret, A;
+	const DWORD nA = v.GetSize();
+	Int A;
 
-	A.v.SetCapacity(nA, 0);
+	A.v.SetSize(nA, 0);
 	for (QWORD i = 0; i < v.GetSize(); i = i + 1) A.v[i] = v[i];
 	A.sign = sign;
 
-	ret.v.SetCapacity(nr, 0);
-
 	Pair<Int, Int> tqr = Div(A, B);
-	ret = tqr.First();
+	Int ret = tqr.First();
 
 	v.Clear(); const DWORD nrt = ret.v.GetSize();
 	for (QWORD i = 0; i < nrt; i = i + 1) v[i] = ret.v[i];
@@ -702,65 +686,49 @@ Int& Int::operator/=(const Int &B) {
 	return *this;
 }
 
-Int Int::Add(const Int &A, const Int &B) {
-	Int ret;
-	// ReSharper disable three CppJoinDeclarationAndAssignment
+void Int::Add(cplimb A, const DWORD nA, cplimb B, const DWORD nB, plimb R) {
+	const DWORD n = (nA > nB) ? nA : nB;
 	BYTE carry = 0;
 	DWORD a, b;
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA > nB) ? nA : nB;
-
-	ret.v.SetCapacity(n + 1, 0);
 
 	for (QWORD i = 0; i < n; i = i + 1) {
-		a = (i < nA) ? A.v[i] : 0;
-		b = (i < nB) ? B.v[i] : 0;
+		a = (i < nA) ? A[i] : 0;
+		b = (i < nB) ? B[i] : 0;
 
-		carry = addwc(a, b, carry, ret.v[i]);
+		carry = CPU::addwc(a, b, carry, R[i]);
 	}
 
-	if (carry) ret.v[n] = static_cast<DWORD>(carry);
-
-	ret.Normalize();
-	return ret;
+	if (carry) R[n] = static_cast<DWORD>(carry);
 }
 
-Int Int::Sub(const Int &A, const Int &B) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
-	// ReSharper disable three CppJoinDeclarationAndAssignment
+void Int::Sub(cplimb A, const DWORD nA, cplimb B, const DWORD nB, plimb R) {
 	BYTE borrow = 0;
 	DWORD b;
-	Int ret;
-
-	ret.v.SetCapacity(nA, 0);
 
 	for (QWORD i = 0; i < nA; i = i + 1) {
-		b = (i < nB) ? B.v[i] : 0;
-		borrow = subwb(A.v[i], b, borrow, ret.v[i]);
+		b = (i < nB) ? B[i] : 0;
+		borrow = CPU::subwb(A[i], b, borrow, R[i]);
 	}
-
-	ret.Normalize();
-	return ret;
 }
 
 Int Int::Mul(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
 
-	if (const DWORD n = (nA > nB) ? nA : nB; n <= 64) return LongMul(A, B);
+	if (nA == 1) return SmallMul(B, A.v[0]);
+	if (nB == 1) return SmallMul(A, B.v[0]);
+
+	if (const DWORD n = (nA > nB) ? nA : nB; n <= MULLIMIT) return LongMul(A, B);
 	return Karatsuba(A, B);
 }
 
 Int Int::Sqr(const Int &A, const bool sA, const bool sB) {
 	const DWORD nA = A.v.GetSize();
-	Int tA, ret;
+	Int ret;
 
-	tA.v.SetCapacity(A.v.GetSize(), 0);
-	ret.v.SetCapacity(2 * nA, 0);
+	ret.v.SetSize(2 * nA, 0);
 
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	tA.sign = true;
-
-	if (nA <= 64) ret = LongSqr(tA);
-	else          ret = KaratsubaSqr(tA);
+	if (nA <= MULLIMIT) ret = LongSqr(A);
+	else                ret = KaratsubaSqr(A);
 
 	ret.sign = (sA == sB);
 
@@ -769,46 +737,43 @@ Int Int::Sqr(const Int &A, const bool sA, const bool sB) {
 }
 
 Pair<Int, Int> Int::Div(const Int &A, const Int &B) {
-	const DWORD m = A.v.GetSize(), n = B.v.GetSize();
-	Pair<Int, Int> tqr;
-	Int tA, tB, Q, R;
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
+	Int Q, R;
 	bool calcdv = true, calck = true;
 
-	tA.v.SetCapacity(m, 0); tB.v.SetCapacity(n, 0);
-	for (QWORD i = 0; i < m; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < n; i = i + 1) tB.v[i] = B.v[i];
-
-	tA.sign = true; tB.sign = true;
-
-	if (B.IsZero()) throw std::runtime_error("Division by zero");
-	if (A.IsZero() || CmpAbs(A, B) == -1) {
+	if (nB == 1 && B.v[0] == 0) throw std::runtime_error("Division by zero");
+	if ((nA == 1 && A.v[0] == 0) || CmpAbs(A, B) == -1) {
 		Q = 0; R = A;
 		calcdv = false;
 	}
-	if (B == Int(1)) {
+	if (nB == 1 && B.v[0] == 1) {
 		Q = A; R = 0;
-		Q.sign = (A.sign == B.sign);
 		calcdv = false;
 	}
 
-	if (const Int tts = Sub(tA, tB); tts == tB) {
+	Int tts; tts.v.SetSize(nA + nB + 1, 0);
+	Sub(A.v.GetPtr(), nA, B.v.GetPtr(), nB, tts.v.GetPtr());
+
+	if (tts == B) {
 		Q = 2; R = 0;
-	} else if (tts < tB) {
+	} else if (tts < B) {
 		Q = 1; R = tts;
-	} else {
-		if (calcdv) {
-			if (n == 1) {
-				Pair<Int, DWORD> tqrp = SmallDiv(A, B.v[0]);
-				Q = tqrp.First(); R = tqrp.Second();
+	} else if (calcdv) {
+		if (nB == 1) {
+			Pair<Int, DWORD> tqrp = SmallDiv(A, B.v[0]);
+			Q = tqrp.First(); R = tqrp.Second();
 
-				calck = false;
-			}
+			calck = false;
+		}
 
-			if (calck) {
-				tqr = KnuthD(tA, tB);
+		if (calck) {
+			const DWORD lz = CPU::cntlz(B.v[nB - 1]);
+			Int tA = A.BLShift(lz), tB = B.BLShift(lz);
+			tA.sign = true; tB.sign = false;
 
-				Q = tqr.First(); R = tqr.Second();
-			}
+			Pair<Int, Int> tqr = KnuthD(tA, tB, lz);
+
+			Q = tqr.First(); R = tqr.Second();
 		}
 	}
 
@@ -823,7 +788,7 @@ Int Int::KaratsubaSqr(const Int &A) {
 	const DWORD n = A.v.GetSize();
 	const DWORD m = (n + 1) / 2;
 
-	if (n <= 64) return LongSqr(A);
+	if (n <= MULLIMIT) return LongSqr(A);
 
 	const Int A0 = A.Slice(0, m).ExtByZero(m);
 	const Int A1 = A.Slice(m, A.v.GetSize() - m);
@@ -845,7 +810,7 @@ Int Int::LongSqr(const Int &A) {
 	SWORD acc = 0, carry = 0, ai, aj;
 	Int ret;
 
-	ret.v.SetCapacity(n2 + 8, 0);
+	ret.v.SetSize(n2 + 8, 0);
 
 	const DWORD tnk = n2 - 1;
 	for (DWORD k = 0; k < tnk; k = k + 1) {
@@ -884,16 +849,16 @@ Int Int::Karatsuba(const Int &A, const Int &B) {
 	const DWORD n = (A.v.GetSize() > B.v.GetSize()) ? A.v.GetSize() : B.v.GetSize();
 	const DWORD m = (n + 1) / 2;
 
-	if (n <= 64) return LongMul(A, B);
+	if (n <= MULLIMIT) return LongMul(A, B);
 
-	Int A0 = A.Slice(0, m).ExtByZero(m);
-	Int A1 = A.Slice(m, A.v.GetSize() - m);
-	Int B0 = B.Slice(0, m).ExtByZero(m);
-	Int B1 = B.Slice(m, B.v.GetSize() - m);
+	const Int A0 = A.Slice(0, m).ExtByZero(m);
+	const Int A1 = A.Slice(m, A.v.GetSize() - m);
+	const Int B0 = B.Slice(0, m).ExtByZero(m);
+	const Int B1 = B.Slice(m, B.v.GetSize() - m);
 
-	Int z0 = Karatsuba(A0, B0);
-	Int z1 = Karatsuba(A0 + A1, B0 + B1);
-	Int z2 = Karatsuba(A1, B1);
+	const Int z0 = Karatsuba(A0, B0);
+	Int z1       = Karatsuba(A0 + A1, B0 + B1);
+	const Int z2 = Karatsuba(A1, B1);
 	z1 = z1 - z0 - z2;
 
 	Int ret = z0 + z1.WShift(m) + z2.WShift(2 * m);
@@ -907,7 +872,7 @@ Int Int::LongMul(const Int &A, const Int &B) {
 	QWORD carry = 0, p, b;
 	Int ret;
 
-	ret.v.SetCapacity(nA + nB, 0);
+	ret.v.SetSize(nA + nB, 0);
 
 	for (QWORD i = 0; i < nA; i = i + 1) {
 		carry = 0;
@@ -931,14 +896,7 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 	QWORD carry, p;
 	Int ret;
 
-	if (B == 0) return Zero;
-	if (B == 1) {
-		ret = A;
-		ret.Normalize();
-		return ret;
-	}
-
-	ret.v.SetCapacity(n, 0);
+	ret.v.SetSize(n, 0);
 
 	carry = 0;
 	for (QWORD i = 0; i < n; i = i + 1) {
@@ -949,45 +907,42 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 	}
 
 	while (carry != 0) {
-		ret.v[ret.v.GetSize()] = static_cast<DWORD>(carry);
+		ret.v.PushBack(static_cast<DWORD>(carry));
 		carry >>= 32;
 	}
 
 	ret.Normalize();
-	ret.sign = A.sign;
 	return ret;
 } // OPTIMISATION IA => Super algo, je ne connaissais pas :)
 
-Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B) {
-	const DWORD n = B.v.GetSize(), lz = cntlz(B.v[n - 1]);
-	Int Q, R, Bq, tA(A.BLShift(lz)), tB(B.BLShift(lz));
+Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B, const DWORD lz) {
+	const DWORD n = B.v.GetSize();
+	Int Q, R, Bq, tA(A);
 	const DWORD m = tA.v.GetSize() - n, m1 = m + 1, nn1 = n - 1, nn2 = n - 2, mn2 = m + n + 2;
 	QWORD num, d, qest, rest;
 
-	Q.v.SetCapacity(m + 1, 0);
-	R.v.SetCapacity(n, 0);
+	Q.v.SetSize(m + 1, 0);
+	R.v.SetSize(n, 0);
 
 	for (sQWORD j = m1; j >= 0; j = j - 1) {
-		tA.v.SetCapacity(m + n + 2, 0);
-		for (QWORD i = tA.v.GetSize(); i < mn2; i = i + 1) tA.v[i] = 0;
-
+		tA.v.SetSize(mn2, 0);
 		if (tA.v.GetSize() < mn2) throw std::runtime_error("Div Size Error: m=" + toString<DWORD>(m) + ", n="
 																					+ toString<DWORD>(n) + ", sA="
 																					+ toString<DWORD>(tA.v.GetSize()) + ".");
 
 		num = (static_cast<QWORD>(tA.v[j + n]) << 32) + tA.v[j + n - 1];
-		d   = tB.v[nn1];
+		d   = B.v[nn1];
 
 		qest = num / d; rest = num % d;
-		while (qest == b32 || ((qest * static_cast<QWORD>(tB.v[nn2])) > ((rest << 32) + tA.v[j + n - 2]))) {
+		while (qest == b32 || ((qest * static_cast<QWORD>(B.v[nn2])) > ((rest << 32) + tA.v[j + n - 2]))) {
 			qest -= 1;
 			rest += d;
 			if (rest >= b32) break;
 		}
 
-		Bq = Mul(tB, Int(qest)).WShift(j);
+		Bq = Mul(B, Int(qest)).WShift(j);
 		if (tA < Bq) {
-			tA += tB.WShift(j);
+			tA += B.WShift(j);
 			qest -= 1;
 		}
 
@@ -1002,24 +957,17 @@ Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B) {
 } // OPTIMISATION IA => Subtilités d'un algo que je connais bien (merci Mr Knuth, vous êtes Le Goat)
 
 Pair<Int, DWORD> Int::SmallDiv(const Int &A, const DWORD B) {
-	bool calcdv = true;
+	const DWORD nA = A.v.GetSize();
+	// ReSharper disable once CppTooWideScope
 	QWORD r = 0, c;
 	Int q;
 
-	q.v.SetCapacity(A.v.GetSize(), 0);
+	q.v.SetSize(nA, 0);
 
-	if (B == 0) throw std::runtime_error("Division by zero");
-	if (CmpAbs(A, Int(B)) == -1) {
-		q = 0; r = A.v[0];
-		calcdv = false;
-	}
-
-	if (calcdv) {
-		for (sQWORD i = A.v.GetSize() - 1; i >= 0; i = i - 1) {
-			c = (r << 32) | A.v[i];
-			q.v[i] = static_cast<DWORD>(c / B);
-			r = c % B;
-		}
+	for (sQWORD i = nA - 1; i >= 0; i = i - 1) {
+		c = (r << 32) | A.v[i];
+		q.v[i] = static_cast<DWORD>(c / B);
+		r = c % B;
 	}
 
 	q.Normalize();
@@ -1040,11 +988,25 @@ sDWORD Int::CmpAbs(const Int &A, const Int &B) {
 	return 0;
 }
 
+sDWORD Int::CmpAbs(const Int &B) {
+	const DWORD nA = v.GetSize(), nB = B.v.GetSize();
+
+	if (nA < nB) return -1;
+	if (nA > nB) return 1;
+
+	for (sQWORD i = nA - 1; i >= 0; i = i - 1) {
+		if (v[i] < B.v[i]) return -1;
+		if (v[i] > B.v[i]) return 1;
+	}
+
+	return 0;
+}
+
 Int Int::Abs() const {
 	const DWORD n = v.GetSize();
 	Int ret;
 
-	ret.v.SetCapacity(n, 0);
+	ret.v.SetSize(n, 0);
 	for (QWORD i = 0; i < n; i = i + 1) ret.v[i] = v[i];
 	ret.sign = true;
 
@@ -1056,7 +1018,7 @@ Int Int::WShift(const DWORD b) const {
 	const sQWORD fi = (v.GetSize() + b) - 1;
 	Int ret;
 
-	ret.v.SetCapacity(fi + 1, 0);
+	ret.v.SetSize(fi + 1, 0);
 	for (sQWORD i = fi; i >= 0; i = i - 1) ret.v[i] = ((i - b) >= 0) ? v[i - b] : 0;
 
 	ret.sign = sign;
@@ -1069,13 +1031,15 @@ Int Int::BLShift(const DWORD b) const {
 	QWORD x;
 	Int ret;
 
-	if (IsZero() || b == 0) {
+	if ((asize == 1 && v[0] == 0) || b == 0) {
+		ret.v.SetSize(asize, 0);
 		for (QWORD i = 0; i < asize; i = i + 1) ret.v[i] = v[i];
+
 		ret.Normalize();
 		return ret;
 	}
 
-	ret.v.SetCapacity(fi, 0);
+	ret.v.SetSize(fi, 0);
 	for (QWORD i = 0; i < asize; i = i + 1) {
 		x = (static_cast<QWORD>(v[i]) << nb) | c;
 		ret.v[i + nw] = static_cast<DWORD>(x);
@@ -1094,15 +1058,17 @@ Int Int::BRShift(const DWORD b) const {
 	DWORD c = 0, xc;
 	Int ret;
 
-	if (IsZero() || b == 0) {
+	if ((asize == 1 && v[0] == 0) || b == 0) {
+		ret.v.SetSize(asize, 0);
 		for (QWORD i = 0; i < asize; i = i + 1) ret.v[i] = v[i];
+
 		ret.Normalize();
 		return ret;
 	}
 
 	if (b >= (asize * 32)) return {0};
 
-	ret.v.SetCapacity(fi, 0);
+	ret.v.SetSize(fi, 0);
 	for (sQWORD i = fi - 1; i >= 0; i = i - 1) {
 		xc = static_cast<QWORD>(v[i + nw]);
 		ret.v[i] = static_cast<DWORD>((xc >> nb) | (static_cast<QWORD>(c) << nb32));
@@ -1117,7 +1083,7 @@ Int Int::ExtByZero(const DWORD s) const {
 	const DWORD n = v.GetSize();
 	Int ret;
 
-	ret.v.SetCapacity(s, 0);
+	ret.v.SetSize(s, 0);
 	for (QWORD i = 0; i < n; i = i + 1) ret.v[i] = v[i];
 
 	return ret;
@@ -1130,7 +1096,7 @@ Int Int::Slice(const DWORD strt, const DWORD len) const {
 	if (strt >= n) return ret;
 
 	const DWORD fi = ((strt + len) > n) ? n : (strt + len);
-	ret.v.SetCapacity(fi - strt, 0);
+	ret.v.SetSize(fi - strt, 0);
 
 	for (DWORD i = strt; i < fi; i = i + 1) ret.v[i - strt] = v[i];
 
@@ -1139,9 +1105,9 @@ Int Int::Slice(const DWORD strt, const DWORD len) const {
 }
 
 void Int::Normalize() {
-	while (v.GetSize() > 1 && v[v.GetSize() - 1] == 0) v.Erase(v.GetSize() - 1);
+	while (v.GetSize() > 1 && v[v.GetSize() - 1] == 0) v.PopBack();
 
-	if (v.GetSize() == 0)              v[0] = 0;
+	if (v.GetSize() == 0)              v.SetSize(1, 0);
 	if (v.GetSize() == 1 && v[0] == 0) sign = true;
 }
 
@@ -1152,17 +1118,17 @@ Int Int::BarrettReduce(const Int &T, const Int &N, const Int &Mu) {
 	const DWORD k = N.v.GetSize(), ts = T.v.GetSize(), km1 = k - 1, kp1 = k + 1;
 	Int q1, q2, q3, r1, r2, ret, q3n, bk1;
 
-	bk1.v.SetCapacity(k + 2, 0);
+	bk1.v.SetSize(k + 2, 0);
 	bk1.v[k + 1] = 1;
 
 	q1 = T.BRShift(32 * km1);
 	q2 = Mul(q1, Mu);
 	q3 = q2.BRShift(32 * kp1);
 
-	r1.v.SetCapacity(kp1, 0);
+	r1.v.SetSize(kp1, 0);
 	for (QWORD i = 0; i < kp1; i = i + 1) r1.v[i] = (i < ts) ? T.v[i] : 0;
 
-	r2.v.SetCapacity(kp1, 0);
+	r2.v.SetSize(kp1, 0);
 	q3n = Mul(q3, N); const DWORD q3ns = q3n.v.GetSize();
 	for (QWORD i = 0; i < kp1; i = i + 1) r2.v[i] = (i < q3ns) ? q3n.v[i] : 0;
 
@@ -1181,11 +1147,12 @@ Int Int::BarrettReduce(const Int &T, const Int &N, const Int &Mu) {
 ///
 /// @return La constante Mu liée à [N].
 Int GetMu(const Int &N) {
-	if (N.IsZero()) throw std::runtime_error("Modulo by zero");
 	const DWORD k = N.v.GetSize();
 
+	if (k == 1 && N.v[0] == 0) throw std::runtime_error("Modulo by zero");
+
 	Int b2k;
-	b2k.v.SetCapacity(2 * k + 1, 0);
+	b2k.v.SetSize(2 * k + 1, 0);
 	b2k.v[2 * k] = 1;
 
 	Int Mu = b2k / N;
@@ -1205,10 +1172,9 @@ Int GetMu(const Int &N) {
 ///
 /// /!\ [A] et [B] doivent être positifs et avoir une taille < ou = à celle de N.
 Int MMul(const Int &A, const Int &B, const Int &N, const Int &Mu) {
-	if (N.IsZero()) throw std::runtime_error("Modulo by zero");
-	const Int T = Int::Mul(A, B);
+	if (const DWORD k = N.v.GetSize(); k == 1 && N.v[0] == 0) throw std::runtime_error("Modulo by zero");
 
-	return Int::BarrettReduce(T, N, Mu);
+	return Int::BarrettReduce(Int::Mul(A, B), N, Mu);
 }
 
 /// @brief MSqr - Opérateur de mise au carré Barrett
@@ -1221,10 +1187,9 @@ Int MMul(const Int &A, const Int &B, const Int &N, const Int &Mu) {
 ///
 /// /!\ [A] doit être positif et avoir une taille < ou = à celle de N.
 Int MSqr(const Int &A, const Int &N, const Int &Mu) {
-	if (N.IsZero()) throw std::runtime_error("Modulo by zero");
-	const Int T = Int::Sqr(A, A.sign, A.sign);
+	if (const DWORD k = N.v.GetSize(); k == 1 && N.v[0] == 0) throw std::runtime_error("Modulo by zero");
 
-	return Int::BarrettReduce(T, N, Mu);
+	return Int::BarrettReduce(Int::Sqr(A, A.sign, A.sign), N, Mu);
 }
 
 /// @brief operator+ - Opérateur d'addition
@@ -1235,27 +1200,25 @@ Int MSqr(const Int &A, const Int &N, const Int &Mu) {
 /// @return Le résultat de [A] + [B].
 Int operator+(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = (nA > nB) ? nA : nB;
-	Int ret, tA, tB;
+	Int ret;
 
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
-
-	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
+	ret.v.SetSize(nr + 1, 0);
 
 	if (A.sign == B.sign) {
-		ret = Int::Add(A, B);
+		Int::Add(A.v.GetPtr(), nA, B.v.GetPtr(), nB, ret.v.GetPtr());
 		ret.sign = A.sign;
 	} else {
-		if (Int::CmpAbs(A, B) >= 0) {
-			ret = Int::Sub(tA, tB);
-			ret.sign = A.sign;
+		if (const sDWORD c = Int::CmpAbs(A, B); c == 0) {
+			ret = Zero;
+			ret.sign = true;
 		} else {
-			ret = Int::Sub(tB, tA);
-			ret.sign = B.sign;
+			if (c > 0) {
+				Int::Sub(A.v.GetPtr(), nA, B.v.GetPtr(), nB, ret.v.GetPtr());
+				ret.sign = A.sign;
+			} else {
+				Int::Sub(B.v.GetPtr(), nB, A.v.GetPtr(), nA, ret.v.GetPtr());
+				ret.sign = B.sign;
+			}
 		}
 	}
 
@@ -1271,32 +1234,23 @@ Int operator+(const Int &A, const Int &B) {
 /// @return Le résultat de [A] - [B].
 Int operator-(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = (nA > nB) ? nA : nB;
-	Int ret, tA, tB;
+	Int ret;
 
-	tA.sign = true, tB.sign = true;
-
-	tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-	for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-	for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
-
-	ret.v.SetCapacity(nr, 0);
-	tA.Normalize(); tB.Normalize();
+	ret.v.SetSize(nr + 1, 0);
 
 	if (A.sign != B.sign) {
-		ret = Int::Add(tA, tB);
+		Int::Add(A.v.GetPtr(), nA, B.v.GetPtr(), nB, ret.v.GetPtr());
 		ret.sign = A.sign;
 	} else {
-		const sDWORD c = Int::CmpAbs(A, B);
-
-		if (c == 0) {
-			ret = 0;
+		if (const sDWORD c = Int::CmpAbs(A, B); c == 0) {
+			ret = Zero;
 			ret.sign = true;
 		} else {
 			if (c > 0) {
-				ret = Int::Sub(tA, tB);
+				Int::Sub(A.v.GetPtr(), nA, B.v.GetPtr(), nB, ret.v.GetPtr());
 				ret.sign = A.sign;
 			} else {
-				ret = Int::Sub(tB, tA);
+				Int::Sub(B.v.GetPtr(), nB, A.v.GetPtr(), nA, ret.v.GetPtr());
 				ret.sign = !A.sign;
 			}
 		}
@@ -1313,32 +1267,48 @@ Int operator-(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de [A] * [B].
 Int operator*(const Int &A, const Int &B) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = nA + nB;
-	Int ret, tA, tB;
-	bool tie = true;
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), n = (nA > nB) ? nA : nB;
+	bool tie = true, calc = true;
+	Int ret;
 
-	{
-		if (nA != nB) tie = false;
+	if (nA == 1) {
+		if (A.v[0] == 0) return Zero;
+		if (A.v[0] == 1) {
+			if (A.sign) return B;
 
-		for (QWORD i = 0; i < nA; i = i + 1) {
-			if (A.v[i] != B.v[i]) tie = false;
+			ret = B; ret.sign = !B.sign;
+			calc = false;
 		}
-	} // No call to CmpAbs or similar for optimize stack exchange + Constant-time compare
+		if (A.v[0] == 2) return (B << 1);
+	}
 
-	if (tie) {
-		ret = Int::Sqr(A, A.sign, B.sign);
-	} else {
-		tA.sign = true, tB.sign = true;
+	if (nB == 1) {
+		if (B.v[0] == 0) return Zero;
+		if (B.v[0] == 1) {
+			if (B.sign) return A;
 
-		tA.v.SetCapacity(nA, 0); tB.v.SetCapacity(nB, 0);
-		for (QWORD i = 0; i < nA; i = i + 1) tA.v[i] = A.v[i];
-		for (QWORD i = 0; i < nB; i = i + 1) tB.v[i] = B.v[i];
+			ret = A; ret.sign = !A.sign;
+			calc = false;
+		}
+		if (B.v[0] == 2) return (A << 1);
+	}
 
-		ret.v.SetCapacity(nr, 0);
-		tA.Normalize(); tB.Normalize();
+	if (calc) {
+		{
+			DWORD a, b;
+			if (nA != nB) tie = false;
 
-		ret = Int::Mul(tA, tB);
-		ret.sign = (A.sign == B.sign);
+			for (QWORD i = 0; i < n; i = i + 1) {
+				a = (i < nA) ? A.v[i] : 0; b = (i < nB) ? B.v[i] : 0;
+				if (a != b) tie = false;
+			}
+		} // No call to CmpAbs or similar for optimize stack exchange + Constant-time compare (but not completely secure)
+
+		if (tie) ret = Int::Sqr(A, A.sign, B.sign);
+		else {
+			ret = Int::Mul(A, B);
+			ret.sign = (A.sign == B.sign);
+		}
 	}
 
 	ret.Normalize();
@@ -1352,13 +1322,8 @@ Int operator*(const Int &A, const Int &B) {
 ///
 /// @return Le quotient de la division euclidienne de [A] par [B].
 Int operator/(const Int &A, const Int &B) {
-	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize(), nr = nA - nB + 1;
-	Int ret;
-
-	ret.v.SetCapacity(nr, 0);
-
 	Pair<Int, Int> tqr = Int::Div(A, B);
-	ret = tqr.First();
+	Int ret = tqr.First();
 
 	ret.Normalize();
 	return ret;
@@ -1371,14 +1336,10 @@ Int operator/(const Int &A, const Int &B) {
 ///
 /// @return Le reste de la division euclidienne de [A] par [B].
 Int operator%(const Int &A, const Int &B) {
-	const DWORD nB = B.v.GetSize(), nr = nB;
-	Int ret;
-
-	ret.v.SetCapacity(nr, 0);
-	if (B == Int(2)) return {A.v[0] & 1};
+	if (const DWORD nB = B.v.GetSize(); nB == 1 && B.v[0] == 2) return {A.v[0] & 1};
 
 	Pair<Int, Int> tqr = Int::Div(A, B);
-	ret = tqr.Second();
+	Int ret = tqr.Second();
 
 	ret.Normalize();
 	return ret;
@@ -1396,13 +1357,13 @@ Int operator<<(const Int &A, const DWORD b) {
 	QWORD x;
 	Int ret;
 
-	if (A.IsZero() || b == 0) {
+	if ((asize == 1 && A.v[0] == 0) || b == 0) {
 		ret = A;
 		ret.Normalize();
 		return ret;
 	}
 
-	ret.v.SetCapacity(fi, 0);
+	ret.v.SetSize(fi, 0);
 	for (QWORD i = 0; i < asize; i = i + 1) {
 		x = (static_cast<QWORD>(A.v[i]) << nb) | c;
 		ret.v[i + nw] = static_cast<DWORD>(x);
@@ -1430,7 +1391,7 @@ Int operator>>(const Int &A, const DWORD b) {
 	DWORD c = 0, xc;
 	Int ret;
 
-	if (A.IsZero() || b == 0) {
+	if ((asize == 1 && A.v[0] == 0) || b == 0) {
 		ret = A;
 		ret.Normalize();
 		return ret;
@@ -1438,7 +1399,7 @@ Int operator>>(const Int &A, const DWORD b) {
 
 	if (b >= (asize * 32)) return ((A.sign) ? Zero : Int(-1));
 
-	ret.v.SetCapacity(fi, 0);
+	ret.v.SetSize(fi, 0);
 	for (QWORD i = fi; i > 0; i = i - 1) {
 		xc = A.v[i - 1 + nw];
 		ret.v[i - 1] = (xc >> nb) | c;
@@ -1463,18 +1424,10 @@ Int operator>>(const Int &A, const DWORD b) {
 ///
 /// @return Le résultat de l'opération binaire [A] & [B].
 Int operator&(const Int &A, const Int &B) {
-	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
-#if defined(__AVX2__)
-		return _mm256_and_si256(x, y);
-#elif defined(__SSE2__)
-		return _mm_and_si128(x, y);
-#elif defined(__ARM_NEON) || defined(__ARM_NEON__)
-		return vandq_u32(x, y);
-#else
-		return x & y;
-#endif
-	}, [](const Int &, const Int &, const DWORD) -> DWORD {
-		return 0;
+	return Int::VectBinOp(A, B, [](DWORD *x, DWORD *y, DWORD *r, const DWORD idx) -> void {
+		CPU::and_op(x, y, r, idx);
+	}, [](const DWORD a, const DWORD b) -> DWORD {
+		return (a & b);
 	});
 }
 
@@ -1485,18 +1438,10 @@ Int operator&(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de l'opération binaire [A] | [B].
 Int operator|(const Int &A, const Int &B) {
-	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
-#if defined(__AVX2__)
-		return _mm256_or_si256(x, y);
-#elif defined(__SSE2__)
-		return _mm_or_si128(x, y);
-#elif defined(__ARM_NEON)
-		return vorrq_u32(x, y);
-#else
-		return x | y;
-#endif
-	}, [](const Int &tA, const Int &tB, const DWORD idx) -> DWORD {
-		return ((idx < tA.v.GetSize()) ? tA.v[idx] : tB.v[idx]);
+	return Int::VectBinOp(A, B, [](DWORD *x, DWORD *y, DWORD *r, const DWORD idx) -> void {
+		CPU::ior_op(x, y, r, idx);
+	}, [](const DWORD a, const DWORD b) -> DWORD {
+		return (a | b);
 	});
 }
 
@@ -1507,18 +1452,10 @@ Int operator|(const Int &A, const Int &B) {
 ///
 /// @return Le résultat de l'opération binaire [A] ^ [B].
 Int operator^(const Int &A, const Int &B) {
-	return Int::VectBinOp(A, B, [](auto x, auto y) -> decltype(x) {
-#if defined(__AVX2__)
-		return _mm256_xor_si256(x, y);
-#elif defined(__SSE2__)
-		return _mm_xor_si128(x, y);
-#elif defined(__ARM_NEON)
-		return veorq_u32(x, y);
-#else
-		return x ^ y;
-#endif
-	}, [](const Int &tA, const Int &tB, const DWORD idx) -> DWORD {
-		return ((idx < tA.v.GetSize()) ? tA.v[idx] : tB.v[idx]);
+	return Int::VectBinOp(A, B, [](DWORD *x, DWORD *y, DWORD *r, const DWORD idx) -> void {
+		CPU::xor_op(x, y, r, idx);
+	}, [](const DWORD a, const DWORD b) -> DWORD {
+		return (a ^ b);
 	});
 }
 
