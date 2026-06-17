@@ -56,7 +56,6 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @date 19/12/2025
 
 #include "Int.h"
-#include <iostream>
 #include <cassert>
 
 namespace Fenyx::Types
@@ -407,6 +406,51 @@ Int Int::Square(const Int& A) {
 	return ret;
 }
 
+/// @brief Sqrt - Donne la racine carrée entière
+///
+/// @param A: u-value
+///
+/// @return Un Int représentant la racine carrée entière de [A].
+Int Int::Sqrt(const Int& A) {
+	const DWORD n = A.v.GetSize();
+	Int tA, s;
+
+	tA.v.SetSize(n, 0);
+	for (QWORD i = 0; i < n; i = i + 1) tA.v[i] = A.v[i];
+	tA.sign = true;
+
+	if (n <= SQTLIMIT) s = BtwSqrt(tA).First();
+	else               s = HeronSqrt(tA).First();
+
+	s.Normalize();
+	return s;
+}
+
+/// @brief Sqrt - Donne la racine carrée entière et son reste
+///
+/// @param A: u-value
+/// @param r: reste
+///
+/// @return Un Int représentant la racine carrée entière de [A].
+Int Int::SqrtRem(const Int& A, Int &r) {
+	const DWORD n = A.v.GetSize();
+	Pair<Int, Int> sr;
+	Int tA;
+
+	tA.v.SetSize(n, 0);
+	for (QWORD i = 0; i < n; i = i + 1) tA.v[i] = A.v[i];
+	tA.sign = true;
+
+	if (n <= SQTLIMIT) sr = BtwSqrt(tA);
+	else               sr = HeronSqrt(tA);
+
+	Int s = sr.First();
+	r = sr.Second();
+
+	s.Normalize(); r.Normalize();
+	return s;
+}
+
 /// @brief CTComp - Comparaison de Int en temps constant
 ///
 /// @param[in] A: l-value
@@ -424,7 +468,7 @@ bool Int::CTComp(const Int& A, const Int& B) {
 		diff |= (a ^ b);
 	}
 
-	return ((diff == 0) && (n == m));
+	return ((diff - 1) >> 31);
 }
 
 /// @brief operator= - Opérateur d'affectation entre Int
@@ -717,6 +761,9 @@ Int Int::Mul(const Int &A, const Int &B) {
 	if (nA == 1) return SmallMul(B, A.v[0]);
 	if (nB == 1) return SmallMul(A, B.v[0]);
 
+	if (nA == 2) return SmallMul(B, A.v[0] | static_cast<QWORD>(A.v[1]) << 32);
+	if (nB == 2) return SmallMul(A, B.v[0] | static_cast<QWORD>(B.v[1]) << 32);
+
 	if (const DWORD n = (nA > nB) ? nA : nB; n <= MULLIMIT) return LongMul(A, B);
 	return Karatsuba(A, B);
 }
@@ -769,7 +816,7 @@ Pair<Int, Int> Int::Div(const Int &A, const Int &B) {
 		if (calck) {
 			const DWORD lz = CPU::cntlz(B.v[nB - 1]);
 			Int tA = A.BLShift(lz), tB = B.BLShift(lz);
-			tA.sign = true; tB.sign = false;
+			tA.sign = true; tB.sign = true;
 
 			Pair<Int, Int> tqr = KnuthD(tA, tB, lz);
 
@@ -891,6 +938,13 @@ Int Int::LongMul(const Int &A, const Int &B) {
 	return ret;
 }
 
+Int Int::SmallMul(const Int &A, const QWORD B) {
+	const Int t1 = SmallMul(A, static_cast<DWORD>(B));
+	const Int t2 = SmallMul(A, static_cast<DWORD>(B >> 32));
+
+	return (t1 + (t2 << 32));
+}
+
 Int Int::SmallMul(const Int &A, const DWORD B) {
 	const DWORD n = A.v.GetSize();
 	QWORD carry, p;
@@ -914,6 +968,45 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 	ret.Normalize();
 	return ret;
 } // OPTIMISATION IA => Super algo, je ne connaissais pas :)
+
+Pair<Int, Int> Int::HeronSqrt(const Int &A) {
+	Int xn = One << (A.BitLength() / 2);
+	Int xn1, xnm1;
+
+	while (true) {
+		xn1  = (xn + Div(A, xn).First()) >> 1; xnm1 = xn;
+		if (xn1 == xn && xn1 == xnm1) break;
+
+		xn = xn1;
+	}
+
+	Int r = A - Sqr(xn, true, true);
+
+	xn.Normalize(); r.Normalize();
+	return {xn, r};
+}
+
+Pair<Int, Int> Int::BtwSqrt(const Int &A) {
+	Int a = 0, b = A, c = One, d, diff;
+
+	while (c <= b) c = c << 2;
+	c = c >> 2;
+
+	while (c != Zero) {
+		d = a + c;
+
+		if (b >= d) {
+			b = b - d;
+			a = a + (c << 1);
+		}
+
+		a = a >> 1;
+		c = c >> 2;
+	}
+
+	a.Normalize(); b.Normalize();
+	return {a, b};
+}
 
 Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B, const DWORD lz) {
 	const DWORD n = B.v.GetSize();
@@ -973,6 +1066,26 @@ Pair<Int, DWORD> Int::SmallDiv(const Int &A, const DWORD B) {
 	q.Normalize();
 	return {q, static_cast<DWORD>(r)};
 } // OPTIMISATION IA => Idem que SmallMul
+
+Int Int::ApproxDiv(const Int &A, const Int &B) {
+	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();
+
+	const DWORD A1 = A.v[nA - 1];
+	const DWORD A0 = (nA > 1) ? A.v[nA - 2] : 0;
+
+	const DWORD B1 = B.v[nB - 1];
+	const DWORD B0 = (nB > 1) ? B.v[nB - 2] : 0;
+
+	const QWORD AH = (static_cast<QWORD>(A1) << 32) | A0;
+	const QWORD BH = (static_cast<QWORD>(B1) << 32) | B0;
+
+	QWORD q = AH / (BH + 1);
+
+	if (const Int p = Int(q) * B; p > A) q = q - 1;
+	else if ((A - p) >= B)               q = q + 1;
+
+	return {q};
+}
 
 sDWORD Int::CmpAbs(const Int &A, const Int &B) {
 	const DWORD nA = A.v.GetSize(), nB = B.v.GetSize();

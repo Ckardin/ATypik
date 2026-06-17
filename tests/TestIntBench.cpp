@@ -189,7 +189,7 @@ void BenchDiv(const Types::DWORD bits, const Types::WORD ncnt) {
 
     for (Types::WORD i = 0; i < ncnt; i = i + 1) {
         const Types::Int a = Types::Int::Random(bits, rdr);
-        const Types::Int b = Types::Int::Random(bits / 2, rdr);
+        const Types::Int b = Types::Int::Random((bits / 2) + 64, rdr);
 
         std::cout << "\rBench Div "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
@@ -210,7 +210,7 @@ void BenchMod(const Types::DWORD bits, const Types::WORD ncnt) {
 
     for (Types::WORD i = 0; i < ncnt; i = i + 1) {
         const Types::Int a = Types::Int::Random(bits, rdr);
-        const Types::Int b = Types::Int::Random(bits / 2, rdr);
+        const Types::Int b = Types::Int::Random((bits / 2) + 64, rdr);
 
         std::cout << "\rBench Mod "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
@@ -222,6 +222,26 @@ void BenchMod(const Types::DWORD bits, const Types::WORD ncnt) {
 
     mbt = mbt / ncnt;
     std::cout << "\rMod " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
+                          << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
+}
+
+void BenchSqt(const Types::DWORD bits, const Types::WORD ncnt) {
+    std::random_device rdr;
+    double mbt = 0.00;
+
+    for (Types::WORD i = 0; i < ncnt; i = i + 1) {
+        const Types::Int a = Types::Int::Random(bits, rdr);
+
+        std::cout << "\rBench Sqt "
+                      << std::setw(3) << i + 1 << " / " << ncnt << " ("
+                      << std::setw(5) << bits << " bits)"
+                      << std::string(20, ' ')
+                      << std::flush;
+        mbt += TimeIt([&]() { volatile Types::Int c = Types::Int::Sqrt(a); });
+    }
+
+    mbt = mbt / ncnt;
+    std::cout << "\rSqt " << std::setw(5) << bits << " bits: " << std::setw(8) << std::fixed
                           << std::setprecision(2) << mbt << " us" << std::string(25, ' ') <<std::endl;
 }
 
@@ -270,6 +290,7 @@ int main() {
         BenchMgr(bits, cntb);
         BenchDiv(bits, cntb);
         BenchMod(bits, cntb);
+        BenchSqt(bits, cntb);
 
         std::cout << "" <<std::endl;
     }

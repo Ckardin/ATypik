@@ -58,7 +58,7 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #include <iostream>
 #include "../src/Int.h"
 
-int Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Types::Int &C, const Fenyx::Types::Int &E, int s, int d, int m, int q, int r);
+int Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Types::Int &C, const Fenyx::Types::Int &E, int s, int d, int m, int q, int r, int sq);
 
 int main() {
 	Fenyx::Types::Int A(2000000000), B(50), C(20000), E(51);
@@ -68,19 +68,19 @@ int main() {
 	std::cout << "=== Test {Int} sur petites valeurs ===" <<std::endl;
 	std::cout << "" <<std::endl;
 
-	Fenyx::Types::sDWORD ret = Test(A, B, C, E, 2000000050, 1999999950, 1000000, 40000000, 14);
+	Fenyx::Types::sDWORD ret = Test(A, B, C, E, 2000000050, 1999999950, 1000000, 40000000, 14, 7);
 	if (ret != 0) return ret;
 
 	B = Fenyx::Types::Int(-50); E = Fenyx::Types::Int(-51);
-	ret = Test(A, B, C, E, 1999999950, 2000000050, -1000000, -40000000, 14);
+	ret = Test(A, B, C, E, 1999999950, 2000000050, -1000000, -40000000, 14, 7);
 	if (ret != 0) return ret;
 
 	A = Fenyx::Types::Int(-2000000000); B = Fenyx::Types::Int(50); C = Fenyx::Types::Int(-20000); E = Fenyx::Types::Int(51);
-	ret = Test(A, B, C, E, -1999999950, -2000000050, -1000000, -40000000, -14);
+	ret = Test(A, B, C, E, -1999999950, -2000000050, -1000000, -40000000, -14, 7);
 	if (ret != 0) return ret;
 
 	B = Fenyx::Types::Int(-50); E = Fenyx::Types::Int(-51);
-	ret = Test(A, B, C, E, -2000000050, -1999999950, 1000000, 40000000, -14);
+	ret = Test(A, B, C, E, -2000000050, -1999999950, 1000000, 40000000, -14, 7);
 	if (ret != 0) return ret;
 
 	std::cout << "Test Int => OK" <<std::endl;
@@ -88,12 +88,13 @@ int main() {
 	return 0;
 }
 
-Fenyx::Types::sDWORD Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Types::Int &C, const Fenyx::Types::Int &E, const int s, const int d, const int m, const int q, const int r) {
+Fenyx::Types::sDWORD Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B, const Fenyx::Types::Int &C, const Fenyx::Types::Int &E, const int s, const int d, const int m, const int q, const int r, const int sq) {
 	const Fenyx::Types::Int S = A + B;
 	const Fenyx::Types::Int D = A - B;
 	const Fenyx::Types::Int M = C * B;
 	const Fenyx::Types::Int Q = A / B;
 	const Fenyx::Types::Int R = A % E;
+	const Fenyx::Types::Int Sq = Fenyx::Types::Int::Sqrt(B);
 
 	if (S != Fenyx::Types::Int(s)) {
 		std::cout << "Test Add => KO (" << S.GetStr() << ")" << std::endl;
@@ -118,6 +119,11 @@ Fenyx::Types::sDWORD Test(const Fenyx::Types::Int &A, const Fenyx::Types::Int &B
 	if (R != Fenyx::Types::Int(r)) {
 		std::cout << "Test Mod => KO (" << R.GetStr() << ")" << std::endl;
 		return -5;
+	}
+
+	if (Sq != Fenyx::Types::Int(sq)) {
+		std::cout << "Test Sqt => KO (" << Sq.GetStr() << ")" << std::endl;
+		return -6;
 	}
 
 	return 0;
