@@ -72,6 +72,7 @@ struct DivergCount {
     WORD sgr = 0;
     WORD div = 0;
     WORD mod = 0;
+    WORD sqt = 0;
     WORD lsh = 0;
     WORD rsh = 0;
     WORD aop = 0;
@@ -121,6 +122,7 @@ std::string GetDivergSizes(const std::string &op, const STable<DivergCount, 8> &
         else if (op == "Sgr") count = tdg[i].sgr;
         else if (op == "Div") count = tdg[i].div;
         else if (op == "Mod") count = tdg[i].mod;
+        else if (op == "Sqt") count = tdg[i].sqt;
         else if (op == "Lsh") count = tdg[i].lsh;
         else if (op == "Rsh") count = tdg[i].rsh;
         else if (op == "And") count = tdg[i].aop;
@@ -170,6 +172,11 @@ void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, co
 
     c = gmpA % gmpB; diff = c - mpz_class((A % B).GetStr());
     if (diff != 0) dc.mod++;
+
+    mpz_sqrt(c.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class(Int::Sqrt(B2).GetStr());
+    // std::cout << "GMP: " << c << " / N: " << gmp2B << std::endl;
+    // std::cout << "Sqrt: " << Int::Sqrt(B2).GetStr() << " / N: " << B2.GetStr() << std::endl;
+    if (diff != 0) dc.sqt++;
 
     mpz_mul_2exp(c.get_mpz_t(), gmpA.get_mpz_t(), tB.GetL64()); diff = c - mpz_class((A << tB.GetL64()).GetStr());
     if (diff != 0) dc.lsh++;
@@ -240,6 +247,7 @@ int main() {
         fcnt.sgr += tDiverg[i].sgr;
         fcnt.div += tDiverg[i].div;
         fcnt.mod += tDiverg[i].mod;
+        fcnt.sqt += tDiverg[i].sqt;
         fcnt.lsh += tDiverg[i].lsh;
         fcnt.rsh += tDiverg[i].rsh;
         fcnt.aop += tDiverg[i].aop;
@@ -254,6 +262,7 @@ int main() {
     PrintResult("Mgr", fcnt.mgr, tDiverg);
     PrintResult("Sgr", fcnt.sgr, tDiverg);
     PrintResult("Div", fcnt.div, tDiverg);
+    PrintResult("Sqt", fcnt.sqt, tDiverg);
     PrintResult("Mod", fcnt.mod, tDiverg);
     PrintResult("Lsh", fcnt.lsh, tDiverg);
     PrintResult("Rsh", fcnt.rsh, tDiverg);

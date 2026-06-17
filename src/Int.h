@@ -62,6 +62,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 #include "StrUtils.h"
 
 #define MULLIMIT 64
+#define SQTLIMIT 5
+#define DIVLIMIT 128
 
 namespace Fenyx::Types
 {
@@ -106,6 +108,8 @@ public:
 	[[nodiscard]] DWORD TrailZero() const;
 	static Pair<Int, Int> DivMod(const Int &A, const Int &B);
 	static Int Square(const Int& A);
+	static Int SqrtRem(const Int& A, Int &r);
+	static Int Sqrt(const Int& A);
 
 	[[nodiscard]] static bool CTComp(const Int& A, const Int& B);
 
@@ -172,6 +176,9 @@ private:
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
 	static Int SmallMul(const Int &A, DWORD B);
+	static Pair<Int, Int> HeronSqrt(const Int &A);
+	static Pair<Int, Int> KaratsubaSqt(const Int &A);
+	static Pair<Int, Int> BtwSqrt(const Int &A);
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B, DWORD lz);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);

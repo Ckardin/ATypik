@@ -407,6 +407,51 @@ Int Int::Square(const Int& A) {
 	return ret;
 }
 
+/// @brief Sqrt - Donne la racine carrée entière
+///
+/// @param A: u-value
+///
+/// @return Un Int représentant la racine carrée entière de [A].
+Int Int::Sqrt(const Int& A) {
+	const DWORD n = A.v.GetSize();
+	Int tA, s;
+
+	tA.v.SetSize(n, 0);
+	for (QWORD i = 0; i < n; i = i + 1) tA.v[i] = A.v[i];
+	tA.sign = true;
+
+	if (n <= SQTLIMIT) s = BtwSqrt(tA).First();
+	else               s = HeronSqrt(tA).First();
+
+	s.Normalize();
+	return s;
+}
+
+/// @brief Sqrt - Donne la racine carrée entière et son reste
+///
+/// @param A: u-value
+/// @param r: reste
+///
+/// @return Un Int représentant la racine carrée entière de [A].
+Int Int::SqrtRem(const Int& A, Int &r) {
+	const DWORD n = A.v.GetSize();
+	Pair<Int, Int> sr;
+	Int tA;
+
+	tA.v.SetSize(n, 0);
+	for (QWORD i = 0; i < n; i = i + 1) tA.v[i] = A.v[i];
+	tA.sign = true;
+
+	if (n <= SQTLIMIT) sr = BtwSqrt(tA);
+	else               sr = HeronSqrt(tA);
+
+	Int s = sr.First();
+	r = sr.Second();
+
+	s.Normalize(); r.Normalize();
+	return s;
+}
+
 /// @brief CTComp - Comparaison de Int en temps constant
 ///
 /// @param[in] A: l-value
@@ -424,7 +469,7 @@ bool Int::CTComp(const Int& A, const Int& B) {
 		diff |= (a ^ b);
 	}
 
-	return ((diff == 0) && (n == m));
+	return ((diff - 1) >> 31);
 }
 
 /// @brief operator= - Opérateur d'affectation entre Int
@@ -914,6 +959,76 @@ Int Int::SmallMul(const Int &A, const DWORD B) {
 	ret.Normalize();
 	return ret;
 } // OPTIMISATION IA => Super algo, je ne connaissais pas :)
+
+Pair<Int, Int> Int::HeronSqrt(const Int &A) {
+	Int xn = One << (A.BitLength() / 2);
+	Int xn1, xnm1;
+
+	while (true) {
+		xn1  = (xn + Div(A, xn).First()) >> 1; xnm1 = xn;
+		if (xn1 == xn && xn1 == xnm1) break;
+
+		xn = xn1;
+	}
+
+	Int r = A - Sqr(xn, true, true);
+
+	xn.Normalize(); r.Normalize();
+	return {xn, r};
+}
+
+Pair<Int, Int> Int::KaratsubaSqt(const Int &A) {
+	const DWORD n = A.v.GetSize(), b = (n + 3) / 4;
+
+	if (n <= SQTLIMIT) return BtwSqrt(A);
+
+	const Int A0 = A.Slice(0, b).ExtByZero(b);
+	const Int A1 = A.Slice(b, b).ExtByZero(b);
+	const Int A2 = A.Slice(2 * b, b).ExtByZero(b);
+	const Int A3 = A.Slice(3 *b, n - b).ExtByZero(b);
+
+	Pair<Int, Int> srp = KaratsubaSqt(A3.WShift(b) + A2);
+	const Int sp = srp.First();
+
+	Pair<Int, Int> qu  = Div(srp.Second().WShift(b) + A1, sp << 1);
+	const Int q = qu.First();
+
+	Int s = sp.WShift(b) + q;
+	Int r = qu.Second().WShift(b) + A0 - Sqr(q, true, true);
+
+	while (r < Zero) {
+		r = r + ((s << 1) - One);
+		s = s - One;
+	}
+
+	s.Normalize(); r.Normalize();
+	return {s, r};
+}
+
+Pair<Int, Int> Int::BtwSqrt(const Int &A) {
+	Int a = 0, b = A, c = One, d, diff;
+	bool tzc = true;
+
+	while (c <= b) c = c << 2;
+	c = c >> 2;
+
+	while (tzc) {
+		d = a + c;
+
+		if (b >= d) {
+			b = b - d;
+			a = a + (c << 1);
+		}
+
+		a = a >> 1;
+		c = c >> 2;
+
+		tzc = (c.v.GetSize() > 1 || c.v[0] != 0);
+	}
+
+	a.Normalize(); b.Normalize();
+	return {a, b};
+}
 
 Pair<Int, Int> Int::KnuthD(const Int &A, const Int &B, const DWORD lz) {
 	const DWORD n = B.v.GetSize();
