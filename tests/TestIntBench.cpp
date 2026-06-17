@@ -189,7 +189,7 @@ void BenchDiv(const Types::DWORD bits, const Types::WORD ncnt) {
 
     for (Types::WORD i = 0; i < ncnt; i = i + 1) {
         const Types::Int a = Types::Int::Random(bits, rdr);
-        const Types::Int b = Types::Int::Random(bits / 2, rdr);
+        const Types::Int b = Types::Int::Random((bits / 2) + 64, rdr);
 
         std::cout << "\rBench Div "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("
@@ -210,7 +210,7 @@ void BenchMod(const Types::DWORD bits, const Types::WORD ncnt) {
 
     for (Types::WORD i = 0; i < ncnt; i = i + 1) {
         const Types::Int a = Types::Int::Random(bits, rdr);
-        const Types::Int b = Types::Int::Random(bits / 2, rdr);
+        const Types::Int b = Types::Int::Random((bits / 2) + 64, rdr);
 
         std::cout << "\rBench Mod "
                       << std::setw(3) << i + 1 << " / " << ncnt << " ("

@@ -175,12 +175,13 @@ private:
 	static Int LongSqr(const Int &A);
 	static Int Karatsuba(const Int &A, const Int &B);
 	static Int LongMul(const Int &A, const Int &B);
+	static Int SmallMul(const Int &A, QWORD B);
 	static Int SmallMul(const Int &A, DWORD B);
 	static Pair<Int, Int> HeronSqrt(const Int &A);
-	static Pair<Int, Int> KaratsubaSqt(const Int &A);
 	static Pair<Int, Int> BtwSqrt(const Int &A);
 	static Pair<Int, Int> KnuthD(const Int &A, const Int &B, DWORD lz);
 	static Pair<Int, DWORD> SmallDiv(const Int &A, DWORD B);
+	static Int ApproxDiv(const Int &A, const Int &B);
 	static sDWORD CmpAbs(const Int &A, const Int &B);
 	sDWORD CmpAbs(const Int &B);
 
