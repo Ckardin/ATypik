@@ -148,6 +148,7 @@ class STable
 public:
     explicit STable();
     STable(STable&& oth) noexcept;
+    STable(const STable &oth);
 
     [[nodiscard]] DWORD GetSize() const;
     [[nodiscard]] BYTE GetAlign() const;
@@ -157,6 +158,7 @@ public:
     T& operator[](DWORD idx);
     T const& operator[](DWORD idx) const;
     STable& operator=(STable&& oth) noexcept;
+    STable& operator=(const STable& oth);
 
     ~STable() = default;
 
@@ -389,6 +391,28 @@ STable<T, s>::STable(STable&& oth) noexcept : data(std::move(oth.data)), s_tab(o
 }
 
 template<class T, DWORD s>
+/// @brief STable - Constructeur de copie
+///
+/// @param[in] oth: STable à copier
+///
+/// Constructeur de copie de la classe STable
+STable<T, s>::STable(const STable &oth) : data(nullptr, &std::free), s_tab(s) {
+    sa = CPU::CPU_ALIGN * 4;
+    sa1 = sa - 1;
+
+    static const std::size_t s_byt = s * sizeof(T);
+    static const std::size_t s_arr = ((s_byt + sa1) / sa) * sa;
+
+    T *tmp = static_cast<T*>(std::aligned_alloc(sa, s_arr));
+    if (!tmp) throw std::bad_alloc();
+
+    data.reset(tmp);
+    if (!data) s_tab = 0;
+
+    for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = oth.data[i];
+}
+
+template<class T, DWORD s>
 /// @brief GetSize - Donne la taille du tableau
 ///
 /// @return Un DWORD contenant la taille du tableau.
@@ -467,6 +491,15 @@ STable<T, s>& STable<T, s>::operator=(STable&& oth) noexcept {
         oth.s_tab = 0;
         oth.sa    = 0;
         oth.sa1   = 0;
+    }
+
+    return *this;
+}
+
+template<class T, DWORD s>
+STable<T, s>& STable<T, s>::operator=(const STable& oth) {
+    if (this != &oth) {
+        for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = oth.data[i];
     }
 
     return *this;
