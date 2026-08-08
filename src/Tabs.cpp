@@ -65,8 +65,8 @@ void SwapBytes(barray &bytes) {
 	// ReSharper disable two CppJoinDeclarationAndAssignment
 	BYTE temp, j;
 
-	for(BYTE i = 1; i < (bytes[0] / 2); i = i + 1) {
-		j = (bytes[0] - 1) - i;
+	for(BYTE i = 1; i <= (bytes[0] / 2); i = i + 1) {
+		j = (bytes[0] + 1) - i;
 
 		temp     = bytes[i];
 		bytes[i] = bytes[j];
@@ -75,7 +75,7 @@ void SwapBytes(barray &bytes) {
 }
 #endif // LITTLE_ENDIAN
 
-/// @brief BytesArray - Convertit un nombre en tableau d'octets
+/// @brief BytesArray - Convertit un nombre en tableau d'octets (big-endian)
 ///
 /// @param[in] data: nombre à convertir
 ///
@@ -86,14 +86,14 @@ barray BytesArray(allnum data) {
 
 	bytes[0] = sizeof(T);
 	std::visit([&bytes](auto && v) -> void {
-		for(BYTE i = 1; i < static_cast<BYTE>(sizeof(T)); i = i + 1) bytes[i] = v >> (i * 8);
+		for(BYTE i = 1; i <= bytes[0]; i = i + 1) bytes[i] = static_cast<BYTE>(v >> ((i - 1) * 8));
 	}, data);
 
 #ifdef LITTLE_ENDIAN
 	SwapBytes(bytes);
 #endif // LITTLE_ENDIAN
 
-		return bytes;
+	return bytes;
 }
 
 }
