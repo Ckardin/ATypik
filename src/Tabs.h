@@ -1047,6 +1047,11 @@ bool operator!=(const MTable<K, V> &t1, const MTable<K, V> &t2) {
 
 
 template<typename T>
+/// @brief BytesArray - Convertit un tableau d'octets en nombre
+///
+/// @param[in] data: tableau à convertir
+///
+/// @return Un nombre de taille data[0] représentant le tableau d'octets.
 T ArrayBytes(const barray &data) {
     const BYTE sT = sizeof(T);
     T ret = static_cast<T>(0);
