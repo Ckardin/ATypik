@@ -257,6 +257,8 @@ using barray = STable<BYTE, 17>;
 #endif // LITTLE_ENDIAN
 
 barray BytesArray(allnum data);
+template<typename T>
+T ArrayBytes(const barray &data);
 
 
 
@@ -1041,6 +1043,18 @@ bool operator!=(const MTable<K, V> &t1, const MTable<K, V> &t2) {
     }
 
     return false;
+}
+
+
+template<typename T>
+T ArrayBytes(const barray &data) {
+    const BYTE sT = sizeof(T);
+    T ret = static_cast<T>(0);
+
+    if (sT != data[0]) return ret;
+    for (BYTE i = 1; i <= sT; i = i + 1) ret = (ret << 8) | data[i];
+
+    return ret;
 }
 
 }
