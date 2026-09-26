@@ -81,11 +81,12 @@ void SwapBytes(barray &bytes) {
 ///
 /// @return Un STable d'octets représentant le nombre.
 barray BytesArray(allnum data) {
-	using T = std::decay_t<decltype(data)>;
 	barray bytes;
 
-	bytes[0] = sizeof(T);
 	std::visit([&bytes](auto && v) -> void {
+		using T = std::decay_t<decltype(v)>;
+        bytes[0] = sizeof(T);
+	
 		for(BYTE i = 1; i <= bytes[0]; i = i + 1) bytes[i] = static_cast<BYTE>(v >> ((i - 1) * 8));
 	}, data);
 

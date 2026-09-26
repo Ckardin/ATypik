@@ -437,7 +437,12 @@ template<class T, DWORD s>
 ///
 /// @return La valeur contenue à t[idx] si existe ou dummy sinon.
 T const& STable<T, s>::GetValue(DWORD idx) {
-    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
+    if (idx >= s_tab) {
+    	std::ostringstream oss;
+		oss << idx;
+		
+    	throw std::out_of_range("STable: [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -457,9 +462,14 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence sur la valeur contenue à t[idx] si existe, dummy sinon.
+/// @return Une référence sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T& STable<T, s>::operator[](DWORD idx) {
-    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
+    if (idx >= s_tab) {
+    	std::ostringstream oss;
+		oss << idx;
+		
+    	throw std::out_of_range("STable: [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -469,9 +479,14 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence constante sur la valeur contenue à t[idx] si existe, dummy sinon.
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& STable<T, s>::operator[](DWORD idx) const {
-    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
+    if (idx >= s_tab) {
+    	std::ostringstream oss;
+		oss << idx;
+		
+    	throw std::out_of_range("STable: [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -769,7 +784,12 @@ template<class T>
 ///
 /// @return Une référence constante sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& DTable<T>::operator[](DWORD idx) const {
-    if (idx >= s_tab) throw std::out_of_range("DTable/operator[]: [idx] is out of range");
+    if (idx >= s_tab) {
+        std::ostringstream oss;
+        oss << idx;
+
+        throw std::out_of_range("DTable/operator[]: [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -1056,7 +1076,7 @@ T ArrayBytes(const barray &data) {
     const BYTE sT = sizeof(T);
     T ret = static_cast<T>(0);
 
-    if (sT != data[0]) return ret;
+    if (sT > 16 || sT != data[0]) return ret;
     for (BYTE i = 1; i <= sT; i = i + 1) ret = (ret << 8) | data[i];
 
     return ret;
