@@ -27,13 +27,6 @@ INTFILES=build/Defines.o build/ll_Wrp.o build/Tabs.o build/StrUtils.o build/Int.
 FLTOTEST=if grep -q "lto" linkout.tmp; then MakeInfo $(MILANG) flto
 FFLTOTEST=; fi
 
-A_SHLIB=so
-A_STLIB=a
-A_EXT=
-SHRDIR=$(ASHES_DIR)/share
-LIBDIR=$(ASHES_DIR)/lib
-INCDIR=$(ASHES_DIR)/inc
-MILANG=fr
 
 all: $(OBJFILES)
 	@MakeInfo $(MILANG) dynamic ATypik
