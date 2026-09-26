@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& os, const SWORD v) {
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
 	STable<char, 10> chars;
 
-	for (BYTE i = 0 ; i < 10 ; i = i + 1) chars[i] = toChar(i + 48);
+	for (BYTE i = 0; i < 10; i = i + 1) chars[i] = toChar(i + 48);
 
 	while (n != 0) {
 		ret += chars[(n % 10)];
@@ -93,7 +93,7 @@ std::ostream& operator<<(std::ostream& os, const sSWORD v) {
 	std::string ret = ""; // NOLINT(*-redundant-string-init)
 	STable<char, 10> chars;
 
-	for (BYTE i = 0 ; i < 10 ; i = i + 1) chars[i] = toChar(i + 48);
+	for (BYTE i = 0; i < 10; i = i + 1) chars[i] = toChar(i + 48);
 
 	if (n < 0) {
 		ret += "-";

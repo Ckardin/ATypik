@@ -106,7 +106,7 @@ int main() {
 		return -9;
 	}
 
-	std::cout << "Test Math => OK" <<std::endl;
+	std::cout << "Test Math     => OK" <<std::endl;
 
     return test_c();
 }
@@ -165,7 +165,7 @@ int test_c() {
         return -16;
     }
 
-	std::cout << "Test Complex => OK" <<std::endl;
+	std::cout << "Test Complex  => OK" <<std::endl;
 
     return 0;
 }

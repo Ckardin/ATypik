@@ -174,8 +174,6 @@ void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, co
     if (diff != 0) dc.mod++;
 
     mpz_sqrt(c.get_mpz_t(), gmp2B.get_mpz_t()); diff = c - mpz_class(Int::Sqrt(B2).GetStr());
-    // std::cout << "GMP: " << c << " / N: " << gmp2B << std::endl;
-    // std::cout << "Sqrt: " << Int::Sqrt(B2).GetStr() << " / N: " << B2.GetStr() << std::endl;
     if (diff != 0) dc.sqt++;
 
     mpz_mul_2exp(c.get_mpz_t(), gmpA.get_mpz_t(), tB.GetL64()); diff = c - mpz_class((A << tB.GetL64()).GetStr());
@@ -195,7 +193,7 @@ void TestOperators(const Int &A, const Int &B, const Int &N, DivergCount &dc, co
 }
 
 void PrintResult(const std::string &op, const WORD count, const STable<DivergCount, 8> &tdg, const std::string &sad = "") {
-    std::cout << "Test " << op << " => ";
+    std::cout << "Test " << op << "      => ";
     if (count > 0) {
         std::cout << "KO --> " << count << " divergence(s)" << GetDivergSizes(op, tdg) << sad << std::endl;
     } else {

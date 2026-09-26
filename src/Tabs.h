@@ -73,8 +73,8 @@ public:
     Pair() = default;
     Pair(const U &f, const V &s);
 
-    U First();
-    V Second();
+    U First() const;
+    V Second() const;
 
     void Set(const U &f, const V &s);
     void SetFirst(const U &f);
@@ -142,7 +142,7 @@ private:
 template<class T, DWORD s>
 /// @brief STable - Classe qui permet de gérer un tableau de taille fixe
 ///
-/// /!\ Le tableau est aligné sur 32 octets (pour les intrinsics AVX2)
+/// /!\ Le tableau est aligné sur la valeur maximale possible en fonction du CPU (pour les intrinsics)
 class STable
 {
 public:
@@ -278,7 +278,7 @@ template<class U, class V>
 /// @brief First - Récupère la première valeur de la paire
 ///
 /// @return La première valeur contenue dans la paire.
-U Pair<U, V>::First() {
+U Pair<U, V>::First() const {
     return first;
 }
 
@@ -286,7 +286,7 @@ template<class U, class V>
 /// @brief Second - Récupère la deuxième valeur de la paire
 ///
 /// @return La deuxième valeur contenue dans la paire.
-V Pair<U, V>::Second() {
+V Pair<U, V>::Second() const {
     return second;
 }
 
@@ -364,7 +364,7 @@ DWORD Stack<T>::GetSize() {
 template<class T, DWORD s>
 /// @brief STable - Constructeur
 ///
-/// Constructeur par défaut de la classe STable.
+/// Constructeur par défaut de la classe STable
 STable<T, s>::STable() : data(nullptr, &std::free), s_tab(s) {
     sa  = CPU::CPU_ALIGN * 4;
     sa1 = sa - 1;
@@ -435,9 +435,14 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return La valeur contenue à t[idx] si existe ou dummy sinon.
+/// @return La valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& STable<T, s>::GetValue(DWORD idx) {
-    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
+    if (idx >= s_tab) {
+    	std::ostringstream oss;
+		oss << idx;
+		
+    	throw std::out_of_range("STable/GetValue(): [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -457,9 +462,14 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence sur la valeur contenue à t[idx] si existe, dummy sinon.
+/// @return Une référence sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T& STable<T, s>::operator[](DWORD idx) {
-    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
+    if (idx >= s_tab) {
+    	std::ostringstream oss;
+		oss << idx;
+		
+    	throw std::out_of_range("STable/op[](&): [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -469,9 +479,14 @@ template<class T, DWORD s>
 ///
 /// @param[in] idx: index
 ///
-/// @return Une référence constante sur la valeur contenue à t[idx] si existe, dummy sinon.
+/// @return Une référence constante sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& STable<T, s>::operator[](DWORD idx) const {
-    if (idx >= s_tab) throw std::out_of_range("STable: [idx] is out of range");
+    if (idx >= s_tab) {
+    	std::ostringstream oss;
+		oss << idx;
+		
+    	throw std::out_of_range("STable/op[](const): [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -499,6 +514,11 @@ STable<T, s>& STable<T, s>::operator=(STable&& oth) noexcept {
 }
 
 template<class T, DWORD s>
+/// @brief operator= - Opérateur de copie entre STable
+///
+/// @param[in] oth: STable à copier
+///
+/// @return Une référence sur le STable affecté.
 STable<T, s>& STable<T, s>::operator=(const STable& oth) {
     if (this != &oth) {
         for (QWORD i = 0; i < s_tab; i = i + 1) data[i] = oth.data[i];
@@ -515,9 +535,10 @@ template<class T, DWORD s>
 ///
 /// @return true si égaux, false sinon.
 bool operator==(const STable<T, s> &t1, const STable<T, s> &t2) {
-    if (t1.s_tab != t2.s_tab) return false;
+    const DWORD t1s = t1.s_tab;
+    if (t1s != t2.s_tab) return false;
 
-    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+    for (QWORD i = 0; i < t1s; i = i + 1) {
         if (t1.data[i] != t2.data[i]) return false;
     }
 
@@ -530,11 +551,12 @@ template<class T, DWORD s>
 /// @param[in] t1: lhs
 /// @param[in] t2: rhs
 ///
-/// @return true si inégaux, false sinon.
+/// @return true si différents, false sinon.
 bool operator!=(const STable<T, s> &t1, const STable<T, s> &t2) {
-    if (t1.s_tab != t2.s_tab) return true;
+    const DWORD t1s = t1.s_tab;
+    if (t1s != t2.s_tab) return true;
 
-    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+    for (QWORD i = 0; i < t1s; i = i + 1) {
         if (t1.data[i] != t2.data[i]) return true;
     }
 
@@ -622,9 +644,14 @@ template<class T>
 ///
 /// @param[in] idx: index
 ///
-/// @return La valeur contenue à t[idx] si existe ou dummy sinon.
+/// @return La valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& DTable<T>::GetValue(DWORD idx) {
-    if (idx >= s_tab) throw std::out_of_range("DTable/GetValue(): [idx] is out of range");
+    if (idx >= s_tab) {
+        std::ostringstream oss;
+        oss << idx;
+
+        throw std::out_of_range("DTable/GetValue(): [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -769,7 +796,12 @@ template<class T>
 ///
 /// @return Une référence constante sur la valeur contenue à t[idx] si existe, lève une exception sinon.
 T const& DTable<T>::operator[](DWORD idx) const {
-    if (idx >= s_tab) throw std::out_of_range("DTable/operator[]: [idx] is out of range");
+    if (idx >= s_tab) {
+        std::ostringstream oss;
+        oss << idx;
+
+        throw std::out_of_range("DTable/op[](const): [idx] (" + oss.str() + ") is out of range");
+    }
 
     return data[idx];
 }
@@ -799,6 +831,11 @@ DTable<T>& DTable<T>::operator=(DTable&& oth) noexcept {
 }
 
 template<class T>
+/// @brief operator= - Opérateur de copie entre DTable
+///
+/// @param[in] oth: DTable à copier
+///
+/// @return Une référence sur le DTable affecté.
 DTable<T>& DTable<T>::operator=(const DTable& oth) {
     if (this != &oth) {
         const DWORD ns = (oth.s_tab > 0) ? oth.s_tab : 2;
@@ -826,9 +863,10 @@ template<class T>
 ///
 /// @return true si égaux, false sinon.
 bool operator==(const DTable<T> &t1, const DTable<T> &t2) {
-    if (t1.s_tab != t2.s_tab) return false;
+    const DWORD t1s = t1.s_tab;
+    if (t1s != t2.s_tab) return false;
 
-    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+    for (QWORD i = 0; i < t1s; i = i + 1) {
         if (t1.data[i] != t2.data[i]) return false;
     }
 
@@ -843,9 +881,10 @@ template<class T>
 ///
 /// @return true si inégaux, false sinon.
 bool operator!=(const DTable<T> &t1, const DTable<T> &t2) {
-    if (t1.s_tab != t2.s_tab) return true;
+    const DWORD t1s = t1.s_tab;
+    if (t1s != t2.s_tab) return true;
 
-    for (QWORD i = 0; i < t1.s_tab; i = i + 1) {
+    for (QWORD i = 0; i < t1s; i = i + 1) {
         if (t1.data[i] != t2.data[i]) return true;
     }
 
@@ -1056,7 +1095,7 @@ T ArrayBytes(const barray &data) {
     const BYTE sT = sizeof(T);
     T ret = static_cast<T>(0);
 
-    if (sT != data[0]) return ret;
+    if (sT > 16 || sT != data[0]) return ret;
     for (BYTE i = 1; i <= sT; i = i + 1) ret = (ret << 8) | data[i];
 
     return ret;

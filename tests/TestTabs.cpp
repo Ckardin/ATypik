@@ -52,8 +52,8 @@ Vous devez avoir reçu une copie de la GNU General Public License en même temps
 /// @file TestTabs.cpp
 /// @brief Source de TestTabs
 /// @author F&nµx
-/// @version 2.0
-/// @date 25/12/2025
+/// @version 3.0
+/// @date 26/09/2026
 
 #include "../src/StrUtils.h"
 #include <iostream>
@@ -80,7 +80,7 @@ int main() {
 		return -5;
 	}
 
-	std::cout << "Test Tabs => OK (Align: " << static_cast<Fenyx::Types::WORD>(d1.GetAlign()) << ")" <<std::endl;
+	std::cout << "Test Tabs     => OK (Align: " << +d1.GetAlign() << ")" <<std::endl;
 
 	return 0;
 }
