@@ -90,7 +90,7 @@ int main(void) {
     	return -3;
     }
 
-    std::cout << "Test TriBool => OK" << std::endl;
+    std::cout << "Test TriBool  => OK" << std::endl;
 
     return 0;
 }

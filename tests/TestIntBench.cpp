@@ -281,7 +281,7 @@ int main() {
     std::cout << "=== Benchmark pour Int ===" <<std::endl;
     std::cout << "" <<std::endl;
 
-    for (Types::DWORD bits : {128, 256, 512, 1024, 2048, 4096, 8192, 16384}) {
+    for (const Types::DWORD bits : {128, 256, 512, 1024, 2048, 4096, 8192, 16384}) {
         BenchAdd(bits, cntb);
         BenchSub(bits, cntb);
         BenchLop(bits, cntb);

@@ -83,7 +83,7 @@ int main() {
 	ret = Test(A, B, C, E, -2000000050, -1999999950, 1000000, 40000000, -14, 7);
 	if (ret != 0) return ret;
 
-	std::cout << "Test Int => OK" <<std::endl;
+	std::cout << "Test Int      => OK" <<std::endl;
 
 	return 0;
 }

@@ -27,6 +27,13 @@ INTFILES=build/Defines.o build/ll_Wrp.o build/Tabs.o build/StrUtils.o build/Int.
 FLTOTEST=if grep -q "lto" linkout.tmp; then MakeInfo $(MILANG) flto
 FFLTOTEST=; fi
 
+A_SHLIB=so
+A_STLIB=a
+A_EXT=
+SHRDIR=$(ASHES_DIR)/share
+LIBDIR=$(ASHES_DIR)/lib
+INCDIR=$(ASHES_DIR)/inc
+MILANG=fr
 
 all: $(OBJFILES)
 	@MakeInfo $(MILANG) dynamic ATypik
@@ -43,6 +50,7 @@ install:
 	@MakeInfo $(MILANG) install headers
 	@install -p -m 755 src/Defines.h  $(INCDIR)
 	@install -p -m 755 src/Tabs.h     $(INCDIR)
+	@install -p -m 755 src/Tabs2D.h   $(INCDIR)
 	@install -p -m 755 src/Utils.h    $(INCDIR)
 	@install -p -m 755 src/StrUtils.h $(INCDIR)
 	@install -p -m 755 src/Math.h     $(INCDIR)
@@ -122,9 +130,10 @@ mrproper:
 
 # Testing
 
-tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestMath$(A_EXT) build/tests/TestInt$(A_EXT) build/tests/TestIntBig$(A_EXT) build/tests/TestIntBench$(A_EXT) build/tests/TestArch$(A_EXT)
+tests: build/tests/TestDefines$(A_EXT) build/tests/TestTabs$(A_EXT) build/tests/Test2DTabs$(A_EXT) build/tests/TestStrUtils$(A_EXT) build/tests/TestMath$(A_EXT) build/tests/TestInt$(A_EXT) build/tests/TestIntBig$(A_EXT) build/tests/TestIntBench$(A_EXT) build/tests/TestArch$(A_EXT)
 	@./build/tests/TestDefines$(A_EXT)
 	@./build/tests/TestTabs$(A_EXT)
+	@./build/tests/Test2DTabs$(A_EXT)
 	@./build/tests/TestStrUtils$(A_EXT)
 	@./build/tests/TestMath$(A_EXT)
 	@./build/tests/TestInt$(A_EXT)
@@ -140,6 +149,10 @@ build/tests/TestDefines.o: tests/TestDefines.cpp
 build/tests/TestTabs.o: tests/TestTabs.cpp
 	@MakeInfo $(MILANG) module TestTabs
 	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/TestTabs.cpp -o build/tests/TestTabs.o
+
+build/tests/Test2DTabs.o: tests/Test2DTabs.cpp
+	@MakeInfo $(MILANG) module Test2DTabs
+	@$(CC) $(SPEFLAGS) $(CXXFLAGS) -c tests/Test2DTabs.cpp -o build/tests/Test2DTabs.o
 
 build/tests/TestStrUtils.o: tests/TestStrUtils.cpp
 	@MakeInfo $(MILANG) module TestStrUtils
@@ -175,6 +188,11 @@ build/tests/TestTabs$(A_EXT): build/tests/TestTabs.o build/Defines.o build/ll_Wr
 	@MakeInfo $(MILANG) program_s TestTabs
 	@$(CC) build/Defines.o build/ll_Wrp.o build/Tabs.o build/tests/TestTabs.o $(LDFLAGS) -o build/tests/TestTabs$(A_EXT) 2> linkout.tmp
 	@$(FLTOTEST) TestTabs $(FFLTOTEST)
+
+build/tests/Test2DTabs$(A_EXT): build/tests/Test2DTabs.o build/Defines.o build/ll_Wrp.o build/Tabs.o
+	@MakeInfo $(MILANG) program_s Test2DTabs
+	@$(CC) build/Defines.o build/ll_Wrp.o build/Tabs.o build/tests/Test2DTabs.o $(LDFLAGS) -o build/tests/Test2DTabs$(A_EXT) 2> linkout.tmp
+	@$(FLTOTEST) Test2DTabs $(FFLTOTEST)
 
 build/tests/TestStrUtils$(A_EXT): build/tests/TestStrUtils.o build/Defines.o build/ll_Wrp.o build/Tabs.o build/StrUtils.o
 	@MakeInfo $(MILANG) program_s TestStrUtils
